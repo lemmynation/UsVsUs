@@ -53,8 +53,8 @@ Do not introduce a new dependency unless it materially simplifies the implementa
   stores behaving the same; when you change one, change the other and the migration.
 - **Anonymous players**: an httpOnly `uvu_session` cookie holds a random token; the DB stores only its
   SHA-256 hash (`lib/session.ts`). All reads/writes go through route handlers in `app/api/`.
-- **Database access**: server only, via the service-role key. RLS is on with no policies, so the browser's
-  anon key cannot touch tables.
+- **Database access**: server only, via the secret key (`sb_secret_…`, service_role). RLS is on with no
+  policies, so the browser's publishable key cannot touch tables.
 - **Realtime**: the server broadcasts a payload-free `room_changed` ping on `room:<id>`; clients refetch
   `/api/rooms/<id>`. Never put room data or answers in a broadcast. `hooks/use-room.ts` also polls as a
   fallback and refetches on reconnect/visibility.

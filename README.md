@@ -34,10 +34,11 @@ incognito window to play as a second player.
 1. Create a free project at [supabase.com](https://supabase.com).
 2. In the project's **SQL Editor**, run `supabase/migrations/20261007000000_rooms.sql`, then
    `supabase/seed.sql`.
-3. Copy `.env.example` to `.env.local` and fill in the three values from **Project Settings → API**.
-   `.env.local` is git-ignored — never commit it.
+3. Copy `.env.example` to `.env.local` and fill in the Project URL, the publishable key (`sb_publishable_…`)
+   and the secret key (`sb_secret_…`) from **Project Settings → API Keys**. `.env.local` is git-ignored —
+   never commit it.
 4. Restart `npm run dev`. Rooms now persist, and lobbies update instantly via Supabase Realtime
-   (broadcast must be allowed for the anon key — it is by default).
+   (broadcast must be allowed for the publishable key — it is by default).
 
 ## Scripts
 

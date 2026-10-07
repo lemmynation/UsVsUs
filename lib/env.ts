@@ -3,14 +3,14 @@ import { z } from "zod";
 
 const schema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url().optional(),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().startsWith("sb_publishable_").optional(),
+  SUPABASE_SECRET_KEY: z.string().startsWith("sb_secret_").optional(),
   /** Force the in-memory store (local dev / E2E). Never use for real players. */
   ROOM_STORE: z.enum(["supabase", "memory"]).optional(),
 });
 
 export type ServerEnv =
-  { store: "memory" } | { store: "supabase"; supabaseUrl: string; anonKey: string; serviceRoleKey: string };
+  { store: "memory" } | { store: "supabase"; supabaseUrl: string; publishableKey: string; secretKey: string };
 
 let cached: ServerEnv | undefined;
 
@@ -21,15 +21,19 @@ export function getServerEnv(): ServerEnv {
 
   const parsed = schema.safeParse({
     NEXT_PUBLIC_SUPABASE_URL: blank(process.env.NEXT_PUBLIC_SUPABASE_URL),
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: blank(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
-    SUPABASE_SERVICE_ROLE_KEY: blank(process.env.SUPABASE_SERVICE_ROLE_KEY),
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: blank(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY),
+    SUPABASE_SECRET_KEY: blank(process.env.SUPABASE_SECRET_KEY),
     ROOM_STORE: blank(process.env.ROOM_STORE),
   });
   if (!parsed.success) {
     throw new Error(`Invalid environment variables:\n${z.prettifyError(parsed.error)}`);
   }
   const env = parsed.data;
-  const supabaseVars = [env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, env.SUPABASE_SERVICE_ROLE_KEY];
+  const supabaseVars = [
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    env.SUPABASE_SECRET_KEY,
+  ];
   const configured = supabaseVars.filter(Boolean).length;
 
   if (env.ROOM_STORE === "memory") {
@@ -38,12 +42,12 @@ export function getServerEnv(): ServerEnv {
     cached = {
       store: "supabase",
       supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL!,
-      anonKey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY!,
+      publishableKey: env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+      secretKey: env.SUPABASE_SECRET_KEY!,
     };
   } else if (configured > 0 || env.ROOM_STORE === "supabase") {
     throw new Error(
-      "Supabase is partly configured. Set NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY in .env.local.",
+      "Supabase is partly configured. Set NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY and SUPABASE_SECRET_KEY in .env.local.",
     );
   } else if (process.env.NODE_ENV === "production") {
     throw new Error("Supabase is not configured. Set the Supabase variables (see .env.example).");
@@ -55,7 +59,7 @@ export function getServerEnv(): ServerEnv {
 }
 
 /** Values safe to send to the browser for realtime subscriptions. */
-export function getPublicRealtimeConfig(): { url: string; anonKey: string } | null {
+export function getPublicRealtimeConfig(): { url: string; publishableKey: string } | null {
   const env = getServerEnv();
-  return env.store === "supabase" ? { url: env.supabaseUrl, anonKey: env.anonKey } : null;
+  return env.store === "supabase" ? { url: env.supabaseUrl, publishableKey: env.publishableKey } : null;
 }
