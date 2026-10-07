@@ -1,9 +1,10 @@
+import type { GameService } from "@/lib/game/service";
 import type { Mode, Player, Room, RoomPreview, RoomView } from "@/types/room";
+import { loadMembership as loadMembershipFrom, type MembershipError } from "./membership";
 import {
   activePlayers,
   checkCanJoin,
   checkCanKick,
-  checkCanStart,
   checkRoomJoinable,
   computeExpiresAt,
   effectiveStatus,
@@ -16,7 +17,6 @@ import {
   type JoinError,
   type KickError,
   type Result,
-  type StartError,
 } from "./rules";
 import type { RoomStore } from "./store";
 
@@ -24,9 +24,9 @@ export interface RoomServiceDeps {
   store: RoomStore;
   now: () => Date;
   randomInt: (maxExclusive: number) => number;
+  /** Game layer: in-game views, host hand-off, auto-reveal when the roster changes. */
+  game?: GameService;
 }
-
-type MembershipError = "room_not_found" | "not_in_room" | "kicked";
 
 export type CreateRoomError =
   "nickname_required" | "nickname_too_long" | "room_name_too_long" | "code_generation_failed";
@@ -55,20 +55,8 @@ function toPreview(room: Room, players: Player[]): RoomPreview {
   };
 }
 
-export function createRoomService({ store, now, randomInt }: RoomServiceDeps) {
-  /** Loads the room and the caller's player record, or explains why they can't act in it. */
-  async function loadMembership(
-    roomId: string,
-    sessionHash: string | null,
-  ): Promise<Result<{ room: Room; players: Player[]; me: Player }, MembershipError>> {
-    const room = await store.getRoomById(roomId);
-    if (!room) return fail("room_not_found");
-    const players = await store.listPlayers(roomId);
-    const me = sessionHash ? players.find((p) => p.sessionTokenHash === sessionHash) : undefined;
-    if (!me) return fail("not_in_room");
-    if (me.status === "kicked") return fail("kicked");
-    return ok({ room, players, me });
-  }
+export function createRoomService({ store, now, randomInt, game }: RoomServiceDeps) {
+  const loadMembership = (roomId: string, sessionHash: string | null) => loadMembershipFrom(store, roomId, sessionHash);
 
   return {
     async createRoom(input: {
@@ -153,13 +141,19 @@ export function createRoomService({ store, now, randomInt }: RoomServiceDeps) {
 
     /** Room state for a member. Also records that the member is still here. */
     async getRoomView(roomId: string, sessionHash: string | null): Promise<Result<RoomView, MembershipError>> {
-      const membership = await loadMembership(roomId, sessionHash);
+      let membership = await loadMembership(roomId, sessionHash);
       if (!membership.ok) return membership;
-      const { room, players, me } = membership.value;
 
       const at = now();
-      await store.touchPlayer(me.id, at.toISOString());
-      me.lastSeenAt = at.toISOString();
+      await store.touchPlayer(membership.value.me.id, at.toISOString());
+      membership.value.me.lastSeenAt = at.toISOString();
+
+      // Any member's refresh can notice a host who has gone quiet mid-game.
+      if (game && (await game.passHostIfAway(membership.value.room, membership.value.players))) {
+        membership = await loadMembership(roomId, sessionHash);
+        if (!membership.ok) return membership;
+      }
+      const { room, players, me } = membership.value;
 
       const rules = MODE_RULES[room.mode];
       return ok({
@@ -177,18 +171,8 @@ export function createRoomService({ store, now, randomInt }: RoomServiceDeps) {
           .sort((a, b) => a.joinedAt.localeCompare(b.joinedAt))
           .map((p) => ({ id: p.id, nickname: p.nickname, isHost: p.isHost, isOnline: isOnline(p, at) })),
         me: { playerId: me.id, isHost: me.isHost },
+        game: game ? await game.viewFor(room, players, me) : null,
       });
-    },
-
-    async startGame(roomId: string, sessionHash: string): Promise<Result<null, MembershipError | StartError>> {
-      const membership = await loadMembership(roomId, sessionHash);
-      if (!membership.ok) return membership;
-      const { room, players, me } = membership.value;
-
-      const check = checkCanStart(room, players, me, now());
-      if (!check.ok) return check;
-      const started = await store.startGame(room.id, MODE_RULES[room.mode].minPlayers);
-      return started === "ok" ? ok(null) : fail(started);
     },
 
     async kickPlayer(
@@ -204,6 +188,7 @@ export function createRoomService({ store, now, randomInt }: RoomServiceDeps) {
       const check = checkCanKick(room, me, target, now());
       if (!check.ok) return check;
       await store.kickPlayer(targetPlayerId);
+      await game?.afterRosterChange(room.id);
       return ok(null);
     },
 
@@ -211,6 +196,7 @@ export function createRoomService({ store, now, randomInt }: RoomServiceDeps) {
       const membership = await loadMembership(roomId, sessionHash);
       if (!membership.ok) return membership;
       await store.removePlayer(membership.value.me.id);
+      await game?.afterRosterChange(roomId);
       return ok(null);
     },
   };

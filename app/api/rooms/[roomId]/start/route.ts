@@ -3,10 +3,10 @@ import { z } from "zod";
 import { track } from "@/lib/analytics/server";
 import { apiError, isRateLimited } from "@/lib/api";
 import { notifyRoomChanged } from "@/lib/realtime/server";
-import { getRoomService } from "@/lib/rooms/server";
+import { getGameService } from "@/lib/rooms/server";
 import { readSessionHash } from "@/lib/session";
 
-/** Host-only: move the room from LOBBY to IN_GAME. */
+/** Host-only: pick fresh questions, create the game and move the room from LOBBY to IN_GAME. */
 export async function POST(request: NextRequest, ctx: RouteContext<"/api/rooms/[roomId]/start">) {
   const sessionHash = await readSessionHash();
   if (isRateLimited(request, "roomAction", sessionHash)) return apiError("rate_limited");
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest, ctx: RouteContext<"/api/rooms/[
   if (!z.uuid().safeParse(roomId).success) return apiError("room_not_found");
 
   if (!sessionHash) return apiError("not_in_room");
-  const result = await getRoomService().startGame(roomId, sessionHash);
+  const result = await getGameService().startGame(roomId, sessionHash);
   if (!result.ok) return apiError(result.error);
 
   await Promise.all([notifyRoomChanged(roomId), track("game_started", { sessionHash, roomId })]);

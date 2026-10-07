@@ -1,3 +1,5 @@
+import type { GameView } from "./game";
+
 export const MODES = ["couple", "friends", "circle"] as const;
 export type Mode = (typeof MODES)[number];
 
@@ -48,6 +50,8 @@ export interface RoomView {
     isOnline: boolean;
   }>;
   me: { playerId: string; isHost: boolean };
+  /** Present once the host has started a game. */
+  game: GameView | null;
 }
 
 /** Public info shown on the join screen before someone is a member. */

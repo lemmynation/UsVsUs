@@ -1,3 +1,5 @@
+import type { QuestionHistory } from "@/lib/game/question-picker";
+import type { GamePosition, GameResponse, GameRound, GameSession, GameType, Question } from "@/types/game";
 import type { Mode, Player, Room } from "@/types/room";
 
 export interface AnalyticsEvent {
@@ -38,8 +40,58 @@ export interface RoomStore {
     now: string;
   }): Promise<Player | "room_full" | "room_not_open" | "nickname_taken">;
 
-  /** LOBBY → IN_GAME, re-checking status and player count atomically. */
-  startGame(roomId: string, minPlayers: number): Promise<"ok" | "not_in_lobby" | "not_enough_players">;
+  /**
+   * LOBBY → IN_GAME and create the game session with its planned rounds, all atomically.
+   * Re-checks status and player count under the room lock.
+   */
+  startGame(input: {
+    roomId: string;
+    minPlayers: number;
+    rounds: Array<{ gameType: GameType; questionIds: string[] }>;
+    now: string;
+  }): Promise<{ session: GameSession; rounds: GameRound[] } | "not_in_lobby" | "not_enough_players">;
+
+  /** The room's most recent game session, if any. */
+  getLatestGame(roomId: string): Promise<{ session: GameSession; rounds: GameRound[] } | null>;
+
+  listResponses(roundId: string, questionId: string): Promise<GameResponse[]>;
+
+  /**
+   * Records an answer only while that exact question is open. Must hold off a
+   * concurrent advance (Supabase: row lock) so no answer lands after the reveal.
+   * A second answer from the same player is ignored ("duplicate").
+   */
+  submitResponse(input: {
+    sessionId: string;
+    roundId: string;
+    roundIndex: number;
+    questionIndex: number;
+    questionId: string;
+    playerId: string;
+    answer: { optionId: string };
+    now: string;
+  }): Promise<"ok" | "duplicate" | "not_open">;
+
+  /**
+   * Compare-and-swap: moves the session to `next` only if its stateVersion still
+   * equals `expectedVersion`. Finishing also moves the room to WRAPPED.
+   */
+  advanceGame(input: {
+    sessionId: string;
+    expectedVersion: number;
+    next: GamePosition;
+    now: string;
+  }): Promise<GameSession | "stale">;
+
+  /** Moves host from one player to another only if `fromPlayerId` is still host. */
+  transferHost(roomId: string, fromPlayerId: string, toPlayerId: string): Promise<boolean>;
+
+  getQuestions(): Promise<Question[]>;
+
+  /** Per-question view counts across the given players (by session hash). */
+  getQuestionHistory(sessionTokenHashes: string[]): Promise<Map<string, QuestionHistory>>;
+
+  recordQuestionSeen(sessionTokenHashes: string[], questionId: string, now: string): Promise<void>;
 
   kickPlayer(playerId: string): Promise<void>;
 
