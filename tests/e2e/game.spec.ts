@@ -134,7 +134,36 @@ test("Couple: a full game through all three game types ends with a Game Score wi
   }
   await expectWrappedFits(guest);
   await expectShareCard(host);
+  await expectShareSheetGetsCard(host);
 });
+
+/**
+ * With a share sheet available (stubbed: headless browsers have none), the card
+ * is ready before the tap and handed straight to navigator.share — Safari only
+ * opens the sheet directly from a tap, so no download may happen in between.
+ */
+async function expectShareSheetGetsCard(page: Page) {
+  await page.addInitScript(() => {
+    const w = window as unknown as { __shared?: Array<{ name: string; type: string; size: number }> };
+    Object.defineProperty(navigator, "canShare", { value: () => true, configurable: true });
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: async (data: ShareData) => {
+        w.__shared = (data.files ?? []).map((f) => ({ name: f.name, type: f.type, size: f.size }));
+      },
+    });
+  });
+  await page.reload();
+  const share = page.getByRole("button", { name: "Share results" });
+  await expect(share).toBeEnabled(); // card prefetched
+  const requests: string[] = [];
+  page.on("request", (r) => requests.push(r.url()));
+  await share.click();
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as { __shared?: unknown[] }).__shared))
+    .toEqual([{ name: "us-vs-us-wrapped.png", type: "image/png", size: expect.any(Number) }]);
+  expect(requests.filter((u) => u.includes("/wrapped/image"))).toEqual([]); // nothing fetched on tap
+}
 
 /** Wrapped fits common phone widths: no sideways scroll, no small tap targets. */
 async function expectWrappedFits(page: Page) {
