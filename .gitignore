@@ -1,3 +1,20 @@
+# Dependencies
+/node_modules
+
+# Next.js build output
+/.next/
+/out/
+/build
+next-env.d.ts
+*.tsbuildinfo
+
+# Testing
+/coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 # OS files
 .DS_Store
 Thumbs.db
@@ -7,6 +24,17 @@ desktop.ini
 .vscode/
 .idea/
 
-# Logs and environment files
+# Logs
 *.log
+npm-debug.log*
+
+# Environment files (keep secrets out of git; .env.example is committed)
 .env
+.env*.local
+.env.*
+!.env.example
+
+# Misc
+*.pem
+.vercel
+.supabase/
