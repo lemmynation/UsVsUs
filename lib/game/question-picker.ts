@@ -53,17 +53,28 @@ export function pickQuestions(input: {
   return picked;
 }
 
-/** Splits a fresh pick into rounds. Fewer questions available → fewer/shorter rounds, never repeats. */
-export function planRounds(
-  questions: Question[],
-  rounds: number,
-  perRound: number,
-): Array<{ gameType: GameType; questionIds: string[] }> {
+/**
+ * Lays out a game: one round per entry in `lineup`, each filled with fresh
+ * questions of that round's type. A type used in two rounds never repeats a
+ * question across them. Rounds with no questions available are dropped.
+ */
+export function planGame(input: {
+  questions: Question[];
+  mode: Mode;
+  lineup: GameType[];
+  perRound: number;
+  history: ReadonlyMap<string, QuestionHistory>;
+  random: () => number;
+}): Array<{ gameType: GameType; questionIds: string[] }> {
+  const pools = new Map<GameType, Question[]>();
+  for (const gameType of new Set(input.lineup)) {
+    const rounds = input.lineup.filter((t) => t === gameType).length;
+    pools.set(gameType, pickQuestions({ ...input, gameType, count: rounds * input.perRound }));
+  }
   const plan: Array<{ gameType: GameType; questionIds: string[] }> = [];
-  for (let r = 0; r < rounds; r++) {
-    const slice = questions.slice(r * perRound, (r + 1) * perRound);
-    if (slice.length === 0) break;
-    plan.push({ gameType: slice[0].gameType, questionIds: slice.map((q) => q.id) });
+  for (const gameType of input.lineup) {
+    const slice = pools.get(gameType)!.splice(0, input.perRound);
+    if (slice.length > 0) plan.push({ gameType, questionIds: slice.map((q) => q.id) });
   }
   return plan;
 }

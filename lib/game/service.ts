@@ -1,9 +1,20 @@
-import type { GamePosition, GameRound, GameSession, GameView } from "@/types/game";
+import type {
+  GamePosition,
+  GameResponse,
+  GameRound,
+  GameSession,
+  GameView,
+  PlayerAnswer,
+  Question,
+  ScoreEntry,
+} from "@/types/game";
 import type { Player, Room } from "@/types/room";
 import { loadMembership, type MembershipError } from "@/lib/rooms/membership";
 import { activePlayers, checkCanStart, isOnline, MODE_RULES, type Result, type StartError } from "@/lib/rooms/rules";
 import type { RoomStore } from "@/lib/rooms/store";
-import { pickQuestions, planRounds } from "./question-picker";
+import { answerOptions, isTwoPlayer, renderPrompt, ROUND_LINEUP, subjectsForRound, validateAnswer } from "./engines";
+import { planGame } from "./question-picker";
+import { scoreQuestion, tallyVotes, totalPoints } from "./scoring";
 import {
   allAnswered,
   checkCanAdvance,
@@ -29,18 +40,74 @@ const ok = <T>(value: T) => ({ ok: true, value }) as const;
 const fail = <E extends string>(error: E) => ({ ok: false, error }) as const;
 
 type Game = { session: GameSession; rounds: GameRound[] };
+type Current = { round: GameRound; questionId: string; subjectPlayerId: string | null };
 
 const questionCounts = (game: Game) => game.rounds.map((r) => r.questionIds.length);
+const byJoinOrder = (players: Player[]) => [...players].sort((a, b) => a.joinedAt.localeCompare(b.joinedAt));
 
-function currentQuestionId(game: Game): { round: GameRound; questionId: string } | null {
+function currentQuestion(game: Game): Current | null {
   const round = game.rounds[game.session.roundIndex];
   const questionId = round?.questionIds[game.session.questionIndex];
-  return round && questionId ? { round, questionId } : null;
+  if (!round || !questionId) return null;
+  return { round, questionId, subjectPlayerId: round.subjectPlayerIds[game.session.questionIndex] ?? null };
 }
 
+/** Responses from people still in the room (a removed player's answer no longer counts). */
+function stillHere(responses: GameResponse[], players: Player[]) {
+  const ids = new Set(activePlayers(players).map((p) => p.id));
+  return responses.filter((r) => ids.has(r.playerId));
+}
+
+/**
+ * Responses that count toward a reveal and its points: from people still here,
+ * and a vote for someone who has since left counts as no vote (so a badge can't
+ * go to a player who isn't in the room).
+ */
+function countable(responses: GameResponse[], players: Player[]) {
+  const ids = new Set(activePlayers(players).map((p) => p.id));
+  return stillHere(responses, players).map((r) =>
+    r.answer.targetPlayerId && !ids.has(r.answer.targetPlayerId) ? { ...r, answer: { skipped: true as const } } : r,
+  );
+}
+
+/** A game needs at least two people; below that there's nothing to guess or vote on. */
+const MIN_PLAYERS_TO_CONTINUE = 2;
+
 export function createGameService({ store, now, random, onRoomChanged }: GameServiceDeps) {
+  async function findQuestion(id: string): Promise<Question | undefined> {
+    return (await store.getQuestions()).find((q) => q.id === id);
+  }
+
+  /**
+   * Scores the question the game is revealing and locks the points in. Safe to
+   * call more than once: answers can't change after the reveal, and the store
+   * ignores entries it already has.
+   */
+  async function lockInScores(game: Game, room: Room, players: Player[]) {
+    const current = currentQuestion(game);
+    if (!current) return;
+    const question = await findQuestion(current.questionId);
+    if (!question) return;
+    const responses = countable(await store.listResponses(current.round.id, current.questionId), players);
+    const score = scoreQuestion({
+      gameType: question.gameType,
+      mode: room.mode,
+      subjectPlayerId: current.subjectPlayerId,
+      responses,
+    });
+    const at = { roundIndex: game.session.roundIndex, questionIndex: game.session.questionIndex };
+    const entries: ScoreEntry[] = [
+      ...Object.entries(score.points).map(([playerId, points]) => ({ playerId, ...at, points, award: null })),
+      ...score.awardWinners.map((playerId) => ({ playerId, ...at, points: 0, award: question.award ?? null })),
+    ];
+    await store.recordScores(game.session.id, entries);
+  }
+
   /** Moves the game and does the bookkeeping that goes with a transition. */
-  async function moveTo(game: Game, players: Player[], next: GamePosition): Promise<GameSession | "stale"> {
+  async function moveTo(game: Game, room: Room, players: Player[], next: GamePosition): Promise<GameSession | "stale"> {
+    // Leaving a reveal: make sure its points were recorded (covers an interrupted earlier attempt).
+    if (game.session.phase === "REVEAL") await lockInScores(game, room, players);
+
     const at = now().toISOString();
     const moved = await store.advanceGame({
       sessionId: game.session.id,
@@ -49,7 +116,10 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
       now: at,
     });
     if (moved !== "stale" && next.phase === "REVEAL") {
-      const current = currentQuestionId({ ...game, session: moved });
+      // Answers are final now (the store refuses answers once the reveal is in).
+      const revealed = { ...game, session: moved };
+      await lockInScores(revealed, room, players);
+      const current = currentQuestion(revealed);
       if (current) {
         const hashes = activePlayers(players).map((p) => p.sessionTokenHash);
         await store.recordQuestionSeen(hashes, current.questionId, at);
@@ -58,9 +128,9 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
     return moved;
   }
 
-  async function revealIfEveryoneAnswered(game: Game, players: Player[]): Promise<boolean> {
+  async function revealIfEveryoneAnswered(game: Game, room: Room, players: Player[]): Promise<boolean> {
     if (game.session.phase !== "QUESTION_OPEN") return false;
-    const current = currentQuestionId(game);
+    const current = currentQuestion(game);
     if (!current) return false;
     const responses = await store.listResponses(current.round.id, current.questionId);
     const active = activePlayers(players).map((p) => p.id);
@@ -72,7 +142,7 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
     )
       return false;
     // Another request may win the race; either way the question is revealed.
-    await moveTo(game, players, nextPosition(game.session, questionCounts(game)));
+    await moveTo(game, room, players, nextPosition(game.session, questionCounts(game)));
     return true;
   }
 
@@ -85,25 +155,32 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
       const check = checkCanStart(room, players, me, now());
       if (!check.ok) return check;
 
-      const active = activePlayers(players);
+      const active = byJoinOrder(activePlayers(players));
       const [questions, history] = await Promise.all([
         store.getQuestions(),
         store.getQuestionHistory(active.map((p) => p.sessionTokenHash)),
       ]);
-      const picked = pickQuestions({
+      const plan = planGame({
         questions,
         mode: room.mode,
-        gameType: "this_or_that",
-        count: GAME_CONFIG.rounds * GAME_CONFIG.questionsPerRound,
+        lineup: ROUND_LINEUP[room.mode],
+        perRound: GAME_CONFIG.questionsPerRound,
         history,
         random,
       });
-      if (picked.length === 0) return fail("no_questions");
+      if (plan.length === 0) return fail("no_questions");
 
       const started = await store.startGame({
         roomId: room.id,
         minPlayers: MODE_RULES[room.mode].minPlayers,
-        rounds: planRounds(picked, GAME_CONFIG.rounds, GAME_CONFIG.questionsPerRound),
+        rounds: plan.map((r) => ({
+          ...r,
+          subjectPlayerIds: subjectsForRound(
+            r.gameType,
+            r.questionIds.length,
+            active.map((p) => p.id),
+          ),
+        })),
         now: now().toISOString(),
       });
       if (typeof started === "string") return fail(started);
@@ -114,19 +191,24 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
     async submitAnswer(
       roomId: string,
       sessionHash: string,
-      input: { questionId: string; optionId: string },
+      input: { questionId: string; answer: PlayerAnswer },
     ): Promise<Result<{ duplicate: boolean; revealed: boolean }, AnswerError>> {
       const membership = await loadMembership(store, roomId, sessionHash);
       if (!membership.ok) return membership;
-      const { players, me } = membership.value;
+      const { room, players, me } = membership.value;
 
       const game = await store.getLatestGame(roomId);
-      const current = game && currentQuestionId(game);
+      const current = game && currentQuestion(game);
       if (!game || !current || game.session.phase !== "QUESTION_OPEN" || current.questionId !== input.questionId) {
         return fail("not_open");
       }
-      const question = (await store.getQuestions()).find((q) => q.id === current.questionId);
-      if (!question?.options.some((o) => o.id === input.optionId)) return fail("invalid_answer");
+      const question = await findQuestion(current.questionId);
+      if (!question) return fail("not_open");
+      const answer = validateAnswer(
+        { question, mode: room.mode, activePlayerIds: activePlayers(players).map((p) => p.id) },
+        input.answer,
+      );
+      if (!answer.ok) return answer;
 
       const submitted = await store.submitResponse({
         sessionId: game.session.id,
@@ -135,12 +217,12 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
         questionIndex: game.session.questionIndex,
         questionId: current.questionId,
         playerId: me.id,
-        answer: { optionId: input.optionId },
+        answer: answer.value,
         now: now().toISOString(),
       });
       if (submitted === "not_open") return fail("not_open");
 
-      const revealed = await revealIfEveryoneAnswered(game, players);
+      const revealed = await revealIfEveryoneAnswered(game, room, players);
       return ok({ duplicate: submitted === "duplicate", revealed });
     },
 
@@ -158,24 +240,31 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
       if (!game) return fail("not_open");
 
       let answers = 0;
-      const current = currentQuestionId(game);
+      const current = currentQuestion(game);
       if (game.session.phase === "QUESTION_OPEN" && current) {
-        answers = (await store.listResponses(current.round.id, current.questionId)).length;
+        answers = stillHere(await store.listResponses(current.round.id, current.questionId), players).length;
       }
       const isHost = me.isHost && room.hostPlayerId === me.id;
       const check = checkCanAdvance(game.session, isHost, expectedVersion, answers);
       if (!check.ok) return check;
 
-      const moved = await moveTo(game, players, nextPosition(game.session, questionCounts(game)));
+      const moved = await moveTo(game, room, players, nextPosition(game.session, questionCounts(game)));
       if (moved === "stale") return fail("stale_state");
       return ok({ stateVersion: moved.stateVersion, finished: moved.phase === "FINISHED" });
     },
 
     /** After someone leaves or is removed, the people left may all have answered already. */
     async afterRosterChange(roomId: string): Promise<boolean> {
-      const game = await store.getLatestGame(roomId);
-      if (!game) return false;
-      return revealIfEveryoneAnswered(game, await store.listPlayers(roomId));
+      const [game, room] = await Promise.all([store.getLatestGame(roomId), store.getRoomById(roomId)]);
+      if (!game || !room || game.session.phase === "FINISHED") return false;
+      const players = await store.listPlayers(roomId);
+
+      // Down to one player mid-game: end it now (points already earned are kept).
+      if (room.status === "IN_GAME" && activePlayers(players).length < MIN_PLAYERS_TO_CONTINUE) {
+        const last = { ...game.session, phase: "FINISHED" as const };
+        return (await moveTo(game, room, players, last)) !== "stale";
+      }
+      return revealIfEveryoneAnswered(game, room, players);
     },
 
     /**
@@ -188,9 +277,7 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
       const host = players.find((p) => p.id === room.hostPlayerId);
       if (!host || at.getTime() - new Date(host.lastSeenAt).getTime() < GAME_CONFIG.hostAwayMs) return false;
 
-      const successor = activePlayers(players)
-        .filter((p) => p.id !== host.id && isOnline(p, at))
-        .sort((a, b) => a.joinedAt.localeCompare(b.joinedAt))[0];
+      const successor = byJoinOrder(activePlayers(players)).find((p) => p.id !== host.id && isOnline(p, at));
       if (!successor) return false;
 
       const passed = await store.transferHost(room.id, host.id, successor.id);
@@ -198,33 +285,67 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
       return passed;
     },
 
-    /** The game from one player's point of view. Others' answers only appear once revealed. */
+    /**
+     * The game from one player's point of view. Others' answers only appear once
+     * revealed, and Circle's Who's More Likely votes are only ever shown as counts.
+     */
     async viewFor(room: Room, players: Player[], me: Player): Promise<GameView | null> {
       const game = await store.getLatestGame(room.id);
       if (!game) return null;
       const { session, rounds } = game;
       const round = rounds[session.roundIndex];
+      const active = byJoinOrder(activePlayers(players));
+      const activeIds = new Set(active.map((p) => p.id));
+      const twoPlayer = isTwoPlayer(room.mode);
 
       let question: GameView["question"] = null;
+      let myRole: GameView["myRole"] = null;
       let answeredPlayerIds: string[] = [];
-      let myAnswer: string | null = null;
+      let myAnswer: PlayerAnswer | null = null;
       let reveal: GameView["reveal"] = null;
 
-      const current = currentQuestionId(game);
-      if (isQuestionPhase(session.phase) && current) {
-        const found = (await store.getQuestions()).find((q) => q.id === current.questionId);
-        if (found) question = { id: found.id, prompt: found.prompt, options: found.options };
+      const current = currentQuestion(game);
+      const found = current && isQuestionPhase(session.phase) ? await findQuestion(current.questionId) : undefined;
+      if (current && found) {
+        const subject = players.find((p) => p.id === current.subjectPlayerId) ?? null;
+        question = {
+          id: found.id,
+          prompt: renderPrompt(found.prompt, subject?.nickname ?? null),
+          options: answerOptions(found, active),
+          subjectPlayerId: current.subjectPlayerId,
+        };
+        myRole =
+          found.gameType === "mind_reader" ? (current.subjectPlayerId === me.id ? "subject" : "predictor") : "player";
 
-        const activeIds = new Set(activePlayers(players).map((p) => p.id));
-        const responses = (await store.listResponses(current.round.id, current.questionId)).filter((r) =>
-          activeIds.has(r.playerId),
-        );
+        const responses = stillHere(await store.listResponses(current.round.id, current.questionId), players);
         answeredPlayerIds = responses.map((r) => r.playerId);
-        myAnswer = responses.find((r) => r.playerId === me.id)?.answer.optionId ?? null;
+        myAnswer = responses.find((r) => r.playerId === me.id)?.answer ?? null;
+
         if (session.phase === "REVEAL") {
-          reveal = { answers: responses.map((r) => ({ playerId: r.playerId, optionId: r.answer.optionId })) };
+          const counted = countable(responses, players);
+          const score = scoreQuestion({
+            gameType: found.gameType,
+            mode: room.mode,
+            subjectPlayerId: current.subjectPlayerId,
+            responses: counted,
+          });
+          const anonymous = found.gameType === "most_likely" && !twoPlayer;
+          reveal = {
+            answers: anonymous ? null : counted.map((r) => ({ playerId: r.playerId, answer: r.answer })),
+            votes: anonymous ? tallyVotes(counted) : null,
+            skippedCount: counted.filter((r) => r.answer.skipped).length,
+            points: score.points,
+            award:
+              anonymous && score.awardWinners.length > 0 && found.award
+                ? { label: found.award, playerIds: score.awardWinners }
+                : null,
+          };
         }
       }
+
+      const entries = (await store.listScores(session.id)).filter((e) => activeIds.has(e.playerId));
+      const totals = totalPoints(entries);
+      const thisRound = totalPoints(entries.filter((e) => e.roundIndex === session.roundIndex));
 
       return {
         sessionId: session.id,
@@ -236,9 +357,15 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
         questionIndex: session.questionIndex,
         questionCount: round?.questionIds.length ?? 0,
         question,
+        myRole,
         answeredPlayerIds,
         myAnswer,
         reveal,
+        standings: twoPlayer
+          ? active.map((p) => ({ playerId: p.id, points: totals[p.id] ?? 0 })).sort((a, b) => b.points - a.points)
+          : [],
+        roundPoints: thisRound,
+        awards: entries.filter((e) => e.award).map((e) => ({ label: e.award!, playerId: e.playerId })),
       };
     },
   };

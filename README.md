@@ -8,13 +8,14 @@ The product spec is [`docs/design.docx`](docs/design.docx) (text export: [`docs/
 
 ## Status
 
-| Phase           | What                                                                     | State   |
-| --------------- | ------------------------------------------------------------------------ | ------- |
-| 0 — Foundation  | Next.js, Tailwind, shadcn/ui, lint/test tooling, env validation, CI      | ✅ Done |
-| 1 — Rooms       | Create/join rooms, anonymous sessions, live lobby, invite, host controls | ✅ Done |
-| 2 — Realtime    | Server-run game flow, private answers, reveal sync, presence, reconnect  | ✅ Done |
-| 3 — Game engine | Mind Reader, Who's More Likely, scoring                                  | Next    |
-| 4–7             | Wrapped, premium packs, analytics & QA, beta                             | —       |
+| Phase           | What                                                                      | State   |
+| --------------- | ------------------------------------------------------------------------- | ------- |
+| 0 — Foundation  | Next.js, Tailwind, shadcn/ui, lint/test tooling, env validation, CI       | ✅ Done |
+| 1 — Rooms       | Create/join rooms, anonymous sessions, live lobby, invite, host controls  | ✅ Done |
+| 2 — Realtime    | Server-run game flow, private answers, reveal sync, presence, reconnect   | ✅ Done |
+| 3 — Game engine | Mind Reader, Who's More Likely, This or That predictions, scoring, badges | ✅ Done |
+| 4 — Wrapped     | Final report, awards, portrait share card                                 | Next    |
+| 5–7             | Premium packs, analytics & QA, beta                                       | —       |
 
 ## Run it locally
 

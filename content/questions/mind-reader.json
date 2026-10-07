@@ -1,0 +1,1090 @@
+[
+  {
+    "id": "mr-what-would-name-choose-for-a-spontaneous-vacatio",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "travel",
+    "intensity": "safe",
+    "prompt": "What would {name} choose for a spontaneous vacation?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Beach"
+      },
+      {
+        "id": "b",
+        "label": "City"
+      },
+      {
+        "id": "c",
+        "label": "Mountains"
+      },
+      {
+        "id": "d",
+        "label": "Staycation"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-s-go-to-comfort-food",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "{name}'s go-to comfort food?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Adobo"
+      },
+      {
+        "id": "b",
+        "label": "Pancit"
+      },
+      {
+        "id": "c",
+        "label": "Fried chicken"
+      },
+      {
+        "id": "d",
+        "label": "Instant noodles"
+      }
+    ]
+  },
+  {
+    "id": "mr-what-does-name-order-at-a-milk-tea-shop",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "What does {name} order at a milk tea shop?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Classic milk tea"
+      },
+      {
+        "id": "b",
+        "label": "Fruit tea"
+      },
+      {
+        "id": "c",
+        "label": "Coffee instead"
+      },
+      {
+        "id": "d",
+        "label": "Nothing, just water"
+      }
+    ]
+  },
+  {
+    "id": "mr-on-a-free-saturday-name-would-rather",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "On a free Saturday, {name} would rather…",
+    "options": [
+      {
+        "id": "a",
+        "label": "Sleep in"
+      },
+      {
+        "id": "b",
+        "label": "Go out early"
+      },
+      {
+        "id": "c",
+        "label": "Clean the house"
+      },
+      {
+        "id": "d",
+        "label": "Binge a series"
+      }
+    ]
+  },
+  {
+    "id": "mr-how-does-name-usually-reply-to-messages",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "How does {name} usually reply to messages?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Instantly"
+      },
+      {
+        "id": "b",
+        "label": "Within the hour"
+      },
+      {
+        "id": "c",
+        "label": "Hours later"
+      },
+      {
+        "id": "d",
+        "label": "Seen-zoned"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-s-phone-battery-right-now-is-probably",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "{name}'s phone battery right now is probably…",
+    "options": [
+      {
+        "id": "a",
+        "label": "Above 80%"
+      },
+      {
+        "id": "b",
+        "label": "Around half"
+      },
+      {
+        "id": "c",
+        "label": "Under 20%"
+      },
+      {
+        "id": "d",
+        "label": "Charging"
+      }
+    ]
+  },
+  {
+    "id": "mr-when-name-can-t-sleep-they",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "When {name} can't sleep, they…",
+    "options": [
+      {
+        "id": "a",
+        "label": "Scroll the phone"
+      },
+      {
+        "id": "b",
+        "label": "Watch videos"
+      },
+      {
+        "id": "c",
+        "label": "Read"
+      },
+      {
+        "id": "d",
+        "label": "Lie there thinking"
+      }
+    ]
+  },
+  {
+    "id": "mr-how-many-alarms-does-name-set-in-the-morning",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "How many alarms does {name} set in the morning?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Just one"
+      },
+      {
+        "id": "b",
+        "label": "Two or three"
+      },
+      {
+        "id": "c",
+        "label": "Five or more"
+      },
+      {
+        "id": "d",
+        "label": "No alarm"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-just-got-a-bonus-what-happens-first",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "money",
+    "intensity": "safe",
+    "prompt": "{name} just got a bonus. What happens first?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Save it"
+      },
+      {
+        "id": "b",
+        "label": "Food trip"
+      },
+      {
+        "id": "c",
+        "label": "New gadget"
+      },
+      {
+        "id": "d",
+        "label": "Treat family"
+      }
+    ]
+  },
+  {
+    "id": "mr-how-does-name-usually-pay",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "money",
+    "intensity": "safe",
+    "prompt": "How does {name} usually pay?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Cash"
+      },
+      {
+        "id": "b",
+        "label": "E-wallet"
+      },
+      {
+        "id": "c",
+        "label": "Card"
+      },
+      {
+        "id": "d",
+        "label": "Whatever's closest"
+      }
+    ]
+  },
+  {
+    "id": "mr-at-a-party-name-is-most-likely",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "At a party, {name} is most likely…",
+    "options": [
+      {
+        "id": "a",
+        "label": "On the dance floor"
+      },
+      {
+        "id": "b",
+        "label": "By the food"
+      },
+      {
+        "id": "c",
+        "label": "Deep in conversation"
+      },
+      {
+        "id": "d",
+        "label": "Ready to leave"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-s-reaction-to-a-scary-movie",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "{name}'s reaction to a scary movie?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Loves it"
+      },
+      {
+        "id": "b",
+        "label": "Watches through fingers"
+      },
+      {
+        "id": "c",
+        "label": "Laughs at it"
+      },
+      {
+        "id": "d",
+        "label": "Refuses to watch"
+      }
+    ]
+  },
+  {
+    "id": "mr-what-stresses-name-out-the-most",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "What stresses {name} out the most?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Being late"
+      },
+      {
+        "id": "b",
+        "label": "Crowds"
+      },
+      {
+        "id": "c",
+        "label": "Unfinished work"
+      },
+      {
+        "id": "d",
+        "label": "Bad Wi-Fi"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-s-ideal-superpower",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "{name}'s ideal superpower?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Fly"
+      },
+      {
+        "id": "b",
+        "label": "Teleport"
+      },
+      {
+        "id": "c",
+        "label": "Read minds"
+      },
+      {
+        "id": "d",
+        "label": "Stop time"
+      }
+    ]
+  },
+  {
+    "id": "mr-if-name-won-a-talent-show-it-would-be-for",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "If {name} won a talent show, it would be for…",
+    "options": [
+      {
+        "id": "a",
+        "label": "Singing"
+      },
+      {
+        "id": "b",
+        "label": "Dancing"
+      },
+      {
+        "id": "c",
+        "label": "Comedy"
+      },
+      {
+        "id": "d",
+        "label": "Cooking"
+      }
+    ]
+  },
+  {
+    "id": "mr-which-pet-fits-name-best",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Which pet fits {name} best?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Dog"
+      },
+      {
+        "id": "b",
+        "label": "Cat"
+      },
+      {
+        "id": "c",
+        "label": "Fish"
+      },
+      {
+        "id": "d",
+        "label": "A plant is enough"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-gets-a-surprise-day-off-first-move",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "{name} gets a surprise day off. First move?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Plan a trip"
+      },
+      {
+        "id": "b",
+        "label": "Call a friend"
+      },
+      {
+        "id": "c",
+        "label": "Stay in bed"
+      },
+      {
+        "id": "d",
+        "label": "Run errands"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-s-pick-for-a-late-night-snack",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "{name}'s pick for a late-night snack?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Something sweet"
+      },
+      {
+        "id": "b",
+        "label": "Chips"
+      },
+      {
+        "id": "c",
+        "label": "Leftovers"
+      },
+      {
+        "id": "d",
+        "label": "Instant noodles"
+      }
+    ]
+  },
+  {
+    "id": "mr-how-does-name-like-their-coffee",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "How does {name} like their coffee?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Black"
+      },
+      {
+        "id": "b",
+        "label": "With milk"
+      },
+      {
+        "id": "c",
+        "label": "Very sweet"
+      },
+      {
+        "id": "d",
+        "label": "Doesn't drink coffee"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-at-a-buffet-goes-straight-for",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "{name} at a buffet goes straight for…",
+    "options": [
+      {
+        "id": "a",
+        "label": "Meat"
+      },
+      {
+        "id": "b",
+        "label": "Seafood"
+      },
+      {
+        "id": "c",
+        "label": "Desserts"
+      },
+      {
+        "id": "d",
+        "label": "Rice and more rice"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-s-travel-style",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "travel",
+    "intensity": "safe",
+    "prompt": "{name}'s travel style?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Every minute planned"
+      },
+      {
+        "id": "b",
+        "label": "Loose plan"
+      },
+      {
+        "id": "c",
+        "label": "Totally spontaneous"
+      }
+    ]
+  },
+  {
+    "id": "mr-on-a-long-trip-name-is-the-one-who",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "travel",
+    "intensity": "safe",
+    "prompt": "On a long trip, {name} is the one who…",
+    "options": [
+      {
+        "id": "a",
+        "label": "Drives or navigates"
+      },
+      {
+        "id": "b",
+        "label": "Picks the music"
+      },
+      {
+        "id": "c",
+        "label": "Sleeps"
+      },
+      {
+        "id": "d",
+        "label": "Brings snacks"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-s-favorite-way-to-celebrate-a-birthday",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "{name}'s favorite way to celebrate a birthday?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Big party"
+      },
+      {
+        "id": "b",
+        "label": "Small dinner"
+      },
+      {
+        "id": "c",
+        "label": "Trip somewhere"
+      },
+      {
+        "id": "d",
+        "label": "Quiet day"
+      }
+    ]
+  },
+  {
+    "id": "mr-which-era-of-music-does-name-love-most",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "Which era of music does {name} love most?",
+    "options": [
+      {
+        "id": "a",
+        "label": "90s"
+      },
+      {
+        "id": "b",
+        "label": "2000s"
+      },
+      {
+        "id": "c",
+        "label": "2010s"
+      },
+      {
+        "id": "d",
+        "label": "Today's hits"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-finds-a-spider-in-the-room-what-happens",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "{name} finds a spider in the room. What happens?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Calmly removes it"
+      },
+      {
+        "id": "b",
+        "label": "Screams for help"
+      },
+      {
+        "id": "c",
+        "label": "Leaves the room"
+      },
+      {
+        "id": "d",
+        "label": "Names it"
+      }
+    ]
+  },
+  {
+    "id": "mr-if-name-were-a-fast-food-item-they-d-be",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "If {name} were a fast-food item, they'd be…",
+    "options": [
+      {
+        "id": "a",
+        "label": "Fries"
+      },
+      {
+        "id": "b",
+        "label": "Burger"
+      },
+      {
+        "id": "c",
+        "label": "Ice cream"
+      },
+      {
+        "id": "d",
+        "label": "Spaghetti"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-s-karaoke-go-to-genre",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "{name}'s karaoke go-to genre?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Power ballad"
+      },
+      {
+        "id": "b",
+        "label": "OPM classic"
+      },
+      {
+        "id": "c",
+        "label": "K-pop"
+      },
+      {
+        "id": "d",
+        "label": "Rap"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-s-room-right-now-is",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "{name}'s room right now is…",
+    "options": [
+      {
+        "id": "a",
+        "label": "Spotless"
+      },
+      {
+        "id": "b",
+        "label": "Lived-in"
+      },
+      {
+        "id": "c",
+        "label": "Organized chaos"
+      },
+      {
+        "id": "d",
+        "label": "Don't ask"
+      }
+    ]
+  },
+  {
+    "id": "mr-what-would-name-do-with-a-free-hour",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "What would {name} do with a free hour?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Nap"
+      },
+      {
+        "id": "b",
+        "label": "Exercise"
+      },
+      {
+        "id": "c",
+        "label": "Scroll"
+      },
+      {
+        "id": "d",
+        "label": "Learn something"
+      }
+    ]
+  },
+  {
+    "id": "mr-how-does-name-handle-a-long-queue",
+    "gameType": "mind_reader",
+    "modes": ["couple", "friends"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "How does {name} handle a long queue?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Waits patiently"
+      },
+      {
+        "id": "b",
+        "label": "Complains a bit"
+      },
+      {
+        "id": "c",
+        "label": "Leaves"
+      },
+      {
+        "id": "d",
+        "label": "Makes friends in line"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-s-idea-of-a-perfect-date",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "{name}'s idea of a perfect date?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Fancy dinner"
+      },
+      {
+        "id": "b",
+        "label": "Picnic"
+      },
+      {
+        "id": "c",
+        "label": "Movie night in"
+      },
+      {
+        "id": "d",
+        "label": "Adventure trip"
+      }
+    ]
+  },
+  {
+    "id": "mr-how-does-name-like-to-show-love",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "How does {name} like to show love?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Words"
+      },
+      {
+        "id": "b",
+        "label": "Gifts"
+      },
+      {
+        "id": "c",
+        "label": "Quality time"
+      },
+      {
+        "id": "d",
+        "label": "Acts of service"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-s-favorite-way-to-make-up-after-a-fight",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "{name}'s favorite way to make up after a fight?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Talk it out"
+      },
+      {
+        "id": "b",
+        "label": "Food"
+      },
+      {
+        "id": "c",
+        "label": "A hug"
+      },
+      {
+        "id": "d",
+        "label": "Give it time"
+      }
+    ]
+  },
+  {
+    "id": "mr-what-gift-would-make-name-happiest",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "What gift would make {name} happiest?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Something handmade"
+      },
+      {
+        "id": "b",
+        "label": "Something they need"
+      },
+      {
+        "id": "c",
+        "label": "An experience"
+      },
+      {
+        "id": "d",
+        "label": "Food"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-s-favorite-thing-to-do-together",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "{name}'s favorite thing to do together?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Eat out"
+      },
+      {
+        "id": "b",
+        "label": "Watch shows"
+      },
+      {
+        "id": "c",
+        "label": "Travel"
+      },
+      {
+        "id": "d",
+        "label": "Just talk"
+      }
+    ]
+  },
+  {
+    "id": "mr-on-a-lazy-sunday-name-wants-to",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "On a lazy Sunday, {name} wants to…",
+    "options": [
+      {
+        "id": "a",
+        "label": "Cuddle and watch"
+      },
+      {
+        "id": "b",
+        "label": "Go out to eat"
+      },
+      {
+        "id": "c",
+        "label": "Cook together"
+      },
+      {
+        "id": "d",
+        "label": "Do separate things"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-remembers-anniversaries",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "{name} remembers anniversaries…",
+    "options": [
+      {
+        "id": "a",
+        "label": "Always, with a plan"
+      },
+      {
+        "id": "b",
+        "label": "Usually"
+      },
+      {
+        "id": "c",
+        "label": "With a reminder"
+      },
+      {
+        "id": "d",
+        "label": "What anniversary?"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-s-dream-place-to-live-together",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "{name}'s dream place to live together?",
+    "options": [
+      {
+        "id": "a",
+        "label": "City condo"
+      },
+      {
+        "id": "b",
+        "label": "House in the province"
+      },
+      {
+        "id": "c",
+        "label": "Beach town"
+      },
+      {
+        "id": "d",
+        "label": "Abroad"
+      }
+    ]
+  },
+  {
+    "id": "mr-in-the-friend-group-name-is-the",
+    "gameType": "mind_reader",
+    "modes": ["friends"],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "In the friend group, {name} is the…",
+    "options": [
+      {
+        "id": "a",
+        "label": "Planner"
+      },
+      {
+        "id": "b",
+        "label": "Comedian"
+      },
+      {
+        "id": "c",
+        "label": "Therapist"
+      },
+      {
+        "id": "d",
+        "label": "Late one"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-s-favorite-hangout-spot",
+    "gameType": "mind_reader",
+    "modes": ["friends"],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "{name}'s favorite hangout spot?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Coffee shop"
+      },
+      {
+        "id": "b",
+        "label": "Mall"
+      },
+      {
+        "id": "c",
+        "label": "Someone's house"
+      },
+      {
+        "id": "d",
+        "label": "Food park"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-s-role-in-a-group-project",
+    "gameType": "mind_reader",
+    "modes": ["friends"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "{name}'s role in a group project?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Leader"
+      },
+      {
+        "id": "b",
+        "label": "Researcher"
+      },
+      {
+        "id": "c",
+        "label": "Designer"
+      },
+      {
+        "id": "d",
+        "label": "Moral support"
+      }
+    ]
+  },
+  {
+    "id": "mr-name-would-survive-a-zombie-movie-by",
+    "gameType": "mind_reader",
+    "modes": ["friends"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "{name} would survive a zombie movie by…",
+    "options": [
+      {
+        "id": "a",
+        "label": "Leading the group"
+      },
+      {
+        "id": "b",
+        "label": "Hiding"
+      },
+      {
+        "id": "c",
+        "label": "Running fast"
+      },
+      {
+        "id": "d",
+        "label": "Befriending zombies"
+      }
+    ]
+  }
+]

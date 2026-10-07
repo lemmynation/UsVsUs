@@ -1,11 +1,10 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { ROUND_LINEUP } from "@/lib/game/engines";
 import { GAME_CONFIG } from "@/lib/game/state-machine";
 import { BUNDLED_QUESTIONS } from "@/lib/game/questions";
 import { MODES } from "@/types/room";
 import { buildSeedSql, loadQuestions } from "@/scripts/generate-question-seed.mjs";
-
-const perGame = GAME_CONFIG.rounds * GAME_CONFIG.questionsPerRound;
 
 describe("question bank", () => {
   it("has unique ids and unique prompts", () => {
@@ -20,9 +19,13 @@ describe("question bank", () => {
     }
   });
 
-  it.each(MODES)("has enough %s questions for at least 4 games without a repeat", (mode) => {
-    const count = BUNDLED_QUESTIONS.filter((q) => q.modes.includes(mode)).length;
-    expect(count).toBeGreaterThanOrEqual(perGame * 4);
+  it.each(MODES)("has enough questions of every game type for 4 fresh %s games", (mode) => {
+    const games = 4;
+    for (const gameType of new Set(ROUND_LINEUP[mode])) {
+      const rounds = ROUND_LINEUP[mode].filter((t) => t === gameType).length;
+      const available = BUNDLED_QUESTIONS.filter((q) => q.gameType === gameType && q.modes.includes(mode)).length;
+      expect(available, `${mode} ${gameType}`).toBeGreaterThanOrEqual(rounds * GAME_CONFIG.questionsPerRound * games);
+    }
   });
 
   it("keeps default content safe or playful (bold needs its own review per the design doc)", () => {

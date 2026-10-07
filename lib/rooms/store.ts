@@ -1,5 +1,14 @@
 import type { QuestionHistory } from "@/lib/game/question-picker";
-import type { GamePosition, GameResponse, GameRound, GameSession, GameType, Question } from "@/types/game";
+import type {
+  GamePosition,
+  GameResponse,
+  GameRound,
+  GameSession,
+  GameType,
+  PlayerAnswer,
+  Question,
+  ScoreEntry,
+} from "@/types/game";
 import type { Mode, Player, Room } from "@/types/room";
 
 export interface AnalyticsEvent {
@@ -47,7 +56,7 @@ export interface RoomStore {
   startGame(input: {
     roomId: string;
     minPlayers: number;
-    rounds: Array<{ gameType: GameType; questionIds: string[] }>;
+    rounds: Array<{ gameType: GameType; questionIds: string[]; subjectPlayerIds: Array<string | null> }>;
     now: string;
   }): Promise<{ session: GameSession; rounds: GameRound[] } | "not_in_lobby" | "not_enough_players">;
 
@@ -55,6 +64,9 @@ export interface RoomStore {
   getLatestGame(roomId: string): Promise<{ session: GameSession; rounds: GameRound[] } | null>;
 
   listResponses(roundId: string, questionId: string): Promise<GameResponse[]>;
+
+  /** Locked-in points and badges for a whole game. */
+  listScores(sessionId: string): Promise<ScoreEntry[]>;
 
   /**
    * Records an answer only while that exact question is open. Must hold off a
@@ -68,7 +80,7 @@ export interface RoomStore {
     questionIndex: number;
     questionId: string;
     playerId: string;
-    answer: { optionId: string };
+    answer: PlayerAnswer;
     now: string;
   }): Promise<"ok" | "duplicate" | "not_open">;
 
@@ -82,6 +94,12 @@ export interface RoomStore {
     next: GamePosition;
     now: string;
   }): Promise<GameSession | "stale">;
+
+  /**
+   * Locks in points/badges for a revealed question. Idempotent per player per
+   * question; entries for players who have left are skipped.
+   */
+  recordScores(sessionId: string, entries: ScoreEntry[]): Promise<void>;
 
   /** Moves host from one player to another only if `fromPlayerId` is still host. */
   transferHost(roomId: string, fromPlayerId: string, toPlayerId: string): Promise<boolean>;

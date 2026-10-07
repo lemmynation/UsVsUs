@@ -60,6 +60,11 @@ Do not introduce a new dependency unless it materially simplifies the implementa
   run `npm run db:seed-sql` and apply `supabase/seed-questions.sql`; a unit test fails if it's stale.
   Never delete a question — removing it from content deactivates it, so running games and history survive.
   `question-picker.ts` avoids repeats per group via `question_history` (keyed by session hash).
+- **Game types** (`lib/game/engines.ts`, `scoring.ts`): round lineup per mode, Mind Reader subjects,
+  answer validation, and the §7 points table — all pure and unit-tested. Points are locked in at each
+  reveal via the idempotent `recordScores` (unique per player per question), after the reveal is saved
+  so no late answer can be missed; never compute totals from raw answers. Circle's Who's More Likely is
+  anonymous: the view only ever exposes vote counts, never who voted for whom.
 - **Anonymous players**: an httpOnly `uvu_session` cookie holds a random token; the DB stores only its
   SHA-256 hash (`lib/session.ts`). All reads/writes go through route handlers in `app/api/`.
 - **Database access**: server only, via the secret key (`sb_secret_…`, service_role). RLS is on with no
