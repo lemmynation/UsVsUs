@@ -7,6 +7,7 @@ import type {
   PlayerAnswer,
   Question,
   ScoreEntry,
+  WrappedReport,
 } from "@/types/game";
 import type { Player, Room } from "@/types/room";
 import { loadMembership, type MembershipError } from "@/lib/rooms/membership";
@@ -23,6 +24,7 @@ import {
   nextPosition,
   type AdvanceError,
 } from "./state-machine";
+import { buildWrapped, type PlayedQuestion } from "./wrapped";
 
 export interface GameServiceDeps {
   store: RoomStore;
@@ -35,6 +37,7 @@ export interface GameServiceDeps {
 export type StartGameError = MembershipError | StartError | "no_questions";
 export type AnswerError = MembershipError | "not_open" | "invalid_answer";
 export type GameAdvanceError = MembershipError | AdvanceError | "not_open";
+export type WrappedError = MembershipError | "game_not_finished";
 
 const ok = <T>(value: T) => ({ ok: true, value }) as const;
 const fail = <E extends string>(error: E) => ({ ok: false, error }) as const;
@@ -103,6 +106,70 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
     await store.recordScores(game.session.id, entries);
   }
 
+  /**
+   * The game's Wrapped report: the saved one, or built from the finished game
+   * and saved now (first save wins, so racing requests agree). Built eagerly when
+   * the game finishes; building here too covers an interrupted finish.
+   */
+  async function wrappedFor(
+    game: Game,
+    room: Room,
+    players: Player[],
+    /** Whether the question the game stopped on had been revealed. Unknown → assume a normal finish. */
+    stoppedAfterReveal?: boolean,
+  ): Promise<WrappedReport> {
+    const { session, rounds } = game;
+    const saved = await store.getWrapped(session.id);
+    if (saved) return saved;
+
+    const active = byJoinOrder(activePlayers(players));
+    const activeIds = new Set(active.map((p) => p.id));
+    const endedEarly = active.length < MIN_PLAYERS_TO_CONTINUE;
+    const [questions, responses, scores] = await Promise.all([
+      store.getQuestions(),
+      store.listSessionResponses(session.id),
+      store.listScores(session.id),
+    ]);
+
+    // Everything before where the game stopped was revealed. A normal finish stops
+    // on the last question, after its reveal; an early one may stop mid-question
+    // (not revealed) or during a reveal (revealed).
+    const includeStopQuestion = stoppedAfterReveal ?? !endedEarly;
+    const played: PlayedQuestion[] = [];
+    for (const round of rounds) {
+      round.questionIds.forEach((questionId, questionIndex) => {
+        const here = round.roundIndex === session.roundIndex && questionIndex === session.questionIndex;
+        const before =
+          round.roundIndex < session.roundIndex ||
+          (round.roundIndex === session.roundIndex && questionIndex < session.questionIndex);
+        const question = questions.find((q) => q.id === questionId);
+        if (!question || !(before || (here && includeStopQuestion))) return;
+        played.push({
+          roundIndex: round.roundIndex,
+          questionIndex,
+          question,
+          subjectPlayerId: round.subjectPlayerIds[questionIndex] ?? null,
+          responses: countable(
+            responses.filter((r) => r.roundId === round.id && r.questionId === questionId),
+            players,
+          ),
+        });
+      });
+    }
+
+    const report = buildWrapped({
+      sessionId: session.id,
+      mode: room.mode,
+      roomName: room.name,
+      endedEarly,
+      players: active.map((p) => ({ id: p.id, nickname: p.nickname })),
+      roundTypes: rounds.map((r) => r.gameType),
+      played,
+      scores: scores.filter((e) => activeIds.has(e.playerId)),
+    });
+    return store.saveWrapped(session.id, report, now().toISOString());
+  }
+
   /** Moves the game and does the bookkeeping that goes with a transition. */
   async function moveTo(game: Game, room: Room, players: Player[], next: GamePosition): Promise<GameSession | "stale"> {
     // Leaving a reveal: make sure its points were recorded (covers an interrupted earlier attempt).
@@ -124,6 +191,11 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
         const hashes = activePlayers(players).map((p) => p.sessionTokenHash);
         await store.recordQuestionSeen(hashes, current.questionId, at);
       }
+    }
+    // Freeze the report now, while everyone who finished is still in the room.
+    if (moved !== "stale" && next.phase === "FINISHED") {
+      const after = game.session.phase === "REVEAL" || game.session.phase === "SCOREBOARD";
+      await wrappedFor({ ...game, session: moved }, room, players, after);
     }
     return moved;
   }
@@ -253,6 +325,16 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
       return ok({ stateVersion: moved.stateVersion, finished: moved.phase === "FINISHED" });
     },
 
+    /** The finished game's Wrapped report, for a member of the room (the share image). */
+    async getWrapped(roomId: string, sessionHash: string): Promise<Result<WrappedReport, WrappedError>> {
+      const membership = await loadMembership(store, roomId, sessionHash);
+      if (!membership.ok) return membership;
+      const { room, players } = membership.value;
+      const game = await store.getLatestGame(roomId);
+      if (!game || game.session.phase !== "FINISHED") return fail("game_not_finished");
+      return ok(await wrappedFor(game, room, players));
+    },
+
     /** After someone leaves or is removed, the people left may all have answered already. */
     async afterRosterChange(roomId: string): Promise<boolean> {
       const [game, room] = await Promise.all([store.getLatestGame(roomId), store.getRoomById(roomId)]);
@@ -366,6 +448,7 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
           : [],
         roundPoints: thisRound,
         awards: entries.filter((e) => e.award).map((e) => ({ label: e.award!, playerId: e.playerId })),
+        wrapped: session.phase === "FINISHED" ? await wrappedFor(game, room, players) : null,
       };
     },
   };

@@ -137,7 +137,9 @@ export function QuestionScreen({ view, act, pending }: GameScreenProps) {
         </ul>
       </section>
 
-      {me.isHost && waitingOn.length > 0 && answered.size > 0 && (
+      {/* Only for a big group waiting on a straggler: in 2-player games, revealing early just
+          throws away the question (and a partner who's really gone is handled by host hand-off). */}
+      {me.isHost && room.mode === "circle" && waitingOn.length > 0 && answered.size * 2 >= players.length && (
         <Button
           variant="secondary"
           className="mt-auto"

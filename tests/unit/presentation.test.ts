@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { revealHeadline, roundRules, tallyAnswers } from "@/lib/game/presentation";
+import { formatNames, revealHeadline, roundRules, tallyAnswers } from "@/lib/game/presentation";
 import type { PlayerAnswer, QuestionReveal } from "@/types/game";
 import type { Mode } from "@/types/room";
 
@@ -87,6 +87,9 @@ describe("revealHeadline", () => {
       ),
     ).toBe("🏆 Always Late ⏰ → Ana & Ben");
     expect(headline("most_likely", "circle", reveal([], { answers: null }))).toBe("Nobody voted on this one!");
+    expect(
+      headline("most_likely", "circle", reveal([], { answers: null, votes: [{ targetPlayerId: "p1", count: 1 }] })),
+    ).toBe("No clear winner — no badge this time 🤷");
   });
 });
 
@@ -94,5 +97,18 @@ describe("roundRules", () => {
   it("explains points in 2-player modes and badges in Circle", () => {
     expect(roundRules("this_or_that", "couple")).toMatch(/guess your partner's/);
     expect(roundRules("most_likely", "circle")).toMatch(/anonymous/);
+  });
+});
+
+describe("formatNames", () => {
+  it("joins names naturally", () => {
+    expect(formatNames(["Lem"])).toBe("Lem");
+    expect(formatNames(["Lem", "Ana"])).toBe("Lem & Ana");
+    expect(formatNames(["Lem", "Ana", "Ben"])).toBe("Lem, Ana & Ben");
+  });
+
+  it("collapses big ties when asked", () => {
+    expect(formatNames(["Lem", "Ana", "Ben", "Cy"], 3)).toBe("4-way tie");
+    expect(formatNames(["Lem", "Ana", "Ben"], 3)).toBe("Lem, Ana & Ben");
   });
 });

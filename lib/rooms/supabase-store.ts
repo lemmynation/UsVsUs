@@ -11,6 +11,7 @@ import type {
   PlayerAnswer,
   Question,
   ScoreEntry,
+  WrappedReport,
 } from "@/types/game";
 import type { Mode, Player, PlayerStatus, Room, RoomStatus } from "@/types/room";
 import type { AnalyticsEvent, RoomStore } from "./store";
@@ -240,6 +241,36 @@ export class SupabaseRoomStore implements RoomStore {
       .order("submitted_at", { ascending: true });
     check(error, "listResponses");
     return (data as ResponseRow[]).map(toResponse);
+  }
+
+  async listSessionResponses(sessionId: string) {
+    const { data, error } = await this.db
+      .from("responses")
+      .select("*")
+      .eq("game_session_id", sessionId)
+      .order("submitted_at", { ascending: true });
+    check(error, "listSessionResponses");
+    return (data as ResponseRow[]).map(toResponse);
+  }
+
+  async getWrapped(sessionId: string) {
+    const { data, error } = await this.db
+      .from("wrapped_reports")
+      .select("report")
+      .eq("game_session_id", sessionId)
+      .maybeSingle();
+    check(error, "getWrapped");
+    return data ? (data.report as WrappedReport) : null;
+  }
+
+  async saveWrapped(sessionId: string, report: WrappedReport, now: string) {
+    const { data, error } = await this.db.rpc("save_wrapped", {
+      p_session_id: sessionId,
+      p_report: report,
+      p_now: now,
+    });
+    check(error, "save_wrapped");
+    return data as WrappedReport;
   }
 
   async listScores(sessionId: string) {

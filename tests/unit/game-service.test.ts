@@ -576,7 +576,7 @@ describe("review pass: edge cases", () => {
   });
 
   it("doesn't hand a Circle badge to someone who left before the reveal", async () => {
-    const room = await setup("circle", ["Ana", "Ben", "Cy"]);
+    const room = await setup("circle", ["Ana", "Ben", "Cy", "Dee"]);
     await startAndOpenFirstQuestion(room.id);
     const players = await store.listPlayers(room.id);
     const ben = players.find((p) => p.nickname === "Ben")!;
@@ -585,14 +585,127 @@ describe("review pass: edge cases", () => {
     const vote = (hash: string, targetPlayerId: string) =>
       game.submitAnswer(room.id, hash, { questionId: q, answer: { targetPlayerId } });
     await vote("host", ben.id);
-    await vote("g1", ben.id);
-    await vote("g3", ana.id);
+    await vote("g3", ben.id);
+    await vote("g1", ana.id);
+    await vote("g4", ana.id); // Ben 2, Ana 2 — a shared badge, until…
     await rooms.leaveRoom(room.id, "g2"); // Ben leaves; everyone left has answered → reveal
 
     const v = await view(room.id, "host");
     expect(v.phase).toBe("REVEAL");
-    expect(v.reveal!.votes).toEqual([{ targetPlayerId: ana.id, count: 1 }]);
+    expect(v.reveal!.votes).toEqual([{ targetPlayerId: ana.id, count: 2 }]);
     expect(v.reveal!.award!.playerIds).toEqual([ana.id]);
     expect(v.reveal!.skippedCount).toBe(2);
+  });
+});
+
+describe("Phase 4: Wrapped", () => {
+  it("freezes a report when the game finishes, matching the final Game Score", async () => {
+    const room = await setup("couple");
+    await game.startGame(room.id, "host");
+    const end = await playTo(room.id, ["host", "g1"], () => false, 0);
+    const report = end.wrapped!;
+    expect(report).toBeTruthy();
+    expect(await store.getWrapped(end.sessionId)).toEqual(report); // saved, not just computed
+
+    // Everyone always picks option 0, so every point on offer was won.
+    expect(report.usScore).toBe(100);
+    expect(report.players.map((p) => [p.nickname, p.points])).toEqual([
+      ["Ana", 925],
+      ["Lem", 825],
+    ]);
+    expect(report.winnerIds).toEqual([report.players[0].id]);
+    expect(report.rounds.map((r) => r.gameType)).toEqual(["mind_reader", "this_or_that", "most_likely"]);
+    expect(report.rounds.map((r) => r.possible)).toEqual([500, 500, 750]);
+    expect(report.endedEarly).toBe(false);
+  });
+
+  it("stays the same for everyone, even after a player leaves", async () => {
+    const room = await setup("couple");
+    await game.startGame(room.id, "host");
+    const end = await playTo(room.id, ["host", "g1"], () => false, 1);
+    const before = end.wrapped!;
+    expect((await view(room.id, "g1")).wrapped).toEqual(before);
+
+    await rooms.leaveRoom(room.id, "g1");
+    const after = (await view(room.id, "host")).wrapped!;
+    expect(after).toEqual(before);
+    expect(after.players.map((p) => p.nickname).sort()).toEqual(["Ana", "Lem"]);
+  });
+
+  it("is rebuilt (once) if the finish was interrupted before it was saved", async () => {
+    const room = await setup("couple");
+    await game.startGame(room.id, "host");
+    await playTo(room.id, ["host", "g1"], (v) => v.phase === "SCOREBOARD" && v.roundIndex === 2);
+    const latest = (await store.getLatestGame(room.id))!;
+    // Finish behind the service's back, as if the request died right after the move.
+    await store.advanceGame({
+      sessionId: latest.session.id,
+      expectedVersion: latest.session.stateVersion,
+      next: { phase: "FINISHED", roundIndex: latest.session.roundIndex, questionIndex: latest.session.questionIndex },
+      now: clock.toISOString(),
+    });
+    expect(await store.getWrapped(latest.session.id)).toBeNull();
+    const first = (await view(room.id, "host")).wrapped;
+    expect(first).toBeTruthy();
+    expect((await view(room.id, "g1")).wrapped).toEqual(first);
+  });
+
+  it("marks a game that ended early, with no winner or Us Score", async () => {
+    const room = await setup("couple");
+    await startAndOpenFirstQuestion(room.id);
+    await answer(room.id, "host", 1);
+    await answer(room.id, "g1", 1); // Ana earns 100
+    await advance(room.id);
+    await rooms.leaveRoom(room.id, "host");
+
+    const report = (await view(room.id, "g1")).wrapped!;
+    expect(report).toMatchObject({ endedEarly: true, winnerIds: null, usScore: null });
+    expect(report.players.map((p) => [p.nickname, p.points])).toEqual([["Ana", 100]]);
+  });
+
+  it("counts the question the game stopped on only if it had been revealed", async () => {
+    // Circle keeps answers from the people who stay, so the stop question is observable.
+    const stopDuringReveal = await setup("circle", ["Ana", "Ben"]);
+    await startAndOpenFirstQuestion(stopDuringReveal.id);
+    for (const h of ["host", "g1", "g2"]) await answer(stopDuringReveal.id, h, 0); // → REVEAL
+    await rooms.leaveRoom(stopDuringReveal.id, "g2");
+    await rooms.leaveRoom(stopDuringReveal.id, "g1"); // down to 1 → ends during the reveal
+    const revealed = (await view(stopDuringReveal.id, "host")).wrapped!;
+    expect(revealed.endedEarly).toBe(true);
+    expect(revealed.awards).toHaveLength(1); // the badge locked in at that reveal
+
+    const stopMidQuestion = await setup("circle", ["Ana", "Ben"]);
+    await startAndOpenFirstQuestion(stopMidQuestion.id);
+    await answer(stopMidQuestion.id, "host", 0);
+    await rooms.leaveRoom(stopMidQuestion.id, "g2");
+    await rooms.leaveRoom(stopMidQuestion.id, "g1"); // ends before anything was revealed
+    const unrevealed = (await view(stopMidQuestion.id, "host")).wrapped!;
+    expect(unrevealed).toMatchObject({ endedEarly: true, awards: [], highlight: null });
+  });
+
+  it("keeps Circle anonymous: badges and counts, never who voted for whom", async () => {
+    const room = await setup("circle", ["Ana", "Ben"]);
+    await game.startGame(room.id, "host");
+    const end = await playTo(room.id, ["host", "g1", "g2"], () => false, 0);
+    const report = end.wrapped!;
+    expect(report.awards.length).toBeGreaterThan(0);
+    expect(report.usScore).toBeNull();
+    expect(JSON.stringify(report)).not.toContain("targetPlayerId");
+  });
+
+  it("is only available to members, once the game is over", async () => {
+    const room = await setup("couple");
+    await startAndOpenFirstQuestion(room.id);
+    expect(await game.getWrapped(room.id, "host")).toEqual({ ok: false, error: "game_not_finished" });
+    await playTo(room.id, ["host", "g1"], () => false);
+    expect(await game.getWrapped(room.id, "stranger")).toEqual({ ok: false, error: "not_in_room" });
+    const mine = await game.getWrapped(room.id, "g1");
+    expect(mine.ok && mine.value.sessionId).toBe((await view(room.id, "g1")).sessionId);
+  });
+
+  it("is not in the view before the game is over", async () => {
+    const room = await setup("couple");
+    await startAndOpenFirstQuestion(room.id);
+    expect((await view(room.id, "host")).wrapped).toBeNull();
   });
 });

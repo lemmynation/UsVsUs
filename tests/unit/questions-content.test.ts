@@ -28,6 +28,16 @@ describe("question bank", () => {
     }
   });
 
+  it("only uses emoji that older phones can show (Unicode 12 or earlier)", () => {
+    // Newer emoji (e.g. 🥹 🪨 🥷) render as empty boxes on Windows 10 and older Android/iOS.
+    const newer =
+      /[\u{1F972}\u{1F977}-\u{1F979}\u{1F90C}\u{1F9CC}\u{1F6D6}\u{1F6D7}\u{1F6DC}-\u{1F6DF}\u{1F7F0}\u{1FA75}-\u{1FA77}\u{1FA7B}\u{1FA7C}\u{1FA83}-\u{1FA88}\u{1FA96}-\u{1FAFF}]/u;
+    for (const q of BUNDLED_QUESTIONS) {
+      const text = [q.prompt, q.award ?? "", ...q.options.map((o) => o.label)].join(" ");
+      expect(newer.test(text), `${q.id}: ${text}`).toBe(false);
+    }
+  });
+
   it("keeps default content safe or playful (bold needs its own review per the design doc)", () => {
     expect(BUNDLED_QUESTIONS.every((q) => q.intensity !== "bold")).toBe(true);
   });

@@ -65,6 +65,13 @@ Do not introduce a new dependency unless it materially simplifies the implementa
   reveal via the idempotent `recordScores` (unique per player per question), after the reveal is saved
   so no late answer can be missed; never compute totals from raw answers. Circle's Who's More Likely is
   anonymous: the view only ever exposes vote counts, never who voted for whom.
+- **Wrapped** (`lib/game/wrapped.ts`): built once when the game finishes and frozen in `wrapped_reports`
+  (first save wins), so it reads the same for everyone and survives players leaving. Built only from
+  locked-in scores plus what reveals already showed; Circle reports carry badge winners and counts, never
+  who voted for whom. The share card (`components/wrapped/share-card.tsx`, `next/og`) uses nicknames only,
+  members-only route. Satori needs `display: flex` on multi-child elements and sRGB colors (no oklch).
+- **Emoji**: stick to Unicode ≤ 12 (a content test enforces it for questions); newer ones render as boxes
+  on Windows 10 and older phones. Use `GradientText` for gradient headings so emoji keep their colors.
 - **Anonymous players**: an httpOnly `uvu_session` cookie holds a random token; the DB stores only its
   SHA-256 hash (`lib/session.ts`). All reads/writes go through route handlers in `app/api/`.
 - **Database access**: server only, via the secret key (`sb_secret_…`, service_role). RLS is on with no

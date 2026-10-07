@@ -136,4 +136,50 @@ export interface GameView {
   roundPoints: Record<string, number>;
   /** Circle badges earned so far. */
   awards: Array<{ label: string; playerId: string }>;
+  /** The frozen end-of-game report. Only present once the game is FINISHED. */
+  wrapped: WrappedReport | null;
 }
+
+/**
+ * End-of-game report (design doc §7, S11). Built once when the game finishes and
+ * stored as-is, so it reads the same for everyone and survives players leaving.
+ * Circle reports never say who voted for whom — only badge winners and counts.
+ */
+export interface WrappedReport {
+  version: 1;
+  sessionId: string;
+  mode: Mode;
+  roomName: string | null;
+  /** Everyone still in the room when the game ended (with a nickname snapshot). */
+  players: Array<{ id: string; nickname: string; points: number; awards: string[] }>;
+  /** True when the game ended because too few people were left. */
+  endedEarly: boolean;
+  /** 2-player modes: who has the most points (two ids for a tie). Null in Circle. */
+  winnerIds: string[] | null;
+  /** 2-player modes: points earned out of points possible, 0–100. Null in Circle or when nothing was scoreable. */
+  usScore: number | null;
+  /** 2-player modes: points per round. Empty in Circle. */
+  rounds: Array<{ gameType: GameType; earned: number; possible: number }>;
+  /** 2-player modes: points per question category, best first. Empty in Circle. */
+  categories: Array<{ category: QuestionCategory; earned: number; possible: number }>;
+  /** Circle badges, one entry per question that handed one out. */
+  awards: Array<{ label: string; playerIds: string[] }>;
+  highlight: WrappedHighlight | null;
+  /** A short deterministic reaction line. */
+  roast: string;
+}
+
+export type WrappedHighlight =
+  | {
+      /** 2-player: the most surprising disagreement, with what each person picked. */
+      kind: "disagreement";
+      gameType: GameType;
+      prompt: string;
+      lines: Array<{ playerId: string; verb: "said" | "guessed" | "picked"; answer: string }>;
+    }
+  | {
+      /** Circle: the This or That that split the group the most (counts only). */
+      kind: "split";
+      prompt: string;
+      counts: Array<{ label: string; count: number }>;
+    };

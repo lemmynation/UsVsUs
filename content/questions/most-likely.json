@@ -127,7 +127,7 @@
     "intensity": "safe",
     "prompt": "Who's most likely to cry at a commercial?",
     "options": [],
-    "award": "Softie 🥹"
+    "award": "Softie 🥺"
   },
   {
     "id": "ml-talk-to-strangers",
@@ -417,7 +417,7 @@
     "intensity": "playful",
     "prompt": "Who's most likely to be everyone's emergency contact?",
     "options": [],
-    "award": "Group Rock 🪨"
+    "award": "Group Rock 💪"
   },
   {
     "id": "ml-organize-the-reunion",

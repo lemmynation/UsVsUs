@@ -8,6 +8,7 @@ import type {
   PlayerAnswer,
   Question,
   ScoreEntry,
+  WrappedReport,
 } from "@/types/game";
 import type { Mode, Player, Room } from "@/types/room";
 
@@ -64,6 +65,18 @@ export interface RoomStore {
   getLatestGame(roomId: string): Promise<{ session: GameSession; rounds: GameRound[] } | null>;
 
   listResponses(roundId: string, questionId: string): Promise<GameResponse[]>;
+
+  /** Every answer in a game (for the Wrapped report). */
+  listSessionResponses(sessionId: string): Promise<GameResponse[]>;
+
+  /** The game's frozen Wrapped report, if it has been saved. */
+  getWrapped(sessionId: string): Promise<WrappedReport | null>;
+
+  /**
+   * Saves the Wrapped report once. If one is already saved (a racing request
+   * got there first) that one is kept and returned, so everyone sees the same.
+   */
+  saveWrapped(sessionId: string, report: WrappedReport, now: string): Promise<WrappedReport>;
 
   /** Locked-in points and badges for a whole game. */
   listScores(sessionId: string): Promise<ScoreEntry[]>;

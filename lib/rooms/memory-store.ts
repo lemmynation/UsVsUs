@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { QuestionHistory } from "@/lib/game/question-picker";
 import { BUNDLED_QUESTIONS } from "@/lib/game/questions";
-import type { GameResponse, GameRound, GameSession, Question, ScoreEntry } from "@/types/game";
+import type { GameResponse, GameRound, GameSession, Question, ScoreEntry, WrappedReport } from "@/types/game";
 import type { Player, Room } from "@/types/room";
 import { nextHost } from "./rules";
 import type { AnalyticsEvent, RoomStore } from "./store";
@@ -17,6 +17,7 @@ export class MemoryRoomStore implements RoomStore {
   private rounds = new Map<string, GameRound>();
   private responses: GameResponse[] = [];
   private scores: Array<ScoreEntry & { sessionId: string }> = [];
+  private wrapped = new Map<string, WrappedReport>();
   /** sessionTokenHash → questionId → history */
   private seen = new Map<string, Map<string, QuestionHistory>>();
   readonly events: AnalyticsEvent[] = [];
@@ -138,6 +139,23 @@ export class MemoryRoomStore implements RoomStore {
     return this.responses
       .filter((r) => r.roundId === roundId && r.questionId === questionId)
       .map((r) => ({ ...r, answer: { ...r.answer } }));
+  }
+
+  async listSessionResponses(sessionId: string) {
+    return this.responses.filter((r) => r.sessionId === sessionId).map((r) => ({ ...r, answer: { ...r.answer } }));
+  }
+
+  async getWrapped(sessionId: string) {
+    const report = this.wrapped.get(sessionId);
+    return report ? structuredClone(report) : null;
+  }
+
+  async saveWrapped(sessionId: string, report: WrappedReport) {
+    // Mirrors the SQL: the first report saved wins.
+    if (!this.wrapped.has(sessionId) && this.sessions.has(sessionId)) {
+      this.wrapped.set(sessionId, structuredClone(report));
+    }
+    return structuredClone(this.wrapped.get(sessionId) ?? report);
   }
 
   async listScores(sessionId: string) {

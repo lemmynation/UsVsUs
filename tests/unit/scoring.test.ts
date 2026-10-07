@@ -93,13 +93,15 @@ describe("Who's More Likely", () => {
 
   it("shares the badge on a tie, and gives none when nobody voted", () => {
     const base = { gameType: "most_likely" as const, mode: "circle" as const, subjectPlayerId: null };
-    expect(
-      scoreQuestion({
-        ...base,
-        responses: [r("a", { targetPlayerId: "b" }), r("b", { targetPlayerId: "a" })],
-      }).awardWinners.sort(),
-    ).toEqual(["a", "b"]);
+    const votes = (...targets: string[]) => targets.map((t, i) => r(`v${i}`, { targetPlayerId: t }));
+    expect(scoreQuestion({ ...base, responses: votes("a", "a", "b", "b") }).awardWinners.sort()).toEqual(["a", "b"]);
     expect(scoreQuestion({ ...base, responses: [r("a", { skipped: true })] }).awardWinners).toEqual([]);
+  });
+
+  it("gives no badge when nobody agreed (every vote went to someone different)", () => {
+    const base = { gameType: "most_likely" as const, mode: "circle" as const, subjectPlayerId: null };
+    const spread = ["a", "b", "c", "d"].map((t, i) => r(`v${i}`, { targetPlayerId: t }));
+    expect(scoreQuestion({ ...base, responses: spread }).awardWinners).toEqual([]);
   });
 });
 
