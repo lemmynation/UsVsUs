@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Wordmark } from "@/components/brand/wordmark";
+import { ConnectionBanner } from "@/components/game/connection-banner";
+import { GameScreen } from "@/components/game/game-screen";
 import { Button } from "@/components/ui/button";
 import { useRoom, type RealtimeConfig } from "@/hooks/use-room";
 import { ApiError, apiFetch } from "@/lib/client-api";
@@ -16,7 +18,7 @@ import { StatusCard } from "./status-card";
 
 export function Lobby({ initialView, realtime }: { initialView: RoomView; realtime: RealtimeConfig | null }) {
   const router = useRouter();
-  const { view, error, refresh } = useRoom(initialView, realtime);
+  const { view, error, refresh, reconnecting } = useRoom(initialView, realtime);
   const [actionError, setActionError] = useState<string | null>(null);
   const [pending, setPending] = useState<string | null>(null);
 
@@ -34,6 +36,11 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
       if (refreshAfter) await refresh();
       return true;
     } catch (err) {
+      // The game moved on under us (double tap, another host, a reveal): just catch up quietly.
+      if (err instanceof ApiError && (err.code === "stale_state" || err.code === "not_open")) {
+        await refresh();
+        return false;
+      }
       setActionError(err instanceof ApiError ? err.message : errorMessage("unknown"));
       return false;
     } finally {
@@ -42,7 +49,9 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
   }
 
   async function leave() {
-    if (!window.confirm("Leave this room?")) return;
+    const question =
+      room.status === "IN_GAME" ? "Leave the game? You won't be able to rejoin until it ends." : "Leave this room?";
+    if (!window.confirm(question)) return;
     // No refresh: we're no longer a member, so it would flash "Room unavailable".
     if (await act("leave", `/api/rooms/${room.id}/leave`, undefined, { refreshAfter: false })) router.push("/");
   }
@@ -65,8 +74,12 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
     return <StatusCard emoji="🚪" title="Room closed" message={errorMessage("room_closed")} />;
   }
 
+  const game = view.game;
+  const inGame = game !== null && (room.status === "IN_GAME" || room.status === "WRAPPED");
+
   return (
     <div className={cn(meta.className, "flex flex-1 flex-col gap-6")}>
+      <ConnectionBanner reconnecting={reconnecting} />
       <header className="flex items-center justify-between gap-3">
         <Wordmark />
         <span className="bg-mode-gradient rounded-full px-3 py-1 text-sm font-semibold text-[oklch(0.18_0.04_300)]">
@@ -74,16 +87,22 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
         </span>
       </header>
 
-      {room.status === "IN_GAME" ? (
-        <section aria-live="polite" className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
-          <span aria-hidden className="text-6xl">
-            🎉
-          </span>
-          <h1 className="font-heading text-4xl font-extrabold">Game on!</h1>
-          <p className="text-muted-foreground max-w-xs text-lg">
-            Everyone&apos;s in. Question rounds arrive in the next build — hang tight.
-          </p>
-        </section>
+      {inGame ? (
+        <>
+          <GameScreen view={{ ...view, game }} act={act} pending={pending} />
+          {actionError && (
+            <p role="alert" className="text-destructive text-base">
+              {actionError}
+            </p>
+          )}
+          {game.phase !== "FINISHED" && (
+            <Button variant="ghost" onClick={leave} disabled={pending !== null}>
+              Leave game
+            </Button>
+          )}
+        </>
+      ) : room.status !== "LOBBY" ? (
+        <StatusCard emoji="🚪" title="Room closed" message={errorMessage("room_closed")} />
       ) : (
         <>
           <div>

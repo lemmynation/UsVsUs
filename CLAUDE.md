@@ -51,6 +51,15 @@ Do not introduce a new dependency unless it materially simplifies the implementa
   `MemoryRoomStore` is for local dev without Supabase and for tests. Invariants that can race (capacity,
   start, host handover) are enforced atomically in the store — in SQL functions for Supabase. Keep both
   stores behaving the same; when you change one, change the other and the migration.
+- **Game flow** (`lib/game/`): `state-machine.ts` is the pure §12 flow (ROUND_INTRO → QUESTION_OPEN → REVEAL
+  → … → SCOREBOARD → FINISHED); `service.ts` runs it. Every transition is a compare-and-swap on
+  `state_version` (stale = someone already moved it; clients just refetch). Answers are written with
+  `submit_response`, which holds a row lock so nothing lands after a reveal. Other players' answers only
+  appear in the view during REVEAL — never put them anywhere else.
+- **Questions** live in `content/questions/*.json` (validated by `lib/game/questions.ts`). After editing,
+  run `npm run db:seed-sql` and apply `supabase/seed-questions.sql`; a unit test fails if it's stale.
+  Never delete a question — removing it from content deactivates it, so running games and history survive.
+  `question-picker.ts` avoids repeats per group via `question_history` (keyed by session hash).
 - **Anonymous players**: an httpOnly `uvu_session` cookie holds a random token; the DB stores only its
   SHA-256 hash (`lib/session.ts`). All reads/writes go through route handlers in `app/api/`.
 - **Database access**: server only, via the secret key (`sb_secret_…`, service_role). RLS is on with no

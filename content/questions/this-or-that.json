@@ -1,0 +1,1640 @@
+[
+  {
+    "id": "tot-fancy-dinner-or-street-food",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Fancy dinner or street food?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Fancy dinner"
+      },
+      {
+        "id": "b",
+        "label": "Street food"
+      }
+    ]
+  },
+  {
+    "id": "tot-sinigang-or-adobo",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Sinigang or adobo?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Sinigang"
+      },
+      {
+        "id": "b",
+        "label": "Adobo"
+      }
+    ]
+  },
+  {
+    "id": "tot-jollibee-or-mcdo",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Jollibee or McDo?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Jollibee"
+      },
+      {
+        "id": "b",
+        "label": "McDo"
+      }
+    ]
+  },
+  {
+    "id": "tot-sweet-snacks-or-salty-snacks",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Sweet snacks or salty snacks?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Sweet"
+      },
+      {
+        "id": "b",
+        "label": "Salty"
+      }
+    ]
+  },
+  {
+    "id": "tot-cook-at-home-or-order-delivery",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Cook at home or order delivery?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Cook at home"
+      },
+      {
+        "id": "b",
+        "label": "Order delivery"
+      }
+    ]
+  },
+  {
+    "id": "tot-coffee-or-milk-tea",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Coffee or milk tea?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Coffee"
+      },
+      {
+        "id": "b",
+        "label": "Milk tea"
+      }
+    ]
+  },
+  {
+    "id": "tot-pineapple-on-pizza",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Pineapple on pizza?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Yes, always"
+      },
+      {
+        "id": "b",
+        "label": "Never"
+      }
+    ]
+  },
+  {
+    "id": "tot-spicy-or-mild",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Spicy or mild?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Bring the heat"
+      },
+      {
+        "id": "b",
+        "label": "Keep it mild"
+      }
+    ]
+  },
+  {
+    "id": "tot-rice-with-every-meal",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Rice with every meal?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Rice, always"
+      },
+      {
+        "id": "b",
+        "label": "Rice is optional"
+      }
+    ]
+  },
+  {
+    "id": "tot-taho-or-halo-halo",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Taho or halo-halo?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Taho"
+      },
+      {
+        "id": "b",
+        "label": "Halo-halo"
+      }
+    ]
+  },
+  {
+    "id": "tot-merienda-pandesal-or-banana-cue",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Merienda: pandesal or banana cue?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Pandesal"
+      },
+      {
+        "id": "b",
+        "label": "Banana cue"
+      }
+    ]
+  },
+  {
+    "id": "tot-beach-or-mountains",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "travel",
+    "intensity": "safe",
+    "prompt": "Beach or mountains?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Beach"
+      },
+      {
+        "id": "b",
+        "label": "Mountains"
+      }
+    ]
+  },
+  {
+    "id": "tot-road-trip-or-flight",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "travel",
+    "intensity": "safe",
+    "prompt": "Road trip or flight?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Road trip"
+      },
+      {
+        "id": "b",
+        "label": "Flight"
+      }
+    ]
+  },
+  {
+    "id": "tot-plan-every-detail-or-wing-it",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "travel",
+    "intensity": "safe",
+    "prompt": "Plan every detail or wing it?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Plan every detail"
+      },
+      {
+        "id": "b",
+        "label": "Wing it"
+      }
+    ]
+  },
+  {
+    "id": "tot-city-break-or-island-hopping",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "travel",
+    "intensity": "safe",
+    "prompt": "City break or island hopping?",
+    "options": [
+      {
+        "id": "a",
+        "label": "City break"
+      },
+      {
+        "id": "b",
+        "label": "Island hopping"
+      }
+    ]
+  },
+  {
+    "id": "tot-window-seat-or-aisle-seat",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "travel",
+    "intensity": "safe",
+    "prompt": "Window seat or aisle seat?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Window"
+      },
+      {
+        "id": "b",
+        "label": "Aisle"
+      }
+    ]
+  },
+  {
+    "id": "tot-pack-light-or-pack-everything",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "travel",
+    "intensity": "safe",
+    "prompt": "Pack light or pack everything?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Pack light"
+      },
+      {
+        "id": "b",
+        "label": "Pack everything"
+      }
+    ]
+  },
+  {
+    "id": "tot-staycation-or-out-of-town-trip",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "travel",
+    "intensity": "safe",
+    "prompt": "Staycation or out-of-town trip?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Staycation"
+      },
+      {
+        "id": "b",
+        "label": "Out-of-town"
+      }
+    ]
+  },
+  {
+    "id": "tot-early-bird-or-night-owl",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Early bird or night owl?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Early bird"
+      },
+      {
+        "id": "b",
+        "label": "Night owl"
+      }
+    ]
+  },
+  {
+    "id": "tot-shower-in-the-morning-or-at-night",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Shower in the morning or at night?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Morning"
+      },
+      {
+        "id": "b",
+        "label": "Night"
+      }
+    ]
+  },
+  {
+    "id": "tot-up-on-the-first-alarm-or-snooze-five-times",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Up on the first alarm or snooze five times?",
+    "options": [
+      {
+        "id": "a",
+        "label": "First alarm"
+      },
+      {
+        "id": "b",
+        "label": "Snooze x5"
+      }
+    ]
+  },
+  {
+    "id": "tot-reply-right-away-or-reply-later",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Reply right away or reply later?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Right away"
+      },
+      {
+        "id": "b",
+        "label": "Later"
+      }
+    ]
+  },
+  {
+    "id": "tot-tidy-desk-or-organized-chaos",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Tidy desk or organized chaos?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Tidy desk"
+      },
+      {
+        "id": "b",
+        "label": "Organized chaos"
+      }
+    ]
+  },
+  {
+    "id": "tot-call-or-text",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Call or text?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Call"
+      },
+      {
+        "id": "b",
+        "label": "Text"
+      }
+    ]
+  },
+  {
+    "id": "tot-phone-at-100-or-living-on-5",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Phone at 100% or living on 5%?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Always 100%"
+      },
+      {
+        "id": "b",
+        "label": "Living on 5%"
+      }
+    ]
+  },
+  {
+    "id": "tot-make-the-bed-every-morning",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Make the bed every morning?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Every morning"
+      },
+      {
+        "id": "b",
+        "label": "What's the point?"
+      }
+    ]
+  },
+  {
+    "id": "tot-binge-the-whole-series-or-one-episode-a-night",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Binge the whole series or one episode a night?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Binge it all"
+      },
+      {
+        "id": "b",
+        "label": "One a night"
+      }
+    ]
+  },
+  {
+    "id": "tot-save-it-or-treat-yourself",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "money",
+    "intensity": "safe",
+    "prompt": "Save it or treat yourself?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Save it"
+      },
+      {
+        "id": "b",
+        "label": "Treat yourself"
+      }
+    ]
+  },
+  {
+    "id": "tot-splurge-on-food-or-on-gadgets",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "money",
+    "intensity": "safe",
+    "prompt": "Splurge on food or on gadgets?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Food"
+      },
+      {
+        "id": "b",
+        "label": "Gadgets"
+      }
+    ]
+  },
+  {
+    "id": "tot-cash-or-e-wallet",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "money",
+    "intensity": "safe",
+    "prompt": "Cash or e-wallet?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Cash"
+      },
+      {
+        "id": "b",
+        "label": "E-wallet"
+      }
+    ]
+  },
+  {
+    "id": "tot-wait-for-the-sale-or-buy-it-now",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "money",
+    "intensity": "safe",
+    "prompt": "Wait for the sale or buy it now?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Wait for the sale"
+      },
+      {
+        "id": "b",
+        "label": "Buy it now"
+      }
+    ]
+  },
+  {
+    "id": "tot-split-the-bill-or-take-turns-paying",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "money",
+    "intensity": "safe",
+    "prompt": "Split the bill or take turns paying?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Split the bill"
+      },
+      {
+        "id": "b",
+        "label": "Take turns"
+      }
+    ]
+  },
+  {
+    "id": "tot-recharge-alone-or-recharge-with-people",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Recharge alone or recharge with people?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Alone time"
+      },
+      {
+        "id": "b",
+        "label": "With people"
+      }
+    ]
+  },
+  {
+    "id": "tot-always-have-a-plan-b-or-go-with-the-flow",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Always have a plan B or go with the flow?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Plan B"
+      },
+      {
+        "id": "b",
+        "label": "Go with the flow"
+      }
+    ]
+  },
+  {
+    "id": "tot-cry-at-movies",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Cry at movies?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Every time"
+      },
+      {
+        "id": "b",
+        "label": "Never"
+      }
+    ]
+  },
+  {
+    "id": "tot-cats-or-dogs",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Cats or dogs?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Cats"
+      },
+      {
+        "id": "b",
+        "label": "Dogs"
+      }
+    ]
+  },
+  {
+    "id": "tot-summer-or-rainy-season",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Summer or rainy season?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Summer"
+      },
+      {
+        "id": "b",
+        "label": "Rainy season"
+      }
+    ]
+  },
+  {
+    "id": "tot-sunrise-or-sunset",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Sunrise or sunset?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Sunrise"
+      },
+      {
+        "id": "b",
+        "label": "Sunset"
+      }
+    ]
+  },
+  {
+    "id": "tot-books-or-podcasts",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Books or podcasts?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Books"
+      },
+      {
+        "id": "b",
+        "label": "Podcasts"
+      }
+    ]
+  },
+  {
+    "id": "tot-at-videoke-grab-the-mic-or-cheer-from-the-couch",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "At videoke: grab the mic or cheer from the couch?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Grab the mic"
+      },
+      {
+        "id": "b",
+        "label": "Cheer from the couch"
+      }
+    ]
+  },
+  {
+    "id": "tot-horror-movie-or-rom-com",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Horror movie or rom-com?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Horror"
+      },
+      {
+        "id": "b",
+        "label": "Rom-com"
+      }
+    ]
+  },
+  {
+    "id": "tot-superpower-fly-or-teleport",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Superpower: fly or teleport?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Fly"
+      },
+      {
+        "id": "b",
+        "label": "Teleport"
+      }
+    ]
+  },
+  {
+    "id": "tot-live-in-the-city-or-the-province",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Live in the city or the province?",
+    "options": [
+      {
+        "id": "a",
+        "label": "City"
+      },
+      {
+        "id": "b",
+        "label": "Province"
+      }
+    ]
+  },
+  {
+    "id": "tot-always-early-or-fashionably-late",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Always early or fashionably late?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Always early"
+      },
+      {
+        "id": "b",
+        "label": "Fashionably late"
+      }
+    ]
+  },
+  {
+    "id": "tot-lost-ask-for-directions-or-figure-it-out",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Lost: ask for directions or figure it out?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Ask someone"
+      },
+      {
+        "id": "b",
+        "label": "Figure it out"
+      }
+    ]
+  },
+  {
+    "id": "tot-know-the-future-or-change-the-past",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Know the future or change the past?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Know the future"
+      },
+      {
+        "id": "b",
+        "label": "Change the past"
+      }
+    ]
+  },
+  {
+    "id": "tot-be-famous-or-be-rich",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Be famous or be rich?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Famous"
+      },
+      {
+        "id": "b",
+        "label": "Rich"
+      }
+    ]
+  },
+  {
+    "id": "tot-old-photos-cute-or-cringe",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "Old photos: cute or cringe?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Cute"
+      },
+      {
+        "id": "b",
+        "label": "Cringe"
+      }
+    ]
+  },
+  {
+    "id": "tot-throwback-songs-or-new-hits",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "Throwback songs or new hits?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Throwbacks"
+      },
+      {
+        "id": "b",
+        "label": "New hits"
+      }
+    ]
+  },
+  {
+    "id": "tot-no-phone-for-a-week-or-no-internet-for-a-week",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "No phone for a week or no internet for a week?",
+    "options": [
+      {
+        "id": "a",
+        "label": "No phone"
+      },
+      {
+        "id": "b",
+        "label": "No internet"
+      }
+    ]
+  },
+  {
+    "id": "tot-only-sing-or-only-whisper-for-a-day",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Only sing or only whisper for a day?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Only sing"
+      },
+      {
+        "id": "b",
+        "label": "Only whisper"
+      }
+    ]
+  },
+  {
+    "id": "tot-free-food-forever-or-free-travel-forever",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Free food forever or free travel forever?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Free food"
+      },
+      {
+        "id": "b",
+        "label": "Free travel"
+      }
+    ]
+  },
+  {
+    "id": "tot-videoke-night-or-movie-marathon",
+    "gameType": "this_or_that",
+    "modes": ["couple", "friends", "circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Videoke night or movie marathon?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Videoke night"
+      },
+      {
+        "id": "b",
+        "label": "Movie marathon"
+      }
+    ]
+  },
+  {
+    "id": "tot-date-night-dress-up-or-pajamas",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Date night: dress up or pajamas?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Dress up"
+      },
+      {
+        "id": "b",
+        "label": "Pajamas"
+      }
+    ]
+  },
+  {
+    "id": "tot-anniversary-big-celebration-or-quiet-night",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Anniversary: big celebration or quiet night?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Big celebration"
+      },
+      {
+        "id": "b",
+        "label": "Quiet night"
+      }
+    ]
+  },
+  {
+    "id": "tot-love-letter-or-surprise-gift",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Love letter or surprise gift?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Love letter"
+      },
+      {
+        "id": "b",
+        "label": "Surprise gift"
+      }
+    ]
+  },
+  {
+    "id": "tot-cuddle-all-night-or-own-side-of-the-bed",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Cuddle all night or own side of the bed?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Cuddle"
+      },
+      {
+        "id": "b",
+        "label": "Own side"
+      }
+    ]
+  },
+  {
+    "id": "tot-plan-the-date-or-be-surprised",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Plan the date or be surprised?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Plan it"
+      },
+      {
+        "id": "b",
+        "label": "Be surprised"
+      }
+    ]
+  },
+  {
+    "id": "tot-matching-outfits-cute-or-too-much",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Matching outfits: cute or too much?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Cute"
+      },
+      {
+        "id": "b",
+        "label": "Too much"
+      }
+    ]
+  },
+  {
+    "id": "tot-slow-dance-or-silly-dance",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Slow dance or silly dance?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Slow dance"
+      },
+      {
+        "id": "b",
+        "label": "Silly dance"
+      }
+    ]
+  },
+  {
+    "id": "tot-cook-together-or-eat-out",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Cook together or eat out?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Cook together"
+      },
+      {
+        "id": "b",
+        "label": "Eat out"
+      }
+    ]
+  },
+  {
+    "id": "tot-share-dessert-or-order-your-own",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Share dessert or order your own?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Share"
+      },
+      {
+        "id": "b",
+        "label": "Order my own"
+      }
+    ]
+  },
+  {
+    "id": "tot-long-distance-video-call-or-voice-call",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Long-distance: video call or voice call?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Video call"
+      },
+      {
+        "id": "b",
+        "label": "Voice call"
+      }
+    ]
+  },
+  {
+    "id": "tot-after-a-fight-talk-it-out-now-or-cool-down-first",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "After a fight: talk it out now or cool down first?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Talk it out now"
+      },
+      {
+        "id": "b",
+        "label": "Cool down first"
+      }
+    ]
+  },
+  {
+    "id": "tot-holding-hands-in-public",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Holding hands in public?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Always"
+      },
+      {
+        "id": "b",
+        "label": "Keep it lowkey"
+      }
+    ]
+  },
+  {
+    "id": "tot-pet-names-or-real-names",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Pet names or real names?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Pet names"
+      },
+      {
+        "id": "b",
+        "label": "Real names"
+      }
+    ]
+  },
+  {
+    "id": "tot-valentine-s-stay-in-or-go-out",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Valentine's: stay in or go out?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Stay in"
+      },
+      {
+        "id": "b",
+        "label": "Go out"
+      }
+    ]
+  },
+  {
+    "id": "tot-couple-trip-adventure-or-relax",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Couple trip: adventure or relax?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Adventure"
+      },
+      {
+        "id": "b",
+        "label": "Relax"
+      }
+    ]
+  },
+  {
+    "id": "tot-first-date-coffee-shop-or-food-trip",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "First date: coffee shop or food trip?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Coffee shop"
+      },
+      {
+        "id": "b",
+        "label": "Food trip"
+      }
+    ]
+  },
+  {
+    "id": "tot-hangout-chill-at-home-or-go-out",
+    "gameType": "this_or_that",
+    "modes": ["friends"],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "Hangout: chill at home or go out?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Chill at home"
+      },
+      {
+        "id": "b",
+        "label": "Go out"
+      }
+    ]
+  },
+  {
+    "id": "tot-in-the-group-chat-lurker-or-spammer",
+    "gameType": "this_or_that",
+    "modes": ["friends", "circle"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "In the group chat: lurker or spammer?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Lurker"
+      },
+      {
+        "id": "b",
+        "label": "Spammer"
+      }
+    ]
+  },
+  {
+    "id": "tot-borrowing-clothes-yes-or-never",
+    "gameType": "this_or_that",
+    "modes": ["friends"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Borrowing clothes: yes or never?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Yes"
+      },
+      {
+        "id": "b",
+        "label": "Never"
+      }
+    ]
+  },
+  {
+    "id": "tot-friend-s-bad-haircut-be-honest-or-be-nice",
+    "gameType": "this_or_that",
+    "modes": ["friends"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Friend's bad haircut: be honest or be nice?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Be honest"
+      },
+      {
+        "id": "b",
+        "label": "Be nice"
+      }
+    ]
+  },
+  {
+    "id": "tot-inside-jokes-or-new-adventures",
+    "gameType": "this_or_that",
+    "modes": ["friends"],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "Inside jokes or new adventures?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Inside jokes"
+      },
+      {
+        "id": "b",
+        "label": "New adventures"
+      }
+    ]
+  },
+  {
+    "id": "tot-birthday-surprise-party-or-chill-dinner",
+    "gameType": "this_or_that",
+    "modes": ["friends", "circle"],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "Birthday: surprise party or chill dinner?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Surprise party"
+      },
+      {
+        "id": "b",
+        "label": "Chill dinner"
+      }
+    ]
+  },
+  {
+    "id": "tot-late-night-talks-or-early-morning-runs",
+    "gameType": "this_or_that",
+    "modes": ["friends"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Late-night talks or early-morning runs?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Late-night talks"
+      },
+      {
+        "id": "b",
+        "label": "Early-morning runs"
+      }
+    ]
+  },
+  {
+    "id": "tot-road-trip-dj-or-navigator",
+    "gameType": "this_or_that",
+    "modes": ["friends", "circle"],
+    "category": "travel",
+    "intensity": "safe",
+    "prompt": "Road trip: DJ or navigator?",
+    "options": [
+      {
+        "id": "a",
+        "label": "DJ"
+      },
+      {
+        "id": "b",
+        "label": "Navigator"
+      }
+    ]
+  },
+  {
+    "id": "tot-matching-bracelets-or-matching-shirts",
+    "gameType": "this_or_that",
+    "modes": ["friends"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Matching bracelets or matching shirts?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Bracelets"
+      },
+      {
+        "id": "b",
+        "label": "Shirts"
+      }
+    ]
+  },
+  {
+    "id": "tot-party-game-charades-or-trivia",
+    "gameType": "this_or_that",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Party game: charades or trivia?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Charades"
+      },
+      {
+        "id": "b",
+        "label": "Trivia"
+      }
+    ]
+  },
+  {
+    "id": "tot-barkada-outing-beach-or-videoke",
+    "gameType": "this_or_that",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Barkada outing: beach or videoke?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Beach"
+      },
+      {
+        "id": "b",
+        "label": "Videoke"
+      }
+    ]
+  },
+  {
+    "id": "tot-trip-planning-endless-group-chat-or-just-book-it",
+    "gameType": "this_or_that",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Trip planning: endless group chat or just book it?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Group chat"
+      },
+      {
+        "id": "b",
+        "label": "Just book it"
+      }
+    ]
+  },
+  {
+    "id": "tot-last-slice-of-pizza-take-it-or-offer-it",
+    "gameType": "this_or_that",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Last slice of pizza: take it or offer it?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Take it"
+      },
+      {
+        "id": "b",
+        "label": "Offer it"
+      }
+    ]
+  },
+  {
+    "id": "tot-truth-or-dare",
+    "gameType": "this_or_that",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Truth or dare?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Truth"
+      },
+      {
+        "id": "b",
+        "label": "Dare"
+      }
+    ]
+  },
+  {
+    "id": "tot-group-photo-candid-or-posed",
+    "gameType": "this_or_that",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Group photo: candid or posed?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Candid"
+      },
+      {
+        "id": "b",
+        "label": "Posed"
+      }
+    ]
+  },
+  {
+    "id": "tot-ordering-for-the-group-one-person-decides-or-vot",
+    "gameType": "this_or_that",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Ordering for the group: one person decides or vote?",
+    "options": [
+      {
+        "id": "a",
+        "label": "One decides"
+      },
+      {
+        "id": "b",
+        "label": "Vote"
+      }
+    ]
+  },
+  {
+    "id": "tot-arrive-first-or-arrive-last",
+    "gameType": "this_or_that",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Arrive first or arrive last?",
+    "options": [
+      {
+        "id": "a",
+        "label": "First"
+      },
+      {
+        "id": "b",
+        "label": "Last"
+      }
+    ]
+  },
+  {
+    "id": "tot-host-the-party-or-just-attend",
+    "gameType": "this_or_that",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Host the party or just attend?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Host"
+      },
+      {
+        "id": "b",
+        "label": "Attend"
+      }
+    ]
+  },
+  {
+    "id": "tot-midnight-snack-run-or-sleep",
+    "gameType": "this_or_that",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Midnight snack run or sleep?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Snack run"
+      },
+      {
+        "id": "b",
+        "label": "Sleep"
+      }
+    ]
+  },
+  {
+    "id": "tot-at-a-party-dance-floor-or-snack-table",
+    "gameType": "this_or_that",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "At a party: dance floor or snack table?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Dance floor"
+      },
+      {
+        "id": "b",
+        "label": "Snack table"
+      }
+    ]
+  },
+  {
+    "id": "tot-exchange-gift-practical-or-funny",
+    "gameType": "this_or_that",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Exchange gift: practical or funny?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Practical"
+      },
+      {
+        "id": "b",
+        "label": "Funny"
+      }
+    ]
+  },
+  {
+    "id": "tot-reunion-catch-up-quietly-or-relive-the-chaos",
+    "gameType": "this_or_that",
+    "modes": ["circle"],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "Reunion: catch up quietly or relive the chaos?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Catch up"
+      },
+      {
+        "id": "b",
+        "label": "Relive the chaos"
+      }
+    ]
+  }
+]

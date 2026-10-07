@@ -42,8 +42,8 @@ test("couple: host creates, partner joins by link, host starts", async ({ browse
   await expect(start).toBeEnabled();
   await start.click();
 
-  await expect(host.getByRole("heading", { name: "Game on!" })).toBeVisible();
-  await expect(guest.getByRole("heading", { name: "Game on!" })).toBeVisible();
+  await expect(host.getByText("Round 1 of 3")).toBeVisible();
+  await expect(guest.getByText("Round 1 of 3")).toBeVisible();
 });
 
 test("circle: needs 3 players before the host can start", async ({ browser }) => {

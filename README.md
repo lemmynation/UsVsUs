@@ -12,8 +12,8 @@ The product spec is [`docs/design.docx`](docs/design.docx) (text export: [`docs/
 | --------------- | ------------------------------------------------------------------------ | ------- |
 | 0 — Foundation  | Next.js, Tailwind, shadcn/ui, lint/test tooling, env validation, CI      | ✅ Done |
 | 1 — Rooms       | Create/join rooms, anonymous sessions, live lobby, invite, host controls | ✅ Done |
-| 2 — Realtime    | Presence/reconnect polish, server-authoritative game state               | Next    |
-| 3 — Game engine | Mind Reader, Who's More Likely, This or That, scoring                    | —       |
+| 2 — Realtime    | Server-run game flow, private answers, reveal sync, presence, reconnect  | ✅ Done |
+| 3 — Game engine | Mind Reader, Who's More Likely, scoring                                  | Next    |
 | 4–7             | Wrapped, premium packs, analytics & QA, beta                             | —       |
 
 ## Run it locally
@@ -32,23 +32,31 @@ incognito window to play as a second player.
 ## Connect Supabase
 
 1. Create a free project at [supabase.com](https://supabase.com).
-2. In the project's **SQL Editor**, run `supabase/migrations/20261007000000_rooms.sql`, then
-   `supabase/seed.sql`.
+2. In the project's **SQL Editor**, run each file in `supabase/migrations/` in name order, then
+   `supabase/seed.sql` and `supabase/seed-questions.sql`.
 3. Copy `.env.example` to `.env.local` and fill in the Project URL, the publishable key (`sb_publishable_…`)
    and the secret key (`sb_secret_…`) from **Project Settings → API Keys**. `.env.local` is git-ignored —
    never commit it.
 4. Restart `npm run dev`. Rooms now persist, and lobbies update instantly via Supabase Realtime
    (broadcast must be allowed for the publishable key — it is by default).
 
+## Questions
+
+The question bank is plain data in `content/questions/`. To add or change questions, edit the JSON, run
+`npm run db:seed-sql`, and run the regenerated `supabase/seed-questions.sql` in Supabase. Removing a question
+from the JSON deactivates it rather than deleting it. The game avoids repeats per group: each new game picks
+questions nobody in the room has seen first, then the least- and longest-ago-seen.
+
 ## Scripts
 
-| Command            | Does                                       |
-| ------------------ | ------------------------------------------ |
-| `npm run dev`      | Dev server                                 |
-| `npm run check`    | Lint + typecheck + unit tests              |
-| `npm run test:e2e` | Playwright browser tests (in-memory rooms) |
-| `npm run build`    | Production build                           |
-| `npm run format`   | Prettier                                   |
+| Command               | Does                                       |
+| --------------------- | ------------------------------------------ |
+| `npm run dev`         | Dev server                                 |
+| `npm run check`       | Lint + typecheck + unit tests              |
+| `npm run test:e2e`    | Playwright browser tests (in-memory rooms) |
+| `npm run build`       | Production build                           |
+| `npm run format`      | Prettier                                   |
+| `npm run db:seed-sql` | Regenerate the question seed SQL           |
 
 ## How it fits together
 

@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "check": "npm run lint && npm run typecheck && npm run test"
+    "check": "npm run lint && npm run typecheck && npm run test",
+    "db:seed-sql": "node scripts/generate-question-seed.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

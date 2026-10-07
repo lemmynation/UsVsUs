@@ -28,23 +28,42 @@ function getBrowserClient(config: RealtimeConfig) {
  * only say "something changed", then we refetch. Also refetches when the tab
  * becomes visible again or the network comes back, so a phone that slept or
  * lost signal catches up on its own.
+ *
+ * With realtime connected, "Here / Away" comes from Supabase Presence (instant);
+ * otherwise from the server's last-seen time.
  */
 export function useRoom(initial: RoomView, realtime: RealtimeConfig | null) {
   const [view, setView] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
+  const [networkDown, setNetworkDown] = useState(false);
+  const [presentIds, setPresentIds] = useState<Set<string> | null>(null);
   const inFlight = useRef(false);
+  const again = useRef(false);
   const roomId = initial.room.id;
+  const myId = initial.me.playerId;
 
   const refresh = useCallback(async () => {
-    if (inFlight.current) return;
+    // A ping that arrives mid-fetch may describe a change the fetch started too
+    // early to see — remember it and fetch once more instead of dropping it.
+    if (inFlight.current) {
+      again.current = true;
+      return;
+    }
     inFlight.current = true;
     try {
-      setView(await apiFetch<RoomView>(`/api/rooms/${roomId}`));
-      setError(null);
-    } catch (err) {
-      // Network blips keep the last good view; membership errors are terminal.
-      if (err instanceof ApiError && err.code !== "network" && err.code !== "rate_limited") setError(err.code);
+      do {
+        again.current = false;
+        try {
+          setView(await apiFetch<RoomView>(`/api/rooms/${roomId}`));
+          setError(null);
+          setNetworkDown(false);
+        } catch (err) {
+          // Network blips keep the last good view; membership errors are terminal.
+          if (err instanceof ApiError && err.code === "network") setNetworkDown(true);
+          else if (err instanceof ApiError && err.code !== "rate_limited") setError(err.code);
+        }
+      } while (again.current);
     } finally {
       inFlight.current = false;
     }
@@ -53,17 +72,23 @@ export function useRoom(initial: RoomView, realtime: RealtimeConfig | null) {
   useEffect(() => {
     if (!realtime) return;
     const supabase = getBrowserClient(realtime);
-    const channel = supabase
-      .channel(roomChannelName(roomId))
+    const channel = supabase.channel(roomChannelName(roomId), { config: { presence: { key: myId } } });
+    channel
       .on("broadcast", { event: ROOM_CHANGED_EVENT }, () => void refresh())
+      .on("presence", { event: "sync" }, () => setPresentIds(new Set(Object.keys(channel.presenceState()))))
       .subscribe((status) => {
         setConnected(status === "SUBSCRIBED");
-        if (status === "SUBSCRIBED") void refresh(); // catch anything missed while connecting
+        if (status === "SUBSCRIBED") {
+          void channel.track({ at: Date.now() });
+          void refresh(); // catch anything missed while connecting
+        } else {
+          setPresentIds(null); // fall back to server last-seen
+        }
       });
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [realtime, roomId, refresh]);
+  }, [realtime, roomId, myId, refresh]);
 
   useEffect(() => {
     if (error) return;
@@ -74,13 +99,20 @@ export function useRoom(initial: RoomView, realtime: RealtimeConfig | null) {
   useEffect(() => {
     const onVisible = () => document.visibilityState === "visible" && void refresh();
     const onOnline = () => void refresh();
+    const onOffline = () => setNetworkDown(true);
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
     return () => {
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
     };
   }, [refresh]);
 
-  return { view, error, refresh };
+  const players = presentIds
+    ? view.players.map((p) => ({ ...p, isOnline: p.id === myId || presentIds.has(p.id) }))
+    : view.players;
+
+  return { view: { ...view, players }, error, refresh, reconnecting: networkDown };
 }

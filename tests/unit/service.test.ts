@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { createGameService, type GameService } from "@/lib/game/service";
 import { MemoryRoomStore } from "@/lib/rooms/memory-store";
 import { JOIN_CODE_ALPHABET, ROOM_TTL_MS } from "@/lib/rooms/rules";
 import { createRoomService, type RoomService } from "@/lib/rooms/service";
@@ -6,6 +7,7 @@ import type { Mode } from "@/types/room";
 
 let store: MemoryRoomStore;
 let service: RoomService;
+let game: GameService;
 let clock: Date;
 /** Characters the fake RNG hands out next; empty means "count upward". */
 let queued: string[];
@@ -20,6 +22,7 @@ beforeEach(() => {
   clock = new Date("2026-10-07T12:00:00Z");
   queued = [];
   let seq = 0;
+  game = createGameService({ store, now: () => clock, random: () => 0.5 });
   service = createRoomService({
     store,
     now: () => clock,
@@ -27,6 +30,7 @@ beforeEach(() => {
       const ch = queued.shift();
       return ch ? JOIN_CODE_ALPHABET.indexOf(ch) : seq++ % max;
     },
+    game,
   });
 });
 
@@ -114,7 +118,7 @@ describe("joinRoom", () => {
   it("rejects joining after the game started", async () => {
     const { room } = await createRoom();
     await join(room.joinCode, "Ana", "g1");
-    await service.startGame(room.id, "host");
+    await game.startGame(room.id, "host");
     expect(await join(room.joinCode, "Ben", "g2")).toEqual({ ok: false, error: "room_in_progress" });
   });
 });
@@ -168,30 +172,32 @@ describe("getRoomView", () => {
 describe("startGame", () => {
   it("requires the minimum number of players", async () => {
     const { room } = await createRoom();
-    expect(await service.startGame(room.id, "host")).toEqual({ ok: false, error: "not_enough_players" });
+    expect(await game.startGame(room.id, "host")).toEqual({ ok: false, error: "not_enough_players" });
     await join(room.joinCode, "Ana", "g1");
-    expect(await service.startGame(room.id, "host")).toEqual({ ok: true, value: null });
+    expect(await game.startGame(room.id, "host")).toMatchObject({ ok: true });
     expect((await store.getRoomById(room.id))?.status).toBe("IN_GAME");
   });
 
   it("only the host can start", async () => {
     const { room } = await createRoom();
     await join(room.joinCode, "Ana", "g1");
-    expect(await service.startGame(room.id, "g1")).toEqual({ ok: false, error: "not_host" });
+    expect(await game.startGame(room.id, "g1")).toEqual({ ok: false, error: "not_host" });
   });
 
   it("re-checks the player count atomically in the store", async () => {
     // Simulates someone leaving between the service's check and the write.
     const { room } = await createRoom();
-    expect(await store.startGame(room.id, 2)).toBe("not_enough_players");
+    expect(await store.startGame({ roomId: room.id, minPlayers: 2, rounds: [], now: clock.toISOString() })).toBe(
+      "not_enough_players",
+    );
     expect((await store.getRoomById(room.id))?.status).toBe("LOBBY");
   });
 
   it("cannot start twice", async () => {
     const { room } = await createRoom();
     await join(room.joinCode, "Ana", "g1");
-    await service.startGame(room.id, "host");
-    expect(await service.startGame(room.id, "host")).toEqual({ ok: false, error: "not_in_lobby" });
+    await game.startGame(room.id, "host");
+    expect(await game.startGame(room.id, "host")).toEqual({ ok: false, error: "not_in_lobby" });
   });
 });
 

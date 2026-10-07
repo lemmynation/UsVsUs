@@ -19,6 +19,12 @@ export const ROOM_ERRORS: Record<string, { status: number; message: string }> = 
   cannot_kick_self: { status: 400, message: "You can't remove yourself. Use Leave room instead." },
   player_not_found: { status: 404, message: "That player isn't in the room anymore." },
   code_generation_failed: { status: 503, message: "We couldn't create a room right now. Please try again." },
+  not_open: { status: 409, message: "That question isn't open anymore — catching you up." },
+  invalid_answer: { status: 400, message: "That answer isn't one of the options." },
+  stale_state: { status: 409, message: "The game already moved on — catching you up." },
+  no_answers_yet: { status: 409, message: "Wait for at least one answer before revealing." },
+  game_finished: { status: 409, message: "This game is over." },
+  no_questions: { status: 503, message: "We couldn't find questions for this mode. Please try again." },
   rate_limited: { status: 429, message: "Slow down a little — try again in a moment." },
 };
 
