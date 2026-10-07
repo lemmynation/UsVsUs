@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pickQuestions, planRounds, type QuestionHistory } from "@/lib/game/question-picker";
+import { pickQuestions, planGame, type QuestionHistory } from "@/lib/game/question-picker";
 import type { Question, QuestionCategory } from "@/types/game";
 import type { Mode } from "@/types/room";
 
@@ -87,17 +87,28 @@ describe("pickQuestions", () => {
   });
 });
 
-describe("planRounds", () => {
-  it("splits picks into rounds", () => {
-    const qs = Array.from({ length: 15 }, (_, i) => q(`q${i}`));
-    const plan = planRounds(qs, 3, 5);
-    expect(plan).toHaveLength(3);
-    expect(plan.every((r) => r.questionIds.length === 5)).toBe(true);
-    expect(new Set(plan.flatMap((r) => r.questionIds)).size).toBe(15);
+describe("planGame", () => {
+  const bank = [
+    ...Array.from({ length: 12 }, (_, i) => q(`tot${i}`)),
+    ...Array.from({ length: 12 }, (_, i) => ({ ...q(`ml${i}`), gameType: "most_likely" as const, options: [] })),
+  ];
+  const plan = (lineup: Array<"this_or_that" | "most_likely" | "mind_reader">, perRound = 5) =>
+    planGame({ questions: bank, mode: "circle", lineup, perRound, history: new Map(), random: seeded(3) });
+
+  it("fills each round with its own game type", () => {
+    const p = plan(["most_likely", "this_or_that", "most_likely"]);
+    expect(p.map((r) => r.gameType)).toEqual(["most_likely", "this_or_that", "most_likely"]);
+    expect(p.every((r) => r.questionIds.length === 5)).toBe(true);
   });
 
-  it("makes fewer, shorter rounds when there aren't enough questions", () => {
-    const plan = planRounds([q("a"), q("b"), q("c"), q("d"), q("e"), q("f"), q("g")], 3, 5);
-    expect(plan.map((r) => r.questionIds.length)).toEqual([5, 2]);
+  it("never repeats a question across two rounds of the same type", () => {
+    const ids = plan(["most_likely", "this_or_that", "most_likely"]).flatMap((r) => r.questionIds);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("shortens or drops rounds rather than repeating when a type runs low", () => {
+    const p = plan(["most_likely", "most_likely", "most_likely"]); // 12 questions for 15 slots
+    expect(p.map((r) => r.questionIds.length)).toEqual([5, 5, 2]);
+    expect(plan(["mind_reader", "this_or_that"]).map((r) => r.gameType)).toEqual(["this_or_that"]);
   });
 });

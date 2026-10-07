@@ -23,6 +23,6 @@ export function GameScreen(props: GameScreenProps) {
     case "SCOREBOARD":
       return <RoundEnd key={key} {...props} />;
     case "FINISHED":
-      return <GameFinished />;
+      return <GameFinished view={props.view} />;
   }
 }

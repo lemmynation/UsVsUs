@@ -6,9 +6,16 @@ import { notifyRoomChanged } from "@/lib/realtime/server";
 import { getGameService } from "@/lib/rooms/server";
 import { readSessionHash } from "@/lib/session";
 
+/** Shape only; whether it fits this question is checked by the game engine. */
+const answerSchema = z.union([
+  z.object({ skipped: z.literal(true) }),
+  z.object({ targetPlayerId: z.uuid() }),
+  z.object({ optionId: z.string().max(8), predictionId: z.string().max(8).optional() }),
+]);
+
 const bodySchema = z.object({
   questionId: z.string().max(64),
-  optionId: z.string().max(8),
+  answer: answerSchema,
 });
 
 /** Lock in the caller's answer to the open question. Safe to retry: a second answer is ignored. */

@@ -1,7 +1,6 @@
 import type { Mode } from "./room";
 
-/** Phase 2 ships This or That; Mind Reader and Who's More Likely arrive with their engines in Phase 3. */
-export const GAME_TYPES = ["this_or_that"] as const;
+export const GAME_TYPES = ["mind_reader", "most_likely", "this_or_that"] as const;
 export type GameType = (typeof GAME_TYPES)[number];
 
 export const QUESTION_CATEGORIES = [
@@ -31,6 +30,22 @@ export interface Question {
   options: QuestionOption[];
   /** Inactive questions are never picked for new games but still load for games already using them. */
   active?: boolean;
+  /** Who's More Likely: the Circle badge for whoever gets the most votes, e.g. "Future Millionaire 💰". */
+  award?: string;
+}
+
+/**
+ * One player's answer to one question. Which fields are used depends on the game:
+ * - This or That: `optionId` (own pick) and, in 2-player modes, `predictionId` (guess of partner's pick)
+ * - Mind Reader: `optionId` (the subject's own answer, or the predictor's guess)
+ * - Who's More Likely: `targetPlayerId`
+ * - Any game: `{ skipped: true }` — no penalty (design doc §13)
+ */
+export interface PlayerAnswer {
+  optionId?: string;
+  predictionId?: string;
+  targetPlayerId?: string;
+  skipped?: true;
 }
 
 /** Design doc §12. WAITING is a client view of QUESTION_OPEN after you've answered, not a server state. */
@@ -60,6 +75,8 @@ export interface GameRound {
   roundIndex: number;
   gameType: GameType;
   questionIds: string[];
+  /** Mind Reader: who each question is about, parallel to questionIds. */
+  subjectPlayerIds: Array<string | null>;
 }
 
 export interface GameResponse {
@@ -68,8 +85,28 @@ export interface GameResponse {
   roundId: string;
   questionId: string;
   playerId: string;
-  answer: { optionId: string };
+  answer: PlayerAnswer;
   submittedAt: string;
+}
+
+/** Points (or a badge) locked in at a reveal. One row per player per question. */
+export interface ScoreEntry {
+  playerId: string;
+  roundIndex: number;
+  questionIndex: number;
+  points: number;
+  award: string | null;
+}
+
+export interface QuestionReveal {
+  /** Everyone's answers — null when votes are anonymous (Circle's Who's More Likely). */
+  answers: Array<{ playerId: string; answer: PlayerAnswer }> | null;
+  /** Anonymous vote counts per player (Circle's Who's More Likely). */
+  votes: Array<{ targetPlayerId: string; count: number }> | null;
+  skippedCount: number;
+  /** Points each player earned on this question. */
+  points: Record<string, number>;
+  award: { label: string; playerIds: string[] } | null;
 }
 
 /** The game as one player is allowed to see it. Other players' answers appear only in REVEAL. */
@@ -82,8 +119,21 @@ export interface GameView {
   roundCount: number;
   questionIndex: number;
   questionCount: number;
-  question: { id: string; prompt: string; options: QuestionOption[] } | null;
+  question: {
+    id: string;
+    prompt: string;
+    options: QuestionOption[];
+    subjectPlayerId: string | null;
+  } | null;
+  /** Mind Reader: answering about yourself, or guessing. Everyone else: "player". */
+  myRole: "subject" | "predictor" | "player" | null;
   answeredPlayerIds: string[];
-  myAnswer: string | null;
-  reveal: { answers: Array<{ playerId: string; optionId: string }> } | null;
+  myAnswer: PlayerAnswer | null;
+  reveal: QuestionReveal | null;
+  /** Running totals (2-player modes). Empty in Circle, which plays for badges instead. */
+  standings: Array<{ playerId: string; points: number }>;
+  /** Points earned in the current round, shown on the scoreboard. */
+  roundPoints: Record<string, number>;
+  /** Circle badges earned so far. */
+  awards: Array<{ label: string; playerId: string }>;
 }

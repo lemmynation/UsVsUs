@@ -2,7 +2,16 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { QuestionHistory } from "@/lib/game/question-picker";
 import { questionSchema } from "@/lib/game/questions";
-import type { GamePhase, GameResponse, GameRound, GameSession, GameType, Question } from "@/types/game";
+import type {
+  GamePhase,
+  GameResponse,
+  GameRound,
+  GameSession,
+  GameType,
+  PlayerAnswer,
+  Question,
+  ScoreEntry,
+} from "@/types/game";
 import type { Mode, Player, PlayerStatus, Room, RoomStatus } from "@/types/room";
 import type { AnalyticsEvent, RoomStore } from "./store";
 
@@ -71,6 +80,7 @@ interface RoundRow {
   round_index: number;
   game_type: GameType;
   question_ids: string[];
+  subject_player_ids: Array<string | null> | null;
 }
 
 interface ResponseRow {
@@ -79,8 +89,16 @@ interface ResponseRow {
   round_id: string;
   question_id: string;
   player_id: string;
-  answer: { optionId: string };
+  answer: PlayerAnswer;
   submitted_at: string;
+}
+
+interface ScoreRow {
+  player_id: string;
+  round_index: number;
+  question_index: number;
+  points: number;
+  metadata: { award?: string };
 }
 
 const toSession = (s: SessionRow): GameSession => ({
@@ -102,6 +120,7 @@ const toRound = (r: RoundRow): GameRound => ({
   roundIndex: r.round_index,
   gameType: r.game_type,
   questionIds: r.question_ids,
+  subjectPlayerIds: r.subject_player_ids ?? r.question_ids.map(() => null),
 });
 
 const toResponse = (r: ResponseRow): GameResponse => ({
@@ -223,6 +242,27 @@ export class SupabaseRoomStore implements RoomStore {
     return (data as ResponseRow[]).map(toResponse);
   }
 
+  async listScores(sessionId: string) {
+    const { data, error } = await this.db
+      .from("scores")
+      .select("player_id, round_index, question_index, points, metadata")
+      .eq("game_session_id", sessionId);
+    check(error, "listScores");
+    return (data as ScoreRow[]).map((r): ScoreEntry => ({
+      playerId: r.player_id,
+      roundIndex: r.round_index,
+      questionIndex: r.question_index,
+      points: r.points,
+      award: r.metadata?.award ?? null,
+    }));
+  }
+
+  async recordScores(sessionId: string, entries: ScoreEntry[]) {
+    if (entries.length === 0) return;
+    const { error } = await this.db.rpc("record_scores", { p_session_id: sessionId, p_scores: entries });
+    check(error, "record_scores");
+  }
+
   async submitResponse(input: Parameters<RoomStore["submitResponse"]>[0]) {
     const { data, error } = await this.db.rpc("submit_response", {
       p_session_id: input.sessionId,
@@ -267,7 +307,7 @@ export class SupabaseRoomStore implements RoomStore {
     const { data, error } = await this.db
       .from("questions")
       // Inactive rows too: a game already in progress may still be on one. The picker skips them.
-      .select("id, game_type, modes, category, intensity, prompt, options, active");
+      .select("id, game_type, modes, category, intensity, prompt, options, active, award");
     check(error, "getQuestions");
     const questions: Question[] = [];
     for (const row of data ?? []) {

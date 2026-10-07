@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { QuestionHistory } from "@/lib/game/question-picker";
 import { BUNDLED_QUESTIONS } from "@/lib/game/questions";
-import type { GameResponse, GameRound, GameSession, Question } from "@/types/game";
+import type { GameResponse, GameRound, GameSession, Question, ScoreEntry } from "@/types/game";
 import type { Player, Room } from "@/types/room";
 import { nextHost } from "./rules";
 import type { AnalyticsEvent, RoomStore } from "./store";
@@ -16,6 +16,7 @@ export class MemoryRoomStore implements RoomStore {
   private sessions = new Map<string, GameSession>();
   private rounds = new Map<string, GameRound>();
   private responses: GameResponse[] = [];
+  private scores: Array<ScoreEntry & { sessionId: string }> = [];
   /** sessionTokenHash → questionId → history */
   private seen = new Map<string, Map<string, QuestionHistory>>();
   readonly events: AnalyticsEvent[] = [];
@@ -116,7 +117,7 @@ export class MemoryRoomStore implements RoomStore {
     const rounds = input.rounds.map((r, roundIndex) => {
       const round: GameRound = { id: randomUUID(), sessionId: session.id, roundIndex, ...r };
       this.rounds.set(round.id, round);
-      return { ...round, questionIds: [...round.questionIds] };
+      return { ...round, questionIds: [...round.questionIds], subjectPlayerIds: [...round.subjectPlayerIds] };
     });
     return { session: { ...session }, rounds };
   }
@@ -129,7 +130,7 @@ export class MemoryRoomStore implements RoomStore {
     const rounds = [...this.rounds.values()]
       .filter((r) => r.sessionId === session.id)
       .sort((a, b) => a.roundIndex - b.roundIndex)
-      .map((r) => ({ ...r, questionIds: [...r.questionIds] }));
+      .map((r) => ({ ...r, questionIds: [...r.questionIds], subjectPlayerIds: [...r.subjectPlayerIds] }));
     return { session: { ...session }, rounds };
   }
 
@@ -137,6 +138,32 @@ export class MemoryRoomStore implements RoomStore {
     return this.responses
       .filter((r) => r.roundId === roundId && r.questionId === questionId)
       .map((r) => ({ ...r, answer: { ...r.answer } }));
+  }
+
+  async listScores(sessionId: string) {
+    return this.scores
+      .filter((s) => s.sessionId === sessionId)
+      .map((s): ScoreEntry => ({
+        playerId: s.playerId,
+        roundIndex: s.roundIndex,
+        questionIndex: s.questionIndex,
+        points: s.points,
+        award: s.award,
+      }));
+  }
+
+  async recordScores(sessionId: string, entries: ScoreEntry[]) {
+    for (const entry of entries) {
+      const exists = this.scores.some(
+        (e) =>
+          e.sessionId === sessionId &&
+          e.playerId === entry.playerId &&
+          e.roundIndex === entry.roundIndex &&
+          e.questionIndex === entry.questionIndex,
+      );
+      // Mirrors the SQL: unique per player per question, and skip players who already left.
+      if (!exists && this.players.has(entry.playerId)) this.scores.push({ ...entry, sessionId });
+    }
   }
 
   async submitResponse(input: Parameters<RoomStore["submitResponse"]>[0]) {
@@ -229,7 +256,9 @@ export class MemoryRoomStore implements RoomStore {
     const room = this.rooms.get(player.roomId);
     const roomPlayers = [...this.players.values()].filter((p) => p.roomId === player.roomId);
     this.players.delete(playerId);
-    this.responses = this.responses.filter((r) => r.playerId !== playerId); // mirrors ON DELETE CASCADE
+    // Mirrors ON DELETE CASCADE.
+    this.responses = this.responses.filter((r) => r.playerId !== playerId);
+    this.scores = this.scores.filter((e) => e.playerId !== playerId);
     if (!room || !player.isHost) return;
 
     const successor = nextHost(roomPlayers, playerId);

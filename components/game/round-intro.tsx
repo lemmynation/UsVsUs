@@ -1,10 +1,10 @@
-import { GAME_TYPE_META } from "@/lib/game/presentation";
+import { GAME_TYPE_META, roundRules } from "@/lib/game/presentation";
 import { HostAdvance } from "./host-button";
 import type { GameScreenProps } from "./types";
 
 /** S06: round title, one-line rules, progress. */
 export function RoundIntro(props: GameScreenProps) {
-  const { game } = props.view;
+  const { game, room } = props.view;
   const meta = GAME_TYPE_META[game.gameType];
   return (
     <>
@@ -16,7 +16,7 @@ export function RoundIntro(props: GameScreenProps) {
           {meta.emoji}
         </span>
         <h1 className="font-heading text-mode-gradient text-5xl font-extrabold">{meta.title}</h1>
-        <p className="max-w-xs text-lg">{meta.rules}</p>
+        <p className="max-w-xs text-lg">{roundRules(game.gameType, room.mode)}</p>
         <p className="text-muted-foreground text-base">{game.questionCount} questions</p>
       </section>
       <HostAdvance {...props} label="Start round" waitingFor="to start the round" />

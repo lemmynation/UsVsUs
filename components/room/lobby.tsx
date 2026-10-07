@@ -28,11 +28,16 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
   const missing = Math.max(0, room.minPlayers - players.length);
 
   async function act(key: string, path: string, body?: unknown, { refreshAfter = true } = {}) {
-    if (pending) return false;
-    setPending(key);
+    // Answers guard against double taps themselves, so they never wait on (or block) host actions.
+    const exclusive = key !== "answer";
+    if (exclusive && pending) return false;
+    if (exclusive) setPending(key);
     setActionError(null);
     try {
       await apiFetch(path, { method: "POST", body: body ?? {} });
+      // Release before the follow-up refresh: on a slow connection the next screen can
+      // arrive (via realtime) while that refresh is still loading, and its taps must work.
+      if (exclusive) setPending(null);
       if (refreshAfter) await refresh();
       return true;
     } catch (err) {
@@ -44,7 +49,7 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
       setActionError(err instanceof ApiError ? err.message : errorMessage("unknown"));
       return false;
     } finally {
-      setPending(null);
+      if (exclusive) setPending(null);
     }
   }
 
