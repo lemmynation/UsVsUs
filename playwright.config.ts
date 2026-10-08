@@ -18,12 +18,14 @@ export default defineConfig({
   // Phones first: the reference viewport from the design doc is 390×844.
   projects: [{ name: "mobile", use: { ...devices["iPhone 14"], browserName: "chromium" } }],
   webServer: {
-    command: `npx next dev --port ${PORT}`,
+    // CI tests a production build: every route is compiled up front (dev compiles on first
+    // use, which starved CI's small runners) and it's what real players get. Local runs use dev.
+    command: process.env.CI ? `npx next build && npx next start --port ${PORT}` : `npx next dev --port ${PORT}`,
     url: `http://localhost:${PORT}`,
     // In-memory rooms so E2E needs no database. Supabase-specific behaviour is covered separately.
     // Every simulated phone shares one IP, so per-IP rate limits are off for the test server only.
     env: { ROOM_STORE: "memory", PAYMENT_PROVIDER: "fake", RATE_LIMITS: "off" },
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    timeout: 300_000, // includes the build on CI
   },
 });
