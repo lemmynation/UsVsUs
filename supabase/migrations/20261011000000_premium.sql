@@ -1,9 +1,10 @@
 -- Phase 5: premium packs — payments, room entitlements, provider webhook dedupe.
+-- Safe to re-run: skips what already exists, (re)creates the functions.
 -- Same access model: RLS on with no policies; only the server's secret key
 -- (service_role) reads or writes, through the functions below. Card details
 -- never touch this database; the provider hosts checkout.
 
-create table payments (
+create table if not exists payments (
   id uuid primary key default gen_random_uuid(),
   room_id uuid not null references rooms (id) on delete cascade,
   pack_id uuid not null references packs (id),
@@ -20,9 +21,9 @@ create table payments (
   paid_at timestamptz
 );
 
-create index payments_room_idx on payments (room_id, created_at desc);
+create index if not exists payments_room_idx on payments (room_id, created_at desc);
 
-create table entitlements (
+create table if not exists entitlements (
   id uuid primary key default gen_random_uuid(),
   room_id uuid not null references rooms (id) on delete cascade,
   pack_id uuid not null references packs (id),
@@ -32,7 +33,7 @@ create table entitlements (
 );
 
 -- Provider webhook event ids already handled (providers retry, so duplicates are normal).
-create table payment_events (
+create table if not exists payment_events (
   provider text not null,
   event_id text not null,
   received_at timestamptz not null default now(),
@@ -46,7 +47,7 @@ alter table payment_events enable row level security;
 -- Opens (or reuses) a pending payment for a room's pack. Refuses if the room
 -- already has the pack or the game has started. A recent pending payment that
 -- already has a checkout page is reused, so double taps don't open two checkouts.
-create function create_payment(
+create or replace function create_payment(
   p_room_id uuid,
   p_pack_slug text,
   p_provider text,
@@ -97,7 +98,7 @@ $$;
 -- Marks a verified payment paid and unlocks the pack for the room, exactly once.
 -- Returns 'granted', 'already' (this payment was handled before), 'duplicate'
 -- (paid, but the room already had the pack) or 'not_found'.
-create function grant_entitlement(p_payment_id uuid, p_provider_payment_id text, p_now timestamptz) returns text
+create or replace function grant_entitlement(p_payment_id uuid, p_provider_payment_id text, p_now timestamptz) returns text
 language plpgsql
 security definer
 set search_path = public
@@ -129,7 +130,7 @@ end;
 $$;
 
 -- True the first time an event id is seen.
-create function record_payment_event(p_provider text, p_event_id text, p_now timestamptz) returns boolean
+create or replace function record_payment_event(p_provider text, p_event_id text, p_now timestamptz) returns boolean
 language plpgsql
 security definer
 set search_path = public
@@ -143,9 +144,9 @@ $$;
 
 -- start_game gains an optional pack: the entitlement is checked under the same
 -- room lock that moves the room into the game, so a locked pack can't be played.
-drop function start_game(uuid, integer, jsonb, timestamptz);
+drop function if exists start_game(uuid, integer, jsonb, timestamptz);
 
-create function start_game(
+create or replace function start_game(
   p_room_id uuid,
   p_min_players integer,
   p_rounds jsonb,
