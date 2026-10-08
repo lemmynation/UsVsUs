@@ -69,6 +69,21 @@ test("a full room explains itself to a third visitor", async ({ browser }) => {
   await expect(late.getByRole("heading", { name: "Room is full" })).toBeVisible();
 });
 
+test("a double-tap on Start just starts the game, with no error", async ({ browser }) => {
+  const host = await newPlayer(browser);
+  const code = await hostRoom(host, "Couple", "Lem");
+  await joinRoom(await newPlayer(browser), code, "Ana");
+  const start = host.getByRole("button", { name: "Start game" });
+  await expect(start).toBeEnabled();
+  // Two taps in the same instant — before React can re-render and disable the button.
+  await start.evaluate((button: HTMLButtonElement) => {
+    button.click();
+    button.click();
+  });
+  await expect(host.getByText("Round 1 of 3")).toBeVisible();
+  await expect(host.getByRole("alert").filter({ hasText: /already started|went wrong/i })).toHaveCount(0);
+});
+
 test("refreshing keeps you in the room", async ({ browser }) => {
   const host = await newPlayer(browser);
   await hostRoom(host, "Couple", "Lem");
