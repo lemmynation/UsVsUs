@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Wordmark } from "@/components/brand/wordmark";
 import { ConnectionBanner } from "@/components/game/connection-banner";
 import { GameScreen } from "@/components/game/game-screen";
@@ -23,6 +23,9 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
   const { view, error, refresh, reconnecting } = useRoom(initialView, realtime);
   const [actionError, setActionError] = useState<string | null>(null);
   const [pending, setPending] = useState<string | null>(null);
+  // State updates only land on the next render; a fast double-tap gets in before that.
+  // This ref locks host actions synchronously, on the first tap.
+  const busy = useRef(false);
   const [packChoice, setPackChoice] = useState<string | null>(null);
   // After a payment is confirmed, pick the new pack and pull the fresh room view.
   const onUnlocked = useCallback(
@@ -45,26 +48,39 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
   async function act(key: string, path: string, body?: unknown, { refreshAfter = true } = {}) {
     // Answers guard against double taps themselves, so they never wait on (or block) host actions.
     const exclusive = key !== "answer";
-    if (exclusive && pending) return false;
-    if (exclusive) setPending(key);
+    if (exclusive && busy.current) return false;
+    if (exclusive) {
+      busy.current = true;
+      setPending(key);
+    }
     setActionError(null);
     try {
       await apiFetch(path, { method: "POST", body: body ?? {} });
       // Release before the follow-up refresh: on a slow connection the next screen can
       // arrive (via realtime) while that refresh is still loading, and its taps must work.
-      if (exclusive) setPending(null);
+      if (exclusive) {
+        busy.current = false;
+        setPending(null);
+      }
       if (refreshAfter) await refresh();
       return true;
     } catch (err) {
-      // The game moved on under us (double tap, another host, a reveal): just catch up quietly.
-      if (err instanceof ApiError && (err.code === "stale_state" || err.code === "not_open")) {
+      // The game moved on under us (double tap, another host, a reveal, a second Start):
+      // nothing went wrong from the player's point of view — just catch up quietly.
+      const alreadyDone =
+        err instanceof ApiError &&
+        (err.code === "stale_state" || err.code === "not_open" || (key === "start" && err.code === "not_in_lobby"));
+      if (alreadyDone) {
         await refresh();
         return false;
       }
       setActionError(err instanceof ApiError ? err.message : errorMessage("unknown"));
       return false;
     } finally {
-      if (exclusive) setPending(null);
+      if (exclusive) {
+        busy.current = false;
+        setPending(null);
+      }
     }
   }
 
