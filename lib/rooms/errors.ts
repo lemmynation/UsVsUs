@@ -24,6 +24,7 @@ export const ROOM_ERRORS: Record<string, { status: number; message: string }> = 
   stale_state: { status: 409, message: "The game already moved on — catching you up." },
   no_answers_yet: { status: 409, message: "Wait for at least one answer before revealing." },
   game_finished: { status: 409, message: "This game is over." },
+  game_not_finished: { status: 409, message: "The results aren't ready until the game is over." },
   no_questions: { status: 503, message: "We couldn't find questions for this mode. Please try again." },
   rate_limited: { status: 429, message: "Slow down a little — try again in a moment." },
 };

@@ -124,7 +124,69 @@ test("Couple: a full game through all three game types ends with a Game Score wi
   await expect(host.getByRole("heading", { name: "Ana wins! 🏆" })).toBeVisible();
   await expect(host.getByText("925")).toBeVisible();
   expect(prompts.size).toBe(15); // no repeats within a game
+
+  // Wrapped: every guess matched, so the Us Score is 100, with a round-by-round breakdown.
+  for (const p of [host, guest]) {
+    await expect(p.getByText("Us Score")).toBeVisible();
+    await expect(p.getByText("100/100")).toBeVisible();
+    await expect(p.getByRole("list", { name: "Rounds" }).getByRole("listitem")).toHaveCount(3);
+    await expect(p.getByRole("link", { name: "Save image" })).toBeVisible();
+  }
+  await expectWrappedFits(guest);
+  await expectShareCard(host);
+  await expectShareSheetGetsCard(host);
 });
+
+/**
+ * With a share sheet available (stubbed: headless browsers have none), the card
+ * is ready before the tap and handed straight to navigator.share — Safari only
+ * opens the sheet directly from a tap, so no download may happen in between.
+ */
+async function expectShareSheetGetsCard(page: Page) {
+  await page.addInitScript(() => {
+    const w = window as unknown as { __shared?: Array<{ name: string; type: string; size: number }> };
+    Object.defineProperty(navigator, "canShare", { value: () => true, configurable: true });
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: async (data: ShareData) => {
+        w.__shared = (data.files ?? []).map((f) => ({ name: f.name, type: f.type, size: f.size }));
+      },
+    });
+  });
+  await page.reload();
+  const share = page.getByRole("button", { name: "Share results" });
+  await expect(share).toBeEnabled(); // card prefetched
+  const requests: string[] = [];
+  page.on("request", (r) => requests.push(r.url()));
+  await share.click();
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as { __shared?: unknown[] }).__shared))
+    .toEqual([{ name: "us-vs-us-wrapped.png", type: "image/png", size: expect.any(Number) }]);
+  expect(requests.filter((u) => u.includes("/wrapped/image"))).toEqual([]); // nothing fetched on tap
+}
+
+/** Wrapped fits common phone widths: no sideways scroll, no small tap targets. */
+async function expectWrappedFits(page: Page) {
+  for (const width of [360, 390, 430]) {
+    await page.setViewportSize({ width, height: 800 });
+    await expectPhoneFriendly(page);
+  }
+}
+
+/** The share card is a 1080×1920 PNG, and only for people in the room. */
+async function expectShareCard(page: Page) {
+  const href = (await page.getByRole("link", { name: "Save image" }).getAttribute("href"))!;
+  const res = await page.request.get(href);
+  expect(res.status()).toBe(200);
+  expect(res.headers()["content-type"]).toBe("image/png");
+  const png = await res.body();
+  // PNG IHDR: width and height are big-endian at bytes 16 and 20.
+  expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([1080, 1920]);
+
+  const stranger = await page.context().browser()!.newContext();
+  expect((await stranger.request.get(new URL(href, page.url()).toString())).status()).toBe(403);
+  await stranger.close();
+}
 
 test("Circle: anonymous Who's More Likely votes hand out a badge", async ({ browser }) => {
   test.setTimeout(120_000);
@@ -140,4 +202,30 @@ test("Circle: anonymous Who's More Likely votes hand out a badge", async ({ brow
     await expect(p.getByText("3 votes · 100%")).toBeVisible();
   }
   await expectPhoneFriendly(guests[1]);
+});
+
+test("Circle: a full game ends on Wrapped with the night's awards", async ({ browser }) => {
+  test.setTimeout(240_000);
+  const { host, guests } = await startGame(browser, "Circle", ["Ana", "Ben"]);
+  const everyone = [host, ...guests];
+
+  for (let round = 1; round <= 3; round++) {
+    await host.getByRole("button", { name: "Start round" }).click();
+    for (let q = 1; q <= 5; q++) {
+      await expect(host.getByText(`Round ${round} · Question ${q} of 5`)).toBeVisible();
+      for (const p of everyone) await answerFirst(p);
+      await host.getByRole("button", { name: q < 5 ? "Next question" : "End round" }).click();
+    }
+    await host.getByRole("button", { name: round < 3 ? "Next round" : "Finish game" }).click();
+  }
+
+  for (const p of everyone) {
+    await expect(p.getByRole("heading", { name: "That's a wrap!" })).toBeVisible();
+    await expect(p.getByRole("heading", { name: "Tonight's awards" })).toBeVisible();
+  }
+  // Everyone voted for the first player listed (Lem) every time.
+  await expect(guests[0].getByRole("list", { name: "Awards" }).getByRole("listitem").first()).toContainText("Lem");
+  await expect(host.getByText("Us Score")).toHaveCount(0); // Circle plays for badges, not points
+  await expectWrappedFits(guests[1]);
+  await expectShareCard(guests[0]);
 });

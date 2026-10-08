@@ -1,4 +1,5 @@
 import { PlayerAvatar } from "@/components/room/player-avatar";
+import { GradientText } from "@/components/ui/gradient-text";
 import { revealHeadline, tallyAnswers } from "@/lib/game/presentation";
 import { cn } from "@/lib/utils";
 import type { PlayerAnswer, QuestionOption } from "@/types/game";
@@ -64,18 +65,17 @@ export function RevealScreen(props: GameScreenProps) {
     <>
       <QuestionProgress game={game} />
       <h1 className="font-heading text-3xl font-extrabold break-words">{question.prompt}</h1>
-      <p
-        className="font-heading text-mode-gradient animate-in fade-in zoom-in-90 text-3xl font-extrabold duration-700"
-        aria-live="polite"
-      >
-        {revealHeadline({
-          gameType: game.gameType,
-          mode: room.mode,
-          reveal,
-          options: question.options,
-          subjectPlayerId: question.subjectPlayerId,
-          nameOf: names.labelOf,
-        })}
+      <p className="font-heading animate-in fade-in zoom-in-90 text-3xl font-extrabold duration-700" aria-live="polite">
+        <GradientText>
+          {revealHeadline({
+            gameType: game.gameType,
+            mode: room.mode,
+            reveal,
+            options: question.options,
+            subjectPlayerId: question.subjectPlayerId,
+            nameOf: names.labelOf,
+          })}
+        </GradientText>
       </p>
       {body}
       {/* 2-player cards already say "Skipped"; group views only show who picked something. */}
@@ -99,12 +99,15 @@ function ResultCard({
   playerId,
   names,
   points,
+  showPoints = true,
   delay,
   children,
 }: {
   playerId: string;
   names: Names;
   points: number | undefined;
+  /** False for the Mind Reader subject, who can't score on their own question. */
+  showPoints?: boolean;
   delay: number;
   children: React.ReactNode;
 }) {
@@ -121,7 +124,7 @@ function ResultCard({
         <span className="text-lg font-bold">{names.labelOf(playerId)}</span>
         <span className="text-base break-words">{children}</span>
       </div>
-      <PointsBadge points={points} />
+      {showPoints && <PointsBadge points={points} />}
     </li>
   );
 }
@@ -154,7 +157,7 @@ function MindReaderResult({
   return (
     <ul className="flex flex-col gap-3" aria-label="Answers">
       {/* Subject first, then the guess, then points (design doc §6.1). */}
-      <ResultCard playerId={subjectId ?? ""} names={names} points={undefined} delay={0}>
+      <ResultCard playerId={subjectId ?? ""} names={names} points={undefined} showPoints={false} delay={0}>
         Really picked <strong>{truth ? describe(truth) : "nothing"}</strong>
       </ResultCard>
       {guesses.map(({ playerId, answer }, i) => (

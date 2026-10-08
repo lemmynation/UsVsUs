@@ -14,8 +14,9 @@ The product spec is [`docs/design.docx`](docs/design.docx) (text export: [`docs/
 | 1 — Rooms       | Create/join rooms, anonymous sessions, live lobby, invite, host controls  | ✅ Done |
 | 2 — Realtime    | Server-run game flow, private answers, reveal sync, presence, reconnect   | ✅ Done |
 | 3 — Game engine | Mind Reader, Who's More Likely, This or That predictions, scoring, badges | ✅ Done |
-| 4 — Wrapped     | Final report, awards, portrait share card                                 | Next    |
-| 5–7             | Premium packs, analytics & QA, beta                                       | —       |
+| 4 — Wrapped     | Us Score, awards, highlight, roast line, 1080×1920 share card             | ✅ Done |
+| 5 — Premium     | Pack catalog, checkout, verified room entitlement                         | Next    |
+| 6–7             | Analytics & QA, beta                                                      | —       |
 
 ## Run it locally
 

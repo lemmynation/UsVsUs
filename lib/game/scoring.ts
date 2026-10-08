@@ -66,6 +66,31 @@ export function scoreQuestion(input: {
   return { points, awardWinners: [] };
 }
 
+/**
+ * The most points a question could have given, based on who actually answered —
+ * a skip takes that question's points out of play instead of counting against
+ * anyone. Used for the Us Score. Circle plays for badges, so it's always 0 there.
+ */
+export function possiblePoints(input: {
+  gameType: GameType;
+  mode: Mode;
+  subjectPlayerId: string | null;
+  responses: Array<{ playerId: string; answer: PlayerAnswer }>;
+}): number {
+  if (!isTwoPlayer(input.mode)) return 0;
+  const answered = input.responses.filter((r) => !r.answer.skipped);
+  switch (input.gameType) {
+    case "mind_reader": {
+      if (!answered.some((r) => r.playerId === input.subjectPlayerId)) return 0;
+      return (answered.length - 1) * POINTS.mindReaderCorrect;
+    }
+    case "this_or_that":
+      return answered.length >= 2 ? answered.length * POINTS.thisOrThatCorrect : 0;
+    case "most_likely":
+      return answered.length >= 2 ? 2 * POINTS.mostLikelyAgreement : 0;
+  }
+}
+
 /** Anonymous vote tally, most votes first, ties by player id for a stable order. */
 export function tallyVotes(
   responses: Array<{ answer: PlayerAnswer }>,
@@ -80,9 +105,12 @@ export function tallyVotes(
     .sort((a, b) => b.count - a.count || a.targetPlayerId.localeCompare(b.targetPlayerId));
 }
 
+/** A badge needs at least two people to agree; a spread of single votes is no consensus. */
+export const MIN_VOTES_FOR_BADGE = 2;
+
 function topVoted(responses: Array<{ answer: PlayerAnswer }>): string[] {
   const tally = tallyVotes(responses);
-  if (tally.length === 0) return [];
+  if (tally.length === 0 || tally[0].count < MIN_VOTES_FOR_BADGE) return [];
   return tally.filter((t) => t.count === tally[0].count).map((t) => t.targetPlayerId);
 }
 

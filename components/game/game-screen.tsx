@@ -1,6 +1,6 @@
 "use client";
 
-import { GameFinished } from "./game-finished";
+import { WrappedScreen } from "@/components/wrapped/wrapped-screen";
 import { QuestionScreen } from "./question-screen";
 import { RevealScreen } from "./reveal-screen";
 import { RoundEnd } from "./round-end";
@@ -23,6 +23,6 @@ export function GameScreen(props: GameScreenProps) {
     case "SCOREBOARD":
       return <RoundEnd key={key} {...props} />;
     case "FINISHED":
-      return <GameFinished view={props.view} />;
+      return <WrappedScreen view={props.view} />;
   }
 }

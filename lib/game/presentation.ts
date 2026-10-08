@@ -4,7 +4,14 @@
  * always comes from the question bank, never from here. Scores are framed as a
  * game, never as a compatibility measure.
  */
-import type { GameType, PlayerAnswer, QuestionOption, QuestionReveal } from "@/types/game";
+import type {
+  GameType,
+  PlayerAnswer,
+  QuestionCategory,
+  QuestionOption,
+  QuestionReveal,
+  WrappedReport,
+} from "@/types/game";
 import type { Mode } from "@/types/room";
 import { isTwoPlayer } from "./engines";
 
@@ -13,6 +20,45 @@ export const GAME_TYPE_META: Record<GameType, { title: string; emoji: string }> 
   this_or_that: { title: "This or That", emoji: "⚖️" },
   most_likely: { title: "Who's More Likely", emoji: "👉" },
 };
+
+export const CATEGORY_META: Record<QuestionCategory, { label: string; emoji: string }> = {
+  food: { label: "Food", emoji: "🍜" },
+  travel: { label: "Travel", emoji: "✈️" },
+  habits: { label: "Habits", emoji: "🔁" },
+  money: { label: "Money", emoji: "💸" },
+  memories: { label: "Memories", emoji: "📸" },
+  personality: { label: "Personality", emoji: "🌀" },
+  romance: { label: "Romance", emoji: "💘" },
+  chaos: { label: "Chaos", emoji: "🌪️" },
+};
+
+/**
+ * The Wrapped headline. `meId` makes it "You win!" on the winner's own phone; the
+ * share image passes null so it reads right for anyone who sees it.
+ */
+export function wrappedHeadline(report: WrappedReport, meId: string | null): string {
+  if (report.endedEarly) return "Game over";
+  const winners = report.winnerIds;
+  if (!winners || winners.length === 0) return "That's a wrap!";
+  if (winners.length > 1) return "It's a tie! 🤝";
+  if (winners[0] === meId) return "You win! 🏆";
+  const name = report.players.find((p) => p.id === winners[0])?.nickname ?? "Someone";
+  return `${name} wins! 🏆`;
+}
+
+/**
+ * "Lem", "Lem & Ana", "Lem, Ana & Ben". With `maxNamed`, bigger groups read as
+ * "4-way tie" so a share card row never turns into a wall of names.
+ */
+export function formatNames(names: string[], maxNamed = Infinity): string {
+  if (names.length > maxNamed) return `${names.length}-way tie`;
+  if (names.length <= 2) return names.join(" & ");
+  return `${names.slice(0, -1).join(", ")} & ${names.at(-1)}`;
+}
+
+/** Percent of points possible, for breakdown bars. */
+export const percentOf = (earned: number, possible: number) =>
+  possible > 0 ? Math.round((earned / possible) * 100) : 0;
 
 /** One-line rules for the round intro (design doc S06). */
 export function roundRules(gameType: GameType, mode: Mode): string {
@@ -76,8 +122,12 @@ export function revealHeadline(input: {
     }
     case "most_likely": {
       if (!isTwoPlayer(mode)) {
-        if (!reveal.award) return "Nobody voted on this one!";
-        const winners = reveal.award.playerIds.map(nameOf).join(" & ");
+        if (!reveal.award) {
+          return (reveal.votes ?? []).length > 0
+            ? "No clear winner — no badge this time 🤷"
+            : "Nobody voted on this one!";
+        }
+        const winners = formatNames(reveal.award.playerIds.map(nameOf));
         return `🏆 ${reveal.award.label} → ${winners}`;
       }
       if (answers.length < 2) return "Only one vote this time.";
