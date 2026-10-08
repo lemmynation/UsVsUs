@@ -15,6 +15,7 @@ function session(overrides: Partial<GameSession> = {}): GameSession {
     id: "s1",
     roomId: "r1",
     status: "active",
+    packSlug: null,
     ...START_POSITION,
     stateVersion: 3,
     phaseStartedAt: "",

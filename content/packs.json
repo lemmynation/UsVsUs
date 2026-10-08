@@ -1,0 +1,12 @@
+[
+  {
+    "slug": "chaos-night",
+    "name": "Chaos Night",
+    "emoji": "🌪️",
+    "modes": ["circle"],
+    "priceMinor": 9900,
+    "currency": "PHP",
+    "tagline": "Spicier call-outs, more badges, longer night.",
+    "perks": ["4 rounds instead of 3", "40+ new chaotic questions", "More badges to hand out"]
+  }
+]

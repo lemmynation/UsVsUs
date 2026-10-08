@@ -12,6 +12,16 @@ export const ROUND_LINEUP: Record<Mode, GameType[]> = {
   circle: ["most_likely", "this_or_that", "most_likely"],
 };
 
+/**
+ * Premium games add a fourth round. Circle's is another Who's More Likely, since
+ * a premium Circle night is about call-outs and badges (design doc §8).
+ */
+export const PREMIUM_LINEUP: Record<Mode, GameType[]> = {
+  couple: [...ROUND_LINEUP.couple, "this_or_that"],
+  friends: [...ROUND_LINEUP.friends, "this_or_that"],
+  circle: ["most_likely", "this_or_that", "most_likely", "most_likely"],
+};
+
 export const isTwoPlayer = (mode: Mode) => mode !== "circle";
 
 type Result<T, E extends string> = { ok: true; value: T } | { ok: false; error: E };

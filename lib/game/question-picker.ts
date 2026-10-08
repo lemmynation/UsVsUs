@@ -4,7 +4,9 @@
  *  2. questions nobody in the room has seen come first, then the least-seen,
  *     then the longest-ago seen;
  *  3. no two questions in a row from the same category when avoidable;
- *  4. random order among equally fresh questions, so games differ.
+ *  4. random order among equally fresh questions, so games differ;
+ *  5. free games never use premium-pack questions; a pack game puts its pack's
+ *     questions first, topping up with fresh free ones.
  */
 import type { Mode } from "@/types/room";
 import type { GameType, Question } from "@/types/game";
@@ -23,9 +25,15 @@ export function pickQuestions(input: {
   count: number;
   history: ReadonlyMap<string, QuestionHistory>;
   random: () => number;
+  /** Premium pack being played, if any. */
+  pack?: string;
 }): Question[] {
   const candidates = input.questions.filter(
-    (q) => q.active !== false && q.gameType === input.gameType && q.modes.includes(input.mode),
+    (q) =>
+      q.active !== false &&
+      q.gameType === input.gameType &&
+      q.modes.includes(input.mode) &&
+      (q.pack === undefined || q.pack === input.pack),
   );
 
   // Shuffle first so the stable sort below breaks ties randomly.
@@ -34,19 +42,23 @@ export function pickQuestions(input: {
     [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
   }
   const seen = (q: Question) => input.history.get(q.id);
-  candidates.sort((a, b) => {
-    const countDiff = (seen(a)?.seenCount ?? 0) - (seen(b)?.seenCount ?? 0);
-    if (countDiff !== 0) return countDiff;
-    return (seen(a)?.lastSeenAt ?? "").localeCompare(seen(b)?.lastSeenAt ?? "");
-  });
+  const fromPack = (q: Question) => (input.pack !== undefined && q.pack === input.pack ? 0 : 1);
+  // Priority tier: fresher first, then (for pack games) the pack's own questions first.
+  const tier = (q: Question) => `${String(seen(q)?.seenCount ?? 0).padStart(6, "0")}:${fromPack(q)}`;
+  candidates.sort(
+    (a, b) => tier(a).localeCompare(tier(b)) || (seen(a)?.lastSeenAt ?? "").localeCompare(seen(b)?.lastSeenAt ?? ""),
+  );
 
   const picked: Question[] = [];
   const remaining = [...candidates];
   while (picked.length < input.count && remaining.length > 0) {
+    // Vary categories only among equally fresh, equal-priority questions, so variety
+    // never pulls a staler question (or a free one in a pack game) ahead.
     const lastCategory = picked.at(-1)?.category;
+    const best = tier(remaining[0]);
     const index = Math.max(
       0,
-      remaining.findIndex((q) => q.category !== lastCategory),
+      remaining.findIndex((q) => tier(q) === best && q.category !== lastCategory),
     );
     picked.push(...remaining.splice(index, 1));
   }
@@ -65,6 +77,7 @@ export function planGame(input: {
   perRound: number;
   history: ReadonlyMap<string, QuestionHistory>;
   random: () => number;
+  pack?: string;
 }): Array<{ gameType: GameType; questionIds: string[] }> {
   const pools = new Map<GameType, Question[]>();
   for (const gameType of new Set(input.lineup)) {

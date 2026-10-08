@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { MODES } from "@/types/room";
 import { GAME_TYPES, QUESTION_CATEGORIES, type Question } from "@/types/game";
+import chaosNight from "@/content/questions/chaos-night.json";
 import mindReader from "@/content/questions/mind-reader.json";
 import mostLikely from "@/content/questions/most-likely.json";
 import thisOrThat from "@/content/questions/this-or-that.json";
@@ -17,6 +18,11 @@ export const questionSchema = z
     prompt: z.string().min(3).max(120),
     options: z.array(option).max(4),
     active: z.boolean().default(true),
+    pack: z
+      .string()
+      .regex(/^[a-z0-9-]{3,40}$/)
+      .nullish()
+      .transform((v) => v ?? undefined),
     award: z
       .string()
       .min(1)
@@ -44,4 +50,4 @@ export const questionSchema = z
  */
 export const BUNDLED_QUESTIONS: Question[] = z
   .array(questionSchema)
-  .parse([...mindReader, ...mostLikely, ...thisOrThat]);
+  .parse([...mindReader, ...mostLikely, ...thisOrThat, ...chaosNight]);

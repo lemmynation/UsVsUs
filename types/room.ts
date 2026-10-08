@@ -1,4 +1,5 @@
 import type { GameView } from "./game";
+import type { PremiumView } from "./premium";
 
 export const MODES = ["couple", "friends", "circle"] as const;
 export type Mode = (typeof MODES)[number];
@@ -52,6 +53,8 @@ export interface RoomView {
   me: { playerId: string; isHost: boolean };
   /** Present once the host has started a game. */
   game: GameView | null;
+  /** Premium packs for this room's mode and what's unlocked. */
+  premium: PremiumView;
 }
 
 /** Public info shown on the join screen before someone is a member. */

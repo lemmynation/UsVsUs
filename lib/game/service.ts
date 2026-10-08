@@ -13,7 +13,16 @@ import type { Player, Room } from "@/types/room";
 import { loadMembership, type MembershipError } from "@/lib/rooms/membership";
 import { activePlayers, checkCanStart, isOnline, MODE_RULES, type Result, type StartError } from "@/lib/rooms/rules";
 import type { RoomStore } from "@/lib/rooms/store";
-import { answerOptions, isTwoPlayer, renderPrompt, ROUND_LINEUP, subjectsForRound, validateAnswer } from "./engines";
+import { findPack } from "@/lib/premium/catalog";
+import {
+  answerOptions,
+  isTwoPlayer,
+  PREMIUM_LINEUP,
+  renderPrompt,
+  ROUND_LINEUP,
+  subjectsForRound,
+  validateAnswer,
+} from "./engines";
 import { planGame } from "./question-picker";
 import { scoreQuestion, tallyVotes, totalPoints } from "./scoring";
 import {
@@ -34,7 +43,7 @@ export interface GameServiceDeps {
   onRoomChanged?: (roomId: string) => Promise<void>;
 }
 
-export type StartGameError = MembershipError | StartError | "no_questions";
+export type StartGameError = MembershipError | StartError | "no_questions" | "pack_locked" | "pack_not_found";
 export type AnswerError = MembershipError | "not_open" | "invalid_answer";
 export type GameAdvanceError = MembershipError | AdvanceError | "not_open";
 export type WrappedError = MembershipError | "game_not_finished";
@@ -219,13 +228,20 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
   }
 
   return {
-    async startGame(roomId: string, sessionHash: string): Promise<Result<{ sessionId: string }, StartGameError>> {
+    async startGame(
+      roomId: string,
+      sessionHash: string,
+      options: { packSlug?: string } = {},
+    ): Promise<Result<{ sessionId: string }, StartGameError>> {
       const membership = await loadMembership(store, roomId, sessionHash);
       if (!membership.ok) return membership;
       const { room, players, me } = membership.value;
 
       const check = checkCanStart(room, players, me, now());
       if (!check.ok) return check;
+
+      const pack = options.packSlug ? findPack(options.packSlug) : undefined;
+      if (options.packSlug && (!pack || !pack.modes.includes(room.mode))) return fail("pack_not_found");
 
       const active = byJoinOrder(activePlayers(players));
       const [questions, history] = await Promise.all([
@@ -235,10 +251,11 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
       const plan = planGame({
         questions,
         mode: room.mode,
-        lineup: ROUND_LINEUP[room.mode],
-        perRound: GAME_CONFIG.questionsPerRound,
+        lineup: pack ? PREMIUM_LINEUP[room.mode] : ROUND_LINEUP[room.mode],
+        perRound: pack ? GAME_CONFIG.premiumQuestionsPerRound : GAME_CONFIG.questionsPerRound,
         history,
         random,
+        pack: pack?.slug,
       });
       if (plan.length === 0) return fail("no_questions");
 
@@ -254,6 +271,7 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
           ),
         })),
         now: now().toISOString(),
+        packSlug: pack?.slug,
       });
       if (typeof started === "string") return fail(started);
       return ok({ sessionId: started.session.id });
@@ -449,6 +467,7 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
         roundPoints: thisRound,
         awards: entries.filter((e) => e.award).map((e) => ({ label: e.award!, playerId: e.playerId })),
         wrapped: session.phase === "FINISHED" ? await wrappedFor(game, room, players) : null,
+        packSlug: session.packSlug,
       };
     },
   };

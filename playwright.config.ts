@@ -5,6 +5,9 @@ const PORT = 3100;
 export default defineConfig({
   testDir: "tests/e2e",
   fullyParallel: true,
+  // The dev server compiles each route on first use; too many phones at once starve it.
+  workers: 3,
+  expect: { timeout: 10_000 },
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? "github" : "list",
@@ -18,7 +21,8 @@ export default defineConfig({
     command: `npx next dev --port ${PORT}`,
     url: `http://localhost:${PORT}`,
     // In-memory rooms so E2E needs no database. Supabase-specific behaviour is covered separately.
-    env: { ROOM_STORE: "memory" },
+    // Every simulated phone shares one IP, so per-IP rate limits are off for the test server only.
+    env: { ROOM_STORE: "memory", PAYMENT_PROVIDER: "fake", RATE_LIMITS: "off" },
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

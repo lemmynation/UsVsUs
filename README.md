@@ -8,15 +8,16 @@ The product spec is [`docs/design.docx`](docs/design.docx) (text export: [`docs/
 
 ## Status
 
-| Phase           | What                                                                      | State   |
-| --------------- | ------------------------------------------------------------------------- | ------- |
-| 0 — Foundation  | Next.js, Tailwind, shadcn/ui, lint/test tooling, env validation, CI       | ✅ Done |
-| 1 — Rooms       | Create/join rooms, anonymous sessions, live lobby, invite, host controls  | ✅ Done |
-| 2 — Realtime    | Server-run game flow, private answers, reveal sync, presence, reconnect   | ✅ Done |
-| 3 — Game engine | Mind Reader, Who's More Likely, This or That predictions, scoring, badges | ✅ Done |
-| 4 — Wrapped     | Us Score, awards, highlight, roast line, 1080×1920 share card             | ✅ Done |
-| 5 — Premium     | Pack catalog, checkout, verified room entitlement                         | Next    |
-| 6–7             | Analytics & QA, beta                                                      | —       |
+| Phase              | What                                                                      | State   |
+| ------------------ | ------------------------------------------------------------------------- | ------- |
+| 0 — Foundation     | Next.js, Tailwind, shadcn/ui, lint/test tooling, env validation, CI       | ✅ Done |
+| 1 — Rooms          | Create/join rooms, anonymous sessions, live lobby, invite, host controls  | ✅ Done |
+| 2 — Realtime       | Server-run game flow, private answers, reveal sync, presence, reconnect   | ✅ Done |
+| 3 — Game engine    | Mind Reader, Who's More Likely, This or That predictions, scoring, badges | ✅ Done |
+| 4 — Wrapped        | Us Score, awards, highlight, roast line, 1080×1920 share card             | ✅ Done |
+| 5 — Premium        | Chaos Night pack (₱99), PayMongo checkout, server-verified room unlock    | ✅ Done |
+| 6 — Analytics & QA | Error monitoring, funnel dashboard, accessibility pass                    | Next    |
+| 7 — Beta           | Deploy, production database, webhook, feedback                            | —       |
 
 ## Run it locally
 
@@ -41,6 +42,15 @@ incognito window to play as a second player.
    never commit it.
 4. Restart `npm run dev`. Rooms now persist, and lobbies update instantly via Supabase Realtime
    (broadcast must be allowed for the publishable key — it is by default).
+
+## Premium packs (PayMongo)
+
+Packs are data in `content/packs.json` (price in centavos). To try payments locally, set
+`PAYMENT_PROVIDER=fake` in `.env.local` for a test checkout, or put a PayMongo **test** secret key
+(`sk_test_…`) in `PAYMONGO_SECRET_KEY`. Live keys are refused outside production, and production needs
+`APP_URL`. Once deployed, create a PayMongo webhook for `checkout_session.payment.paid` pointing at
+`/api/payments/webhook` and set `PAYMONGO_WEBHOOK_SECRET`. Until then, payments are still confirmed when the
+host returns from checkout (or taps "Check payment").
 
 ## Questions
 

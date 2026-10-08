@@ -32,6 +32,8 @@ export interface Question {
   active?: boolean;
   /** Who's More Likely: the Circle badge for whoever gets the most votes, e.g. "Future Millionaire 💰". */
   award?: string;
+  /** Premium pack slug; questions without one are in the free game. */
+  pack?: string;
 }
 
 /**
@@ -62,6 +64,8 @@ export interface GameSession extends GamePosition {
   id: string;
   roomId: string;
   status: "active" | "finished";
+  /** Premium pack this game was played with, if any. */
+  packSlug: string | null;
   /** Bumped on every transition; clients send it back so a double tap can't advance twice. */
   stateVersion: number;
   phaseStartedAt: string;
@@ -138,6 +142,8 @@ export interface GameView {
   awards: Array<{ label: string; playerId: string }>;
   /** The frozen end-of-game report. Only present once the game is FINISHED. */
   wrapped: WrappedReport | null;
+  /** Premium pack this game is played with, if any. */
+  packSlug: string | null;
 }
 
 /**

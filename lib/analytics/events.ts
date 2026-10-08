@@ -5,6 +5,9 @@ export const SERVER_EVENTS = [
   "game_started",
   "question_answered",
   "game_completed",
+  "checkout_started",
+  "purchase_succeeded",
+  "purchase_failed",
 ] as const;
 
 /** Events the browser may report itself. Anything else is rejected. */
@@ -15,6 +18,7 @@ export const CLIENT_EVENTS = [
   "wrapped_viewed",
   "wrapped_shared",
   "play_again_clicked",
+  "premium_pack_viewed",
 ] as const;
 
 export type ServerEventName = (typeof SERVER_EVENTS)[number];
