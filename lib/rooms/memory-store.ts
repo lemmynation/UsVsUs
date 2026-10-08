@@ -2,6 +2,8 @@ import { randomUUID } from "node:crypto";
 import type { QuestionHistory } from "@/lib/game/question-picker";
 import { BUNDLED_QUESTIONS } from "@/lib/game/questions";
 import type { GameResponse, GameRound, GameSession, Question, ScoreEntry, WrappedReport } from "@/types/game";
+import { findPack } from "@/lib/premium/catalog";
+import type { Payment } from "@/types/premium";
 import type { Player, Room } from "@/types/room";
 import { nextHost } from "./rules";
 import type { AnalyticsEvent, RoomStore } from "./store";
@@ -18,6 +20,10 @@ export class MemoryRoomStore implements RoomStore {
   private responses: GameResponse[] = [];
   private scores: Array<ScoreEntry & { sessionId: string }> = [];
   private wrapped = new Map<string, WrappedReport>();
+  private payments = new Map<string, Payment>();
+  /** roomId → pack slugs unlocked */
+  private entitlements = new Map<string, Set<string>>();
+  private paymentEvents = new Set<string>();
   /** sessionTokenHash → questionId → history */
   private seen = new Map<string, Map<string, QuestionHistory>>();
   readonly events: AnalyticsEvent[] = [];
@@ -100,12 +106,16 @@ export class MemoryRoomStore implements RoomStore {
     if (!room || room.status !== "LOBBY") return "not_in_lobby" as const;
     const active = [...this.players.values()].filter((p) => p.roomId === room.id && p.status === "active");
     if (active.length < input.minPlayers) return "not_enough_players" as const;
+    // Mirrors the SQL: the entitlement is checked in the same step as the start.
+    if (input.packSlug && !this.entitlements.get(room.id)?.has(input.packSlug)) return "pack_locked" as const;
 
     room.status = "IN_GAME";
+    room.selectedPackId = input.packSlug ?? null;
     const session: GameSession = {
       id: randomUUID(),
       roomId: room.id,
       status: "active",
+      packSlug: input.packSlug ?? null,
       phase: "ROUND_INTRO",
       roundIndex: 0,
       questionIndex: 0,
@@ -292,6 +302,88 @@ export class MemoryRoomStore implements RoomStore {
   async touchPlayer(playerId: string, now: string) {
     const player = this.players.get(playerId);
     if (player) player.lastSeenAt = now;
+  }
+
+  async createPayment(input: Parameters<RoomStore["createPayment"]>[0]) {
+    const room = this.rooms.get(input.roomId);
+    if (!room || room.status !== "LOBBY") return "not_in_lobby" as const;
+    if (!findPack(input.packSlug)) return "pack_not_found" as const;
+    if (this.entitlements.get(room.id)?.has(input.packSlug)) return "already_unlocked" as const;
+
+    const cutoff = new Date(new Date(input.now).getTime() - 30 * 60_000).toISOString();
+    const recent = [...this.payments.values()]
+      .filter(
+        (p) =>
+          p.roomId === room.id &&
+          p.packSlug === input.packSlug &&
+          p.status === "pending" &&
+          p.checkoutUrl !== null &&
+          p.createdAt > cutoff,
+      )
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+    if (recent) return { payment: { ...recent }, reused: true };
+
+    const payment: Payment = {
+      id: randomUUID(),
+      roomId: room.id,
+      packSlug: input.packSlug,
+      provider: input.provider,
+      checkoutId: null,
+      checkoutUrl: null,
+      providerPaymentId: null,
+      amountMinor: input.amountMinor,
+      currency: input.currency,
+      status: "pending",
+      createdByPlayerId: input.playerId,
+      createdAt: input.now,
+      paidAt: null,
+    };
+    this.payments.set(payment.id, payment);
+    return { payment: { ...payment }, reused: false };
+  }
+
+  async attachCheckout(paymentId: string, checkoutId: string, checkoutUrl: string) {
+    const payment = this.payments.get(paymentId);
+    if (payment && payment.checkoutId === null) Object.assign(payment, { checkoutId, checkoutUrl });
+  }
+
+  async getPayment(paymentId: string) {
+    const payment = this.payments.get(paymentId);
+    return payment ? { ...payment } : null;
+  }
+
+  async getPaymentByCheckoutId(checkoutId: string) {
+    const payment = [...this.payments.values()].find((p) => p.checkoutId === checkoutId);
+    return payment ? { ...payment } : null;
+  }
+
+  async listPendingPayments(roomId: string) {
+    return [...this.payments.values()]
+      .filter((p) => p.roomId === roomId && p.status === "pending")
+      .map((p) => ({ ...p }));
+  }
+
+  async grantEntitlement(paymentId: string, providerPaymentId: string | null, now: string) {
+    const payment = this.payments.get(paymentId);
+    if (!payment) return "not_found" as const;
+    if (payment.status !== "pending") return "already" as const;
+    const unlocked = this.entitlements.get(payment.roomId) ?? new Set<string>();
+    const fresh = !unlocked.has(payment.packSlug);
+    unlocked.add(payment.packSlug);
+    this.entitlements.set(payment.roomId, unlocked);
+    Object.assign(payment, { status: fresh ? "paid" : "duplicate", paidAt: now, providerPaymentId });
+    return fresh ? ("granted" as const) : ("duplicate" as const);
+  }
+
+  async listEntitlements(roomId: string) {
+    return [...(this.entitlements.get(roomId) ?? [])];
+  }
+
+  async recordPaymentEvent(provider: string, eventId: string) {
+    const key = `${provider}:${eventId}`;
+    if (this.paymentEvents.has(key)) return false;
+    this.paymentEvents.add(key);
+    return true;
   }
 
   async recordEvent(event: AnalyticsEvent) {

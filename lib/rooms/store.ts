@@ -10,6 +10,7 @@ import type {
   ScoreEntry,
   WrappedReport,
 } from "@/types/game";
+import type { Payment, PaymentProviderName } from "@/types/premium";
 import type { Mode, Player, Room } from "@/types/room";
 
 export interface AnalyticsEvent {
@@ -59,7 +60,9 @@ export interface RoomStore {
     minPlayers: number;
     rounds: Array<{ gameType: GameType; questionIds: string[]; subjectPlayerIds: Array<string | null> }>;
     now: string;
-  }): Promise<{ session: GameSession; rounds: GameRound[] } | "not_in_lobby" | "not_enough_players">;
+    /** Premium pack: the room's entitlement is re-checked atomically with the start. */
+    packSlug?: string;
+  }): Promise<{ session: GameSession; rounds: GameRound[] } | "not_in_lobby" | "not_enough_players" | "pack_locked">;
 
   /** The room's most recent game session, if any. */
   getLatestGame(roomId: string): Promise<{ session: GameSession; rounds: GameRound[] } | null>;
@@ -132,4 +135,42 @@ export interface RoomStore {
   touchPlayer(playerId: string, now: string): Promise<void>;
 
   recordEvent(event: AnalyticsEvent): Promise<void>;
+
+  // --- Premium (Phase 5) ---
+
+  /**
+   * Opens a pending payment for a room's pack, atomically refusing if the pack is
+   * already unlocked or the game has started. A recent pending payment that
+   * already has a checkout page is returned instead (`reused`).
+   */
+  createPayment(input: {
+    roomId: string;
+    packSlug: string;
+    provider: PaymentProviderName;
+    amountMinor: number;
+    currency: "PHP";
+    playerId: string;
+    now: string;
+  }): Promise<{ payment: Payment; reused: boolean } | "already_unlocked" | "not_in_lobby" | "pack_not_found">;
+
+  attachCheckout(paymentId: string, checkoutId: string, checkoutUrl: string): Promise<void>;
+  getPayment(paymentId: string): Promise<Payment | null>;
+  getPaymentByCheckoutId(checkoutId: string): Promise<Payment | null>;
+  listPendingPayments(roomId: string): Promise<Payment[]>;
+
+  /**
+   * Marks a provider-verified payment paid and unlocks its pack for the room —
+   * exactly once. "duplicate" = paid, but the room already had the pack.
+   */
+  grantEntitlement(
+    paymentId: string,
+    providerPaymentId: string | null,
+    now: string,
+  ): Promise<"granted" | "already" | "duplicate" | "not_found">;
+
+  /** Pack slugs the room has unlocked. */
+  listEntitlements(roomId: string): Promise<string[]>;
+
+  /** True the first time a provider event id is seen (webhook dedupe). */
+  recordPaymentEvent(provider: PaymentProviderName, eventId: string, now: string): Promise<boolean>;
 }

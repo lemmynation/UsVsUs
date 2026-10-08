@@ -70,6 +70,12 @@ Do not introduce a new dependency unless it materially simplifies the implementa
   locked-in scores plus what reveals already showed; Circle reports carry badge winners and counts, never
   who voted for whom. The share card (`components/wrapped/share-card.tsx`, `next/og`) uses nicknames only,
   members-only route. Satori needs `display: flex` on multi-child elements and sRGB colors (no oklch).
+- **Premium** (`lib/premium/`): a pack unlocks only through `verifyAndGrant`, which asks the provider
+  directly (paid, amount, currency, our payment id) and then calls the atomic `grant_entitlement` (once per
+  room per pack; a second paid payment is marked `duplicate` for refund). Webhooks, the host's return from
+  checkout and "Check payment" all just trigger that re-check — never trust a client or webhook body. Prices
+  come from `content/packs.json` on the server. Pack questions carry `pack` and never appear in free games.
+  `PAYMENT_PROVIDER=fake` gives a local test checkout (refused in production); E2E uses it.
 - **Emoji**: stick to Unicode ≤ 12 (a content test enforces it for questions); newer ones render as boxes
   on Windows 10 and older phones. Use `GradientText` for gradient headings so emoji keep their colors.
 - **Anonymous players**: an httpOnly `uvu_session` cookie holds a random token; the DB stores only its

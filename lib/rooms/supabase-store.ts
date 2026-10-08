@@ -13,6 +13,7 @@ import type {
   ScoreEntry,
   WrappedReport,
 } from "@/types/game";
+import type { Payment, PaymentProviderName, PaymentStatus } from "@/types/premium";
 import type { Mode, Player, PlayerStatus, Room, RoomStatus } from "@/types/room";
 import type { AnalyticsEvent, RoomStore } from "./store";
 
@@ -73,7 +74,46 @@ interface SessionRow {
   phase_started_at: string;
   started_at: string;
   ended_at: string | null;
+  pack_id: string | null;
 }
+
+interface PaymentRow {
+  id: string;
+  room_id: string;
+  pack_id: string;
+  provider: PaymentProviderName;
+  provider_checkout_id: string | null;
+  checkout_url: string | null;
+  provider_payment_id: string | null;
+  amount_minor: number;
+  currency: "PHP";
+  status: PaymentStatus;
+  created_by_player_id: string | null;
+  created_at: string;
+  paid_at: string | null;
+  pack?: { slug: string } | null;
+}
+
+const toPayment = (r: PaymentRow, packSlug?: string): Payment => ({
+  id: r.id,
+  roomId: r.room_id,
+  packSlug: packSlug ?? r.pack?.slug ?? "",
+  provider: r.provider,
+  checkoutId: r.provider_checkout_id,
+  checkoutUrl: r.checkout_url,
+  providerPaymentId: r.provider_payment_id,
+  amountMinor: r.amount_minor,
+  currency: r.currency,
+  status: r.status,
+  createdByPlayerId: r.created_by_player_id,
+  createdAt: r.created_at,
+  paidAt: r.paid_at,
+});
+
+const PAYMENT_COLUMNS = "*, pack:packs(slug)";
+
+/** Pack ids never change slug; cache the lookup per server instance. */
+const packSlugCache = new Map<string, string>();
 
 interface RoundRow {
   id: string;
@@ -102,10 +142,11 @@ interface ScoreRow {
   metadata: { award?: string };
 }
 
-const toSession = (s: SessionRow): GameSession => ({
+const toSession = (s: SessionRow, packSlug: string | null): GameSession => ({
   id: s.id,
   roomId: s.room_id,
   status: s.status,
+  packSlug,
   phase: s.phase,
   roundIndex: s.round_index,
   questionIndex: s.question_index,
@@ -147,6 +188,16 @@ function check(error: { message: string } | null, op: string) {
 
 export class SupabaseRoomStore implements RoomStore {
   constructor(private db: SupabaseClient) {}
+
+  private async packSlugOf(packId: string | null): Promise<string | null> {
+    if (!packId) return null;
+    const cached = packSlugCache.get(packId);
+    if (cached) return cached;
+    const { data, error } = await this.db.from("packs").select("slug").eq("id", packId).maybeSingle();
+    check(error, "packSlugOf");
+    if (data) packSlugCache.set(packId, data.slug as string);
+    return (data?.slug as string | undefined) ?? null;
+  }
 
   async createRoom(input: Parameters<RoomStore["createRoom"]>[0]) {
     const { data, error } = await this.db.rpc("create_room", {
@@ -206,11 +257,16 @@ export class SupabaseRoomStore implements RoomStore {
       p_min_players: input.minPlayers,
       p_rounds: input.rounds,
       p_now: input.now,
+      p_pack_slug: input.packSlug ?? null,
     });
     check(error, "start_game");
-    const result = data as { error?: "not_in_lobby" | "not_enough_players"; session?: SessionRow; rounds?: RoundRow[] };
+    const result = data as {
+      error?: "not_in_lobby" | "not_enough_players" | "pack_locked";
+      session?: SessionRow;
+      rounds?: RoundRow[];
+    };
     if (result.error) return result.error;
-    return { session: toSession(result.session!), rounds: result.rounds!.map(toRound) };
+    return { session: toSession(result.session!, input.packSlug ?? null), rounds: result.rounds!.map(toRound) };
   }
 
   async getLatestGame(roomId: string) {
@@ -229,7 +285,8 @@ export class SupabaseRoomStore implements RoomStore {
       .eq("game_session_id", (session as SessionRow).id)
       .order("round_index", { ascending: true });
     check(roundsError, "getLatestGame rounds");
-    return { session: toSession(session as SessionRow), rounds: (rounds as RoundRow[]).map(toRound) };
+    const row = session as SessionRow;
+    return { session: toSession(row, await this.packSlugOf(row.pack_id)), rounds: (rounds as RoundRow[]).map(toRound) };
   }
 
   async listResponses(roundId: string, questionId: string) {
@@ -320,7 +377,8 @@ export class SupabaseRoomStore implements RoomStore {
     });
     check(error, "advance_game");
     const result = data as { error?: "stale"; session?: SessionRow };
-    return result.error ? result.error : toSession(result.session!);
+    if (result.error) return result.error;
+    return toSession(result.session!, await this.packSlugOf(result.session!.pack_id));
   }
 
   async transferHost(roomId: string, fromPlayerId: string, toPlayerId: string) {
@@ -338,12 +396,14 @@ export class SupabaseRoomStore implements RoomStore {
     const { data, error } = await this.db
       .from("questions")
       // Inactive rows too: a game already in progress may still be on one. The picker skips them.
-      .select("id, game_type, modes, category, intensity, prompt, options, active, award");
+      // The pack slug matters: without it a premium question would look like a free one.
+      .select("id, game_type, modes, category, intensity, prompt, options, active, award, pack:packs(slug)");
     check(error, "getQuestions");
     const questions: Question[] = [];
     for (const row of data ?? []) {
       // Skip rows for game types this build doesn't support yet rather than failing the whole game.
-      const parsed = questionSchema.safeParse({ ...row, gameType: row.game_type });
+      const pack = (row as unknown as { pack: { slug: string } | null }).pack;
+      const parsed = questionSchema.safeParse({ ...row, gameType: row.game_type, pack: pack?.slug ?? null });
       if (parsed.success) questions.push(parsed.data);
     }
     questionCache = { at: Date.now(), questions };
@@ -367,6 +427,88 @@ export class SupabaseRoomStore implements RoomStore {
       p_now: now,
     });
     check(error, "record_question_seen");
+  }
+
+  async createPayment(input: Parameters<RoomStore["createPayment"]>[0]) {
+    const { data, error } = await this.db.rpc("create_payment", {
+      p_room_id: input.roomId,
+      p_pack_slug: input.packSlug,
+      p_provider: input.provider,
+      p_amount_minor: input.amountMinor,
+      p_currency: input.currency,
+      p_player_id: input.playerId,
+      p_now: input.now,
+    });
+    check(error, "create_payment");
+    const result = data as {
+      error?: "already_unlocked" | "not_in_lobby" | "pack_not_found";
+      payment?: PaymentRow;
+      reused?: boolean;
+    };
+    if (result.error) return result.error;
+    return { payment: toPayment(result.payment!, input.packSlug), reused: result.reused === true };
+  }
+
+  async attachCheckout(paymentId: string, checkoutId: string, checkoutUrl: string) {
+    const { error } = await this.db
+      .from("payments")
+      .update({ provider_checkout_id: checkoutId, checkout_url: checkoutUrl })
+      .eq("id", paymentId)
+      .is("provider_checkout_id", null);
+    check(error, "attachCheckout");
+  }
+
+  async getPayment(paymentId: string) {
+    const { data, error } = await this.db.from("payments").select(PAYMENT_COLUMNS).eq("id", paymentId).maybeSingle();
+    check(error, "getPayment");
+    return data ? toPayment(data as PaymentRow) : null;
+  }
+
+  async getPaymentByCheckoutId(checkoutId: string) {
+    const { data, error } = await this.db
+      .from("payments")
+      .select(PAYMENT_COLUMNS)
+      .eq("provider_checkout_id", checkoutId)
+      .maybeSingle();
+    check(error, "getPaymentByCheckoutId");
+    return data ? toPayment(data as PaymentRow) : null;
+  }
+
+  async listPendingPayments(roomId: string) {
+    const { data, error } = await this.db
+      .from("payments")
+      .select(PAYMENT_COLUMNS)
+      .eq("room_id", roomId)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
+    check(error, "listPendingPayments");
+    return (data as PaymentRow[]).map((r) => toPayment(r));
+  }
+
+  async grantEntitlement(paymentId: string, providerPaymentId: string | null, now: string) {
+    const { data, error } = await this.db.rpc("grant_entitlement", {
+      p_payment_id: paymentId,
+      p_provider_payment_id: providerPaymentId,
+      p_now: now,
+    });
+    check(error, "grant_entitlement");
+    return data as "granted" | "already" | "duplicate" | "not_found";
+  }
+
+  async listEntitlements(roomId: string) {
+    const { data, error } = await this.db.from("entitlements").select("pack:packs(slug)").eq("room_id", roomId);
+    check(error, "listEntitlements");
+    return (data as unknown as Array<{ pack: { slug: string } | null }>).flatMap((r) => (r.pack ? [r.pack.slug] : []));
+  }
+
+  async recordPaymentEvent(provider: PaymentProviderName, eventId: string, now: string) {
+    const { data, error } = await this.db.rpc("record_payment_event", {
+      p_provider: provider,
+      p_event_id: eventId,
+      p_now: now,
+    });
+    check(error, "record_payment_event");
+    return data === true;
   }
 
   async kickPlayer(playerId: string) {

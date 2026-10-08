@@ -1,4 +1,5 @@
 import { GAME_TYPE_META, roundRules } from "@/lib/game/presentation";
+import { findPack } from "@/lib/premium/catalog";
 import { HostAdvance } from "./host-button";
 import type { GameScreenProps } from "./types";
 
@@ -6,9 +7,15 @@ import type { GameScreenProps } from "./types";
 export function RoundIntro(props: GameScreenProps) {
   const { game, room } = props.view;
   const meta = GAME_TYPE_META[game.gameType];
+  const pack = game.packSlug ? findPack(game.packSlug) : undefined;
   return (
     <>
       <section className="animate-in fade-in zoom-in-95 flex flex-1 flex-col items-center justify-center gap-4 text-center duration-500">
+        {pack && (
+          <span className="bg-mode-gradient rounded-full px-3 py-1 text-sm font-bold text-[oklch(0.18_0.04_300)]">
+            {pack.emoji} {pack.name}
+          </span>
+        )}
         <p className="text-muted-foreground text-lg font-semibold">
           Round {game.roundIndex + 1} of {game.roundCount}
         </p>

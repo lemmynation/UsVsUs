@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { resolvePaymentEnv, type PaymentEnv } from "@/lib/premium/payment-env";
 
 const schema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url().optional(),
@@ -62,4 +63,15 @@ export function getServerEnv(): ServerEnv {
 export function getPublicRealtimeConfig(): { url: string; publishableKey: string } | null {
   const env = getServerEnv();
   return env.store === "supabase" ? { url: env.supabaseUrl, publishableKey: env.publishableKey } : null;
+}
+
+let paymentCached: PaymentEnv | undefined;
+
+/** Which payment provider to use. "none" hides premium entirely. */
+export function getPaymentEnv(): PaymentEnv {
+  paymentCached ??= resolvePaymentEnv(process.env, {
+    production: process.env.NODE_ENV === "production",
+    memoryStore: getServerEnv().store === "memory",
+  });
+  return paymentCached;
 }

@@ -1,10 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Wordmark } from "@/components/brand/wordmark";
 import { ConnectionBanner } from "@/components/game/connection-banner";
 import { GameScreen } from "@/components/game/game-screen";
+import { CheckoutReturn } from "@/components/premium/checkout-return";
+import { PackPicker } from "@/components/premium/pack-picker";
 import { Button } from "@/components/ui/button";
 import { useRoom, type RealtimeConfig } from "@/hooks/use-room";
 import { ApiError, apiFetch } from "@/lib/client-api";
@@ -21,11 +23,24 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
   const { view, error, refresh, reconnecting } = useRoom(initialView, realtime);
   const [actionError, setActionError] = useState<string | null>(null);
   const [pending, setPending] = useState<string | null>(null);
+  const [packChoice, setPackChoice] = useState<string | null>(null);
+  // After a payment is confirmed, pick the new pack and pull the fresh room view.
+  const onUnlocked = useCallback(
+    (packSlug: string) => {
+      setPackChoice(packSlug);
+      void refresh();
+    },
+    [refresh],
+  );
 
   const { room, players, me } = view;
   const meta = MODE_META[room.mode];
   const host = players.find((p) => p.isHost);
   const missing = Math.max(0, room.minPlayers - players.length);
+  const premium = view.premium;
+  const unlockedPacks = premium.packs.filter((p) => p.unlocked);
+  // Only an unlocked pack can be chosen; the server checks again when the game starts.
+  const chosenPack = unlockedPacks.find((p) => p.slug === packChoice) ?? null;
 
   async function act(key: string, path: string, body?: unknown, { refreshAfter = true } = {}) {
     // Answers guard against double taps themselves, so they never wait on (or block) host actions.
@@ -157,6 +172,23 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
             </ul>
           </section>
 
+          {me.isHost && premium.enabled && (
+            <>
+              <CheckoutReturn roomId={room.id} pendingCheckout={premium.pendingCheckout} onUnlocked={onUnlocked} />
+              <PackPicker
+                roomId={room.id}
+                premium={premium}
+                selected={chosenPack?.slug ?? null}
+                onSelect={setPackChoice}
+              />
+            </>
+          )}
+          {!me.isHost && unlockedPacks.length > 0 && (
+            <p className="border-mode-gradient rounded-2xl p-4 text-center text-lg">
+              {unlockedPacks.map((p) => `${p.emoji} ${p.name}`).join(" · ")} unlocked for this room
+            </p>
+          )}
+
           {actionError && (
             <p role="alert" className="text-destructive text-base">
               {actionError}
@@ -168,11 +200,11 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
               <>
                 <Button
                   size="lg"
-                  onClick={() => act("start", `/api/rooms/${room.id}/start`)}
+                  onClick={() => act("start", `/api/rooms/${room.id}/start`, { packSlug: chosenPack?.slug ?? null })}
                   disabled={missing > 0 || pending !== null}
                   aria-describedby="start-hint"
                 >
-                  {pending === "start" ? "Starting…" : "Start game"}
+                  {pending === "start" ? "Starting…" : chosenPack ? `Start ${chosenPack.name}` : "Start game"}
                 </Button>
                 <p id="start-hint" className="text-muted-foreground text-center text-base" aria-live="polite">
                   {missing > 0

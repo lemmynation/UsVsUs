@@ -1,4 +1,5 @@
 import type { GameService } from "@/lib/game/service";
+import type { PremiumView } from "@/types/premium";
 import type { Mode, Player, Room, RoomPreview, RoomView } from "@/types/room";
 import { loadMembership as loadMembershipFrom, type MembershipError } from "./membership";
 import {
@@ -26,7 +27,11 @@ export interface RoomServiceDeps {
   randomInt: (maxExclusive: number) => number;
   /** Game layer: in-game views, host hand-off, auto-reveal when the roster changes. */
   game?: GameService;
+  /** Premium layer: which packs exist for the room and which are unlocked. */
+  premium?: { view(room: Room): Promise<PremiumView> };
 }
+
+const NO_PREMIUM: PremiumView = { enabled: false, packs: [], pendingCheckout: false };
 
 export type CreateRoomError =
   "nickname_required" | "nickname_too_long" | "room_name_too_long" | "code_generation_failed";
@@ -55,7 +60,7 @@ function toPreview(room: Room, players: Player[]): RoomPreview {
   };
 }
 
-export function createRoomService({ store, now, randomInt, game }: RoomServiceDeps) {
+export function createRoomService({ store, now, randomInt, game, premium }: RoomServiceDeps) {
   const loadMembership = (roomId: string, sessionHash: string | null) => loadMembershipFrom(store, roomId, sessionHash);
 
   return {
@@ -172,6 +177,8 @@ export function createRoomService({ store, now, randomInt, game }: RoomServiceDe
           .map((p) => ({ id: p.id, nickname: p.nickname, isHost: p.isHost, isOnline: isOnline(p, at) })),
         me: { playerId: me.id, isHost: me.isHost },
         game: game ? await game.viewFor(room, players, me) : null,
+        // Packs are only chosen in the lobby; skip the lookups on every in-game refresh.
+        premium: premium && room.status === "LOBBY" ? await premium.view(room) : NO_PREMIUM,
       });
     },
 

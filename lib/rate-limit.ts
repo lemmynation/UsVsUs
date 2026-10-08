@@ -14,7 +14,17 @@ export const LIMITS = {
   events: { max: 60, windowMs: 60_000 },
 } as const;
 
+/**
+ * E2E runs every simulated phone from one IP, so the per-IP room-creation limit
+ * trips during a full parallel suite. Tests can switch limits off — in dev, or in a
+ * production build only together with the in-memory store (never used for real
+ * players). A real deployment can't turn them off.
+ */
+const disabledForTests =
+  process.env.RATE_LIMITS === "off" && (process.env.NODE_ENV !== "production" || process.env.ROOM_STORE === "memory");
+
 export function rateLimit(bucket: keyof typeof LIMITS, key: string, now = Date.now()): boolean {
+  if (disabledForTests) return true;
   const { max, windowMs } = LIMITS[bucket];
   const id = `${bucket}:${key}`;
   const entry = windows.get(id);

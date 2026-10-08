@@ -26,6 +26,11 @@ export const ROOM_ERRORS: Record<string, { status: number; message: string }> = 
   game_finished: { status: 409, message: "This game is over." },
   game_not_finished: { status: 409, message: "The results aren't ready until the game is over." },
   no_questions: { status: 503, message: "We couldn't find questions for this mode. Please try again." },
+  pack_locked: { status: 403, message: "That pack isn't unlocked for this room yet." },
+  pack_not_found: { status: 404, message: "That pack isn't available for this game mode." },
+  already_unlocked: { status: 409, message: "This room already has that pack — enjoy!" },
+  checkout_failed: { status: 502, message: "We couldn't open the payment page. Please try again." },
+  premium_disabled: { status: 404, message: "Premium packs aren't available right now." },
   rate_limited: { status: 429, message: "Slow down a little — try again in a moment." },
 };
 

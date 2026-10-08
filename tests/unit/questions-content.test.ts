@@ -3,8 +3,9 @@ import { describe, expect, it } from "vitest";
 import { ROUND_LINEUP } from "@/lib/game/engines";
 import { GAME_CONFIG } from "@/lib/game/state-machine";
 import { BUNDLED_QUESTIONS } from "@/lib/game/questions";
+import { PACKS } from "@/lib/premium/catalog";
 import { MODES } from "@/types/room";
-import { buildSeedSql, loadQuestions } from "@/scripts/generate-question-seed.mjs";
+import { buildSeedSql, loadPacks, loadQuestions } from "@/scripts/generate-question-seed.mjs";
 
 describe("question bank", () => {
   it("has unique ids and unique prompts", () => {
@@ -23,7 +24,9 @@ describe("question bank", () => {
     const games = 4;
     for (const gameType of new Set(ROUND_LINEUP[mode])) {
       const rounds = ROUND_LINEUP[mode].filter((t) => t === gameType).length;
-      const available = BUNDLED_QUESTIONS.filter((q) => q.gameType === gameType && q.modes.includes(mode)).length;
+      const available = BUNDLED_QUESTIONS.filter(
+        (q) => !q.pack && q.gameType === gameType && q.modes.includes(mode),
+      ).length;
       expect(available, `${mode} ${gameType}`).toBeGreaterThanOrEqual(rounds * GAME_CONFIG.questionsPerRound * games);
     }
   });
@@ -38,12 +41,27 @@ describe("question bank", () => {
     }
   });
 
+  it("gives every pack's questions a pack that exists, in a mode the pack is sold for", () => {
+    for (const q of BUNDLED_QUESTIONS.filter((x) => x.pack)) {
+      const pack = PACKS.find((p) => p.slug === q.pack);
+      expect(pack, q.id).toBeDefined();
+      expect(
+        q.modes.every((m) => pack!.modes.includes(m)),
+        q.id,
+      ).toBe(true);
+    }
+  });
+
+  it.each(PACKS.map((p) => [p.slug, p] as const))("has at least 40 questions in the %s pack", (_slug, pack) => {
+    expect(BUNDLED_QUESTIONS.filter((q) => q.pack === pack.slug).length).toBeGreaterThanOrEqual(40);
+  });
+
   it("keeps default content safe or playful (bold needs its own review per the design doc)", () => {
     expect(BUNDLED_QUESTIONS.every((q) => q.intensity !== "bold")).toBe(true);
   });
 
   it("has an up-to-date supabase/seed-questions.sql (run `npm run db:seed-sql`)", () => {
     const committed = readFileSync("supabase/seed-questions.sql", "utf8").replace(/\r\n/g, "\n");
-    expect(committed).toBe(buildSeedSql(loadQuestions()));
+    expect(committed).toBe(buildSeedSql(loadQuestions(), loadPacks()));
   });
 });

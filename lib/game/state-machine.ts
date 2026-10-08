@@ -8,6 +8,8 @@ export const GAME_CONFIG = {
   /** Free session: 3 rounds × 5 questions ≈ 8–12 minutes (design doc §6). */
   rounds: 3,
   questionsPerRound: 5,
+  /** Premium session: 4 rounds × 6 questions ≈ 15–25 minutes (design doc §6). */
+  premiumQuestionsPerRound: 6,
   /** In a game, a host silent for this long hands control to someone still here. */
   hostAwayMs: 60_000,
 } as const;

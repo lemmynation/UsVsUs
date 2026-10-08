@@ -2,6 +2,7 @@ import "server-only";
 import { randomInt } from "node:crypto";
 import { getServerEnv } from "@/lib/env";
 import { createGameService, type GameService } from "@/lib/game/service";
+import { getPremiumService } from "@/lib/premium/server";
 import { notifyRoomChanged } from "@/lib/realtime/server";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { MemoryRoomStore } from "./memory-store";
@@ -30,5 +31,11 @@ export function getGameService(): GameService {
 }
 
 export function getRoomService(): RoomService {
-  return createRoomService({ store: getRoomStore(), now: () => new Date(), randomInt, game: getGameService() });
+  return createRoomService({
+    store: getRoomStore(),
+    now: () => new Date(),
+    randomInt,
+    game: getGameService(),
+    premium: getPremiumService(),
+  });
 }
