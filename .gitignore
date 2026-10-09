@@ -11,6 +11,7 @@ next-env.d.ts
 # Testing
 /coverage
 /test-results/
+/test-results-live/
 /playwright-report/
 /blob-report/
 /playwright/.cache/

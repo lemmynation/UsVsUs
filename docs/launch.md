@@ -39,6 +39,17 @@ node scripts/smoke.mjs https://us-vs-us-chi.vercel.app
 It checks pages, security headers and link previews, then plays the start of a game with two simulated
 phones. Each run leaves one room called "Smoke" in the dashboard; it expires on its own.
 
+For bigger releases, run the **full beta test**: the browser test suite against the live site (premium and
+admin login are left out), one phone at a time, about 5 minutes:
+
+```bash
+LIVE_URL=https://us-vs-us-chi.vercel.app npx playwright test --config playwright.live.config.ts
+```
+
+It creates about 30 real rooms (players named Lem, Ana, Ben…) that count in the dashboard until cleaned
+up. If one test stops at "Slow down a little", that's production's rate limit (10 new rooms a minute);
+re-run just that test.
+
 ## Setting up from scratch
 
 How the beta was first deployed (2026-10-09). Steps marked 🧑 need the account owner: creating accounts,
