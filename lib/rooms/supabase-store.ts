@@ -15,7 +15,7 @@ import type {
 } from "@/types/game";
 import type { Payment, PaymentProviderName, PaymentStatus } from "@/types/premium";
 import type { Mode, Player, PlayerStatus, Room, RoomStatus } from "@/types/room";
-import type { AnalyticsEvent, CleanupCutoffs, CleanupResult, RoomStore } from "./store";
+import type { AnalyticsEvent, CleanupCutoffs, CleanupResult, FeedbackRating, RoomStore } from "./store";
 
 interface RoomRow {
   id: string;
@@ -581,6 +581,7 @@ export class SupabaseRoomStore implements RoomStore {
       p_history_before: cutoffs.questionHistory,
       p_events_before: cutoffs.events,
       p_payment_events_before: cutoffs.paymentEvents,
+      p_feedback_before: cutoffs.feedback,
     });
     check(error, "cleanup_expired_data");
     const r = data as Partial<CleanupResult> | null;
@@ -589,6 +590,47 @@ export class SupabaseRoomStore implements RoomStore {
       questionHistory: r?.questionHistory ?? 0,
       events: r?.events ?? 0,
       paymentEvents: r?.paymentEvents ?? 0,
+      feedback: r?.feedback ?? 0,
     };
+  }
+
+  async hitRateLimit(key: string, max: number, windowMs: number, now: string) {
+    const { data, error } = await this.db.rpc("rate_limit_hit", {
+      p_key: key,
+      p_max: max,
+      p_window_ms: windowMs,
+      p_now: now,
+    });
+    check(error, "rate_limit_hit");
+    return data === true;
+  }
+
+  async saveFeedback(input: Parameters<RoomStore["saveFeedback"]>[0]) {
+    const { error } = await this.db.from("feedback").upsert(
+      {
+        room_id: input.roomId,
+        game_session_id: input.sessionId,
+        player_id: input.playerId,
+        mode: input.mode,
+        rating: input.rating,
+        comment: input.comment,
+        updated_at: input.now,
+      },
+      { onConflict: "game_session_id,player_id" },
+    );
+    check(error, "saveFeedback");
+  }
+
+  async listFeedback(sinceIso: string, limit: number) {
+    const { data, error } = await this.db
+      .from("feedback")
+      .select("mode, rating, comment, created_at")
+      .gte("created_at", sinceIso)
+      .order("created_at", { ascending: false })
+      .limit(Math.min(limit, 1000));
+    check(error, "listFeedback");
+    return (data as Array<{ mode: Mode; rating: FeedbackRating; comment: string | null; created_at: string }>).map(
+      (r) => ({ mode: r.mode, rating: r.rating, comment: r.comment, createdAt: new Date(r.created_at).toISOString() }),
+    );
   }
 }

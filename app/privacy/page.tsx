@@ -44,6 +44,14 @@ export default function PrivacyPage() {
               finished&quot;, plus error reports with personal details stripped out. These never include nicknames or
               answers.
             </li>
+            <li>
+              <strong>Feedback you choose to give</strong> after a game: a rating and, if you write one, a comment. We
+              read it without names, and it&apos;s unlinked from your room when the room is deleted.
+            </li>
+            <li>
+              <strong>A short-lived request count</strong> per network address, to stop spam. The address is stored
+              scrambled and the count is cleared within minutes to a day.
+            </li>
           </ul>
         </Section>
 
@@ -61,7 +69,9 @@ export default function PrivacyPage() {
               expires. Rooms expire within a day of being made.
             </li>
             <li>Question history: {RETENTION_DAYS.questionHistory} days.</li>
-            <li>Anonymous usage events and error reports: about {Math.round(RETENTION_DAYS.events / 30)} months.</li>
+            <li>
+              Anonymous usage events, error reports and feedback: about {Math.round(RETENTION_DAYS.events / 30)} months.
+            </li>
             <li>Purchase records: kept, without any link to the room or its players.</li>
           </ul>
         </Section>

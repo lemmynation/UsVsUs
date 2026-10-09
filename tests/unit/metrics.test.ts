@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeMetrics, percentile } from "@/lib/analytics/metrics";
+import { computeMetrics, percentile, summarizeFeedback } from "@/lib/analytics/metrics";
 import { sanitizeErrorText, sanitizePath } from "@/lib/analytics/sanitize";
 import type { AnalyticsEvent } from "@/lib/rooms/store";
 
@@ -147,5 +147,31 @@ describe("error text sanitizing", () => {
   it("keeps only the route shape of a path", () => {
     expect(sanitizePath("/join/ABC234")).toBe("/join/:code");
     expect(sanitizePath("/room/0b1c2d3e-1111-2222-3333-444455556666?x=1")).toBe("/room/:id");
+  });
+});
+
+describe("feedback summary", () => {
+  const entry = (rating: 1 | 2 | 3 | 4, comment: string | null, at: string) => ({
+    mode: "couple" as const,
+    rating,
+    comment,
+    createdAt: at,
+  });
+
+  it("counts ratings best-first, averages them and lists the newest comments", () => {
+    const s = summarizeFeedback([entry(4, "So fun", day(2)), entry(4, null, day(3)), entry(2, "Too long", day(4))]);
+    expect(s.count).toBe(3);
+    expect(s.average).toBeCloseTo(10 / 3);
+    expect(s.byRating).toEqual([
+      { rating: 4, count: 2 },
+      { rating: 3, count: 0 },
+      { rating: 2, count: 1 },
+      { rating: 1, count: 0 },
+    ]);
+    expect(s.recentComments.map((c) => c.comment)).toEqual(["Too long", "So fun"]);
+  });
+
+  it("has no average before anyone rates", () => {
+    expect(summarizeFeedback([]).average).toBeNull();
   });
 });

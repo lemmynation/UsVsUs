@@ -26,6 +26,14 @@ export function hasAdminBearer(request: Request): boolean {
   return token !== null && attempt !== null && isCorrectAdminToken(token, attempt);
 }
 
+/** Vercel Cron sends `Authorization: Bearer <CRON_SECRET>` when CRON_SECRET is set. */
+export function hasCronBearer(request: Request): boolean {
+  const secret = usableAdminToken(process.env.CRON_SECRET);
+  const header = request.headers.get("authorization");
+  const attempt = header?.startsWith("Bearer ") ? header.slice(7) : null;
+  return secret !== null && attempt !== null && isCorrectAdminToken(secret, attempt);
+}
+
 /** Sets the admin cookie if `attempt` is the token. Route Handlers only. */
 export async function logInAdmin(attempt: string): Promise<boolean> {
   const token = adminToken();

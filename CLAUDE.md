@@ -83,6 +83,14 @@ Do not introduce a new dependency unless it materially simplifies the implementa
   §14 numbers (pure, unit-tested) for `/admin/metrics`, which exists only when `ADMIN_TOKEN` is set.
 - **Retention** (`lib/retention.ts`): `cleanupExpiredData` deletes long-expired rooms and old history/events;
   paid payment records survive with `room_id` null. `/privacy` quotes the same periods — change both together.
+- **Beta (Phase 7)**: feedback after Wrapped is one row per player per game (`saveFeedback` upserts).
+  Abuse-prone routes use `isRateLimitedShared` (counted in Postgres via `rate_limit_hit`, keyed by a hash,
+  falls back to the local count); chatty routes keep the in-memory `isRateLimited`. A payment settings error
+  turns premium off (logged) instead of failing requests. Deploy steps: `docs/launch.md`; after a deploy run
+  `node scripts/smoke.mjs <url>`.
+- **Preserved pages**: with Cache Components, Next keeps visited pages alive (hidden `<Activity>`), so state
+  like "Creating…" survives navigation. Reset in-progress flags in an effect cleanup (see
+  `create-room-form.tsx`), and on `pageshow` for pages left via a full redirect (checkout).
 - **E2E**: shared helpers live in `tests/e2e/helpers.ts` (`expectAccessible` = axe WCAG A/AA scan,
   `expectPhoneFriendly`). Tag a spec `@layout` to also run it on the small-phone projects.
 - **Emoji**: stick to Unicode ≤ 12 (a content test enforces it for questions); newer ones render as boxes

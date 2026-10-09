@@ -94,7 +94,7 @@ describe("cleanupExpiredData (memory store)", () => {
     await store.recordPaymentEvent("fake", "evt-new", daysAgo(1));
 
     const result = await store.cleanupExpiredData(retentionCutoffs(NOW));
-    expect(result).toEqual({ rooms: 0, questionHistory: 1, events: 1, paymentEvents: 1 });
+    expect(result).toEqual({ rooms: 0, questionHistory: 1, events: 1, paymentEvents: 1, feedback: 0 });
 
     expect(store.events).toHaveLength(1);
     expect([...(await store.getQuestionHistory(["h1"])).keys()]).toEqual(["q-new"]);

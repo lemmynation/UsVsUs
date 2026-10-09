@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { timed } from "@/lib/timing";
 import { z } from "zod";
 import { track } from "@/lib/analytics/server";
-import { apiError, isRateLimited, parseBody } from "@/lib/api";
+import { apiError, isRateLimitedShared, parseBody } from "@/lib/api";
 import { notifyRoomChanged } from "@/lib/realtime/server";
 import { getRoomService } from "@/lib/rooms/server";
 import { getOrCreateSessionHash } from "@/lib/session";
@@ -13,7 +13,7 @@ const bodySchema = z.object({
 });
 
 async function handlePOST(request: Request) {
-  if (isRateLimited(request, "joinRoom")) return apiError("rate_limited");
+  if (await isRateLimitedShared(request, "joinRoom")) return apiError("rate_limited");
   const body = await parseBody(request, bodySchema);
   if (!body) return apiError("invalid_input");
 

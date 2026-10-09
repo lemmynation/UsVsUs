@@ -2,7 +2,7 @@
  * The design doc's decision metrics (§14), computed from recorded events. Pure:
  * events in, numbers out — so every definition below is unit-tested.
  */
-import type { AnalyticsEvent } from "@/lib/rooms/store";
+import type { AnalyticsEvent, FeedbackEntry, FeedbackRating } from "@/lib/rooms/store";
 
 export interface Rate {
   numerator: number;
@@ -192,5 +192,30 @@ export function computeMetrics(events: AnalyticsEvent[], window: { from: Date; n
         .sort((a, b) => b.p95 - a.p95),
       recentErrors: [...errorGroups.values()].sort((a, b) => b.lastSeen.localeCompare(a.lastSeen)).slice(0, 15),
     },
+  };
+}
+
+export interface FeedbackSummary {
+  count: number;
+  /** 1–4, or null with no ratings yet. */
+  average: number | null;
+  /** Counts for ratings 4, 3, 2, 1 (best first). */
+  byRating: Array<{ rating: FeedbackRating; count: number }>;
+  recentComments: Array<{ rating: FeedbackRating; mode: string; comment: string; createdAt: string }>;
+}
+
+/** Beta feedback for the dashboard: rating spread, average and the latest comments. */
+export function summarizeFeedback(entries: FeedbackEntry[], maxComments = 20): FeedbackSummary {
+  const ratings: FeedbackRating[] = [4, 3, 2, 1];
+  const total = entries.reduce((sum, e) => sum + e.rating, 0);
+  return {
+    count: entries.length,
+    average: entries.length ? total / entries.length : null,
+    byRating: ratings.map((rating) => ({ rating, count: entries.filter((e) => e.rating === rating).length })),
+    recentComments: entries
+      .filter((e): e is FeedbackEntry & { comment: string } => !!e.comment)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, maxComments)
+      .map(({ rating, mode, comment, createdAt }) => ({ rating, mode, comment, createdAt })),
   };
 }

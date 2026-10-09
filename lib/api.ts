@@ -2,7 +2,9 @@ import "server-only";
 import { NextResponse } from "next/server";
 import type { z } from "zod";
 import { ROOM_ERRORS } from "@/lib/rooms/errors";
-import { clientKey, rateLimit, LIMITS } from "@/lib/rate-limit";
+import { createHash } from "node:crypto";
+import { clientKey, disabledForTests, rateLimit, LIMITS } from "@/lib/rate-limit";
+import { getRoomStore } from "@/lib/rooms/server";
 
 export function apiError(code: string): NextResponse {
   const known = ROOM_ERRORS[code] ?? { status: 500, message: "Something went wrong." };
@@ -27,4 +29,30 @@ export async function parseBody<T extends z.ZodType>(request: Request, schema: T
 export function isRateLimited(request: Request, bucket: keyof typeof LIMITS, sessionHash?: string | null): boolean {
   const key = sessionHash ? `${clientKey(request.headers)}:${sessionHash}` : clientKey(request.headers);
   return !rateLimit(bucket, key);
+}
+
+/** Buckets worth counting across every server instance (abuse and cost), not just this one. */
+export type SharedBucket = "createRoom" | "joinRoom" | "checkout" | "adminLogin";
+
+/**
+ * Like `isRateLimited`, but counted in the database so the limit holds when the
+ * host runs many copies of the server. Keyed per IP (+ session when given), stored
+ * only as a hash. If the database can't be reached, falls back to this instance's
+ * own count rather than blocking players.
+ */
+export async function isRateLimitedShared(
+  request: Request,
+  bucket: SharedBucket,
+  sessionHash?: string | null,
+): Promise<boolean> {
+  if (disabledForTests) return false;
+  const who = sessionHash ? `${clientKey(request.headers)}:${sessionHash}` : clientKey(request.headers);
+  const { max, windowMs } = LIMITS[bucket];
+  const key = createHash("sha256").update(`${bucket}|${who}`).digest("hex");
+  try {
+    return !(await getRoomStore().hitRateLimit(key, max, windowMs, new Date().toISOString()));
+  } catch (error) {
+    console.error("[rate-limit] shared limiter unavailable, using local count", error);
+    return !rateLimit(bucket, who);
+  }
 }

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { MetricsView } from "@/components/admin/metrics-view";
+import { FeedbackView, MetricsView } from "@/components/admin/metrics-view";
 import { Wordmark } from "@/components/brand/wordmark";
 import { LoadingCard } from "@/components/layout/loading-card";
 import { PageShell } from "@/components/layout/page-shell";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { adminToken, isAdmin } from "@/lib/admin";
-import { computeMetrics } from "@/lib/analytics/metrics";
+import { computeMetrics, summarizeFeedback } from "@/lib/analytics/metrics";
 import { RETENTION_DAYS } from "@/lib/retention";
 import { getRoomStore } from "@/lib/rooms/server";
 import { cn } from "@/lib/utils";
@@ -48,7 +48,11 @@ async function MetricsContent({ searchParams }: { searchParams: PageProps<"/admi
   const now = new Date();
   const from = new Date(now.getTime() - days * DAY_MS);
   // A day of lead-in so games that finished inside the window still find their players.
-  const events = await getRoomStore().listEvents(new Date(from.getTime() - DAY_MS).toISOString(), MAX_EVENTS);
+  const store = getRoomStore();
+  const [events, feedback] = await Promise.all([
+    store.listEvents(new Date(from.getTime() - DAY_MS).toISOString(), MAX_EVENTS),
+    store.listFeedback(from.toISOString(), 1000),
+  ]);
   const metrics = computeMetrics(events, { from, now });
 
   return (
@@ -88,6 +92,8 @@ async function MetricsContent({ searchParams }: { searchParams: PageProps<"/admi
       )}
 
       <MetricsView metrics={metrics} />
+
+      <FeedbackView feedback={summarizeFeedback(feedback)} />
 
       <CleanupPanel query={param} />
     </>
@@ -137,13 +143,13 @@ function CleanupPanel({ query }: { query: (key: string) => string | undefined })
       </h2>
       <p className="text-muted-foreground text-sm">
         Deletes rooms (with their players, answers and results) {RETENTION_DAYS.rooms} days after they expire, question
-        history after {RETENTION_DAYS.questionHistory} days and usage events after {RETENTION_DAYS.events} days. Paid
-        payment records are kept.
+        history after {RETENTION_DAYS.questionHistory} days, and usage events and feedback after {RETENTION_DAYS.events}{" "}
+        days. Paid payment records are kept. Runs automatically every day once deployed.
       </p>
       {cleaned && (
         <p role="status" className="text-sm">
-          Done: removed {n("rooms")} rooms, {n("questionHistory")} history rows, {n("events")} events and{" "}
-          {n("paymentEvents")} webhook ids.
+          Done: removed {n("rooms")} rooms, {n("questionHistory")} history rows, {n("events")} events, {n("feedback")}{" "}
+          feedback entries and {n("paymentEvents")} webhook ids.
         </p>
       )}
       <form action="/api/admin/cleanup" method="post">

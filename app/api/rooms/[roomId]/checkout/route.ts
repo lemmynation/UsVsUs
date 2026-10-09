@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { timed } from "@/lib/timing";
 import { z } from "zod";
 import { track } from "@/lib/analytics/server";
-import { apiError, isRateLimited, parseBody } from "@/lib/api";
+import { apiError, isRateLimited, isRateLimitedShared, parseBody } from "@/lib/api";
 import { checkoutReturnOrigin, getPremiumService } from "@/lib/premium/server";
 import { readSessionHash } from "@/lib/session";
 
@@ -17,6 +17,8 @@ async function handlePOST(request: NextRequest, ctx: RouteContext<"/api/rooms/[r
   const body = await parseBody(request, bodySchema);
   if (!body) return apiError("invalid_input");
   if (!sessionHash) return apiError("not_in_room");
+  // Each checkout calls the payment provider: cap it per address across all servers.
+  if (await isRateLimitedShared(request, "checkout")) return apiError("rate_limited");
 
   const result = await getPremiumService().startCheckout(roomId, sessionHash, {
     packSlug: body.packSlug,

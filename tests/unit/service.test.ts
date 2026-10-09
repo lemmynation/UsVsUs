@@ -133,7 +133,7 @@ describe("getJoinInfo", () => {
     const { room } = await createRoom("circle");
     expect(await service.getJoinInfo(room.joinCode, null)).toMatchObject({
       kind: "joinable",
-      preview: { joinCode: room.joinCode, mode: "circle", playerCount: 1, maxPlayers: 10 },
+      preview: { joinCode: room.joinCode, mode: "circle", hostNickname: "Lem", playerCount: 1, maxPlayers: 10 },
     });
   });
 

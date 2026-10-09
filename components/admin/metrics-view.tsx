@@ -1,10 +1,16 @@
-import type { Metrics, Rate } from "@/lib/analytics/metrics";
+import type { FeedbackSummary, Metrics, Rate } from "@/lib/analytics/metrics";
 import { cn } from "@/lib/utils";
 
 const pct = (r: Rate) => (r.value === null ? "—" : `${Math.round(r.value * 100)}%`);
 const ofTotal = (r: Rate) => (r.denominator === 0 ? "no data yet" : `${r.numerator} of ${r.denominator}`);
 const when = (iso: string) =>
-  new Date(iso).toLocaleString("en-PH", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  new Date(iso).toLocaleString("en-PH", {
+    timeZone: "Asia/Manila", // the server runs in UTC
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 
 /** The §14 dashboard: decision metrics, funnel, technical health, recent errors. */
 export function MetricsView({ metrics }: { metrics: Metrics }) {
@@ -209,5 +215,59 @@ function Stat({
       </span>
       {detail && <span className="text-muted-foreground text-xs">{detail}</span>}
     </div>
+  );
+}
+
+const RATING_LABELS: Record<number, string> = {
+  4: "😍 Loved it",
+  3: "🙂 Liked it",
+  2: "😐 It was okay",
+  1: "😕 Not for us",
+};
+
+/** Beta feedback players left after Wrapped. */
+export function FeedbackView({ feedback }: { feedback: FeedbackSummary }) {
+  const top = Math.max(1, ...feedback.byRating.map((r) => r.count));
+  return (
+    <Section title="Player feedback">
+      {feedback.count === 0 ? (
+        <p className="text-muted-foreground text-sm">No ratings in this period yet.</p>
+      ) : (
+        <>
+          <p className="text-sm">
+            <span className="font-heading text-2xl font-extrabold tabular-nums">{feedback.average!.toFixed(1)}</span>
+            <span className="text-muted-foreground"> / 4 average from {feedback.count} ratings</span>
+          </p>
+          <ul className="flex flex-col gap-2">
+            {feedback.byRating.map((r) => (
+              <li key={r.rating} className="flex flex-col gap-1">
+                <div className="flex justify-between text-sm">
+                  <span>{RATING_LABELS[r.rating]}</span>
+                  <span className="font-semibold tabular-nums">{r.count}</span>
+                </div>
+                <div className="bg-muted h-2 overflow-hidden rounded-full" aria-hidden>
+                  <div className="bg-primary h-full rounded-full" style={{ width: `${(r.count / top) * 100}%` }} />
+                </div>
+              </li>
+            ))}
+          </ul>
+          {feedback.recentComments.length > 0 && (
+            <ul className="flex flex-col gap-2" aria-label="Latest comments">
+              {feedback.recentComments.map((c) => (
+                <li key={`${c.createdAt}|${c.comment}`} className="bg-card rounded-xl p-3 text-sm">
+                  <div className="text-muted-foreground flex justify-between gap-3 text-xs">
+                    <span>
+                      {RATING_LABELS[c.rating]} · {c.mode}
+                    </span>
+                    <span>{when(c.createdAt)}</span>
+                  </div>
+                  <p className="mt-1 break-words whitespace-pre-line">{c.comment}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
+    </Section>
   );
 }

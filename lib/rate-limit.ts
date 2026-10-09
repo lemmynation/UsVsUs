@@ -13,6 +13,7 @@ export const LIMITS = {
   roomState: { max: 120, windowMs: 60_000 },
   events: { max: 60, windowMs: 60_000 },
   adminLogin: { max: 5, windowMs: 15 * 60_000 },
+  checkout: { max: 10, windowMs: 10 * 60_000 },
 } as const;
 
 /**
@@ -21,7 +22,7 @@ export const LIMITS = {
  * production build only together with the in-memory store (never used for real
  * players). A real deployment can't turn them off.
  */
-const disabledForTests =
+export const disabledForTests =
   process.env.RATE_LIMITS === "off" && (process.env.NODE_ENV !== "production" || process.env.ROOM_STORE === "memory");
 
 export function rateLimit(bucket: keyof typeof LIMITS, key: string, now = Date.now()): boolean {

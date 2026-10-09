@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,9 @@ export function JoinRoomForm({ code }: { code: string }) {
   const [nickname, setNickname] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  // Next keeps this page alive (hidden) after we navigate to the room. Clear the
+  // "in progress" state when it hides, or coming back shows a stuck button.
+  useEffect(() => () => setPending(false), []);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
