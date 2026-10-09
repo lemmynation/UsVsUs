@@ -54,8 +54,10 @@ host returns from checkout (or taps "Check payment").
 
 ## Deploying
 
-See [`docs/launch.md`](docs/launch.md): Vercel + a production Supabase project, both in Singapore, with
-premium off until PayMongo verification. After deploying, run `node scripts/smoke.mjs https://<your-site>`.
+The beta is live at **https://us-vs-us-chi.vercel.app** (Vercel + a production Supabase project, both in
+Singapore; premium off until PayMongo verification). Merging to `main` deploys it. Setup, settings and the
+checklist for each release are in [`docs/launch.md`](docs/launch.md). After a deploy, run
+`node scripts/smoke.mjs https://us-vs-us-chi.vercel.app`.
 
 ## Metrics and data cleanup
 
@@ -70,7 +72,9 @@ token the page doesn't exist. Its **Run cleanup now** button applies the retenti
 ## Questions
 
 The question bank is plain data in `content/questions/`. To add or change questions, edit the JSON, run
-`npm run db:seed-sql`, and run the regenerated `supabase/seed-questions.sql` in Supabase. Removing a question
+`npm run db:seed-sql` (a test checks the generated SQL is current), then load them into each Supabase
+project with `node --env-file=.env.local scripts/seed-questions.mjs` (and `--env-file=.env.vercel-production`
+for production). `scripts/check-db.mjs` confirms a project is fully set up. Removing a question
 from the JSON deactivates it rather than deleting it. The game avoids repeats per group: each new game picks
 questions nobody in the room has seen first, then the least- and longest-ago-seen.
 

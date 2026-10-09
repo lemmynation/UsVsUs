@@ -86,8 +86,9 @@ Do not introduce a new dependency unless it materially simplifies the implementa
 - **Beta (Phase 7)**: feedback after Wrapped is one row per player per game (`saveFeedback` upserts).
   Abuse-prone routes use `isRateLimitedShared` (counted in Postgres via `rate_limit_hit`, keyed by a hash,
   falls back to the local count); chatty routes keep the in-memory `isRateLimited`. A payment settings error
-  turns premium off (logged) instead of failing requests. Deploy steps: `docs/launch.md`; after a deploy run
-  `node scripts/smoke.mjs <url>`.
+  turns premium off (logged) instead of failing requests. Live at https://us-vs-us-chi.vercel.app; deploy and
+  release steps in `docs/launch.md`. Migrations must be applied to BOTH Supabase projects (dev + production).
+  Production settings are in the git-ignored `.env.vercel-production`; scripts read it with `--env-file`.
 - **Preserved pages**: with Cache Components, Next keeps visited pages alive (hidden `<Activity>`), so state
   like "Creating…" survives navigation. Reset in-progress flags in an effect cleanup (see
   `create-room-form.tsx`), and on `pageshow` for pages left via a full redirect (checkout).
