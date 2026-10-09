@@ -33,6 +33,14 @@ export function PackPicker({
     if (lockedSlugs) trackClient("premium_pack_viewed", { packs: lockedSlugs }, roomId);
   }, [lockedSlugs, roomId]);
 
+  // Backing out of the provider's checkout can restore this page from the browser's
+  // back-forward cache exactly as it was left: clear the "opening checkout" state.
+  useEffect(() => {
+    const onShow = (e: PageTransitionEvent) => e.persisted && setOpening(null);
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
+
   async function unlock(packSlug: string) {
     setOpening(packSlug);
     setError(null);

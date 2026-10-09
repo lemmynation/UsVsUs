@@ -6,7 +6,7 @@ import { findPack } from "@/lib/premium/catalog";
 import type { Payment } from "@/types/premium";
 import type { Player, Room } from "@/types/room";
 import { nextHost } from "./rules";
-import type { AnalyticsEvent, CleanupCutoffs, RoomStore } from "./store";
+import type { AnalyticsEvent, CleanupCutoffs, FeedbackEntry, RoomStore } from "./store";
 
 /**
  * In-process store for local development without Supabase and for tests.
@@ -28,6 +28,11 @@ export class MemoryRoomStore implements RoomStore {
   /** sessionTokenHash → questionId → history */
   private seen = new Map<string, Map<string, QuestionHistory>>();
   readonly events: AnalyticsEvent[] = [];
+  private feedback = new Map<
+    string,
+    FeedbackEntry & { roomId: string | null; sessionId: string | null; playerId: string | null; updatedAt: string }
+  >();
+  private rateWindows = new Map<string, { count: number; resetAt: number }>();
 
   constructor(private readonly questions: Question[] = BUNDLED_QUESTIONS) {}
 
@@ -422,6 +427,9 @@ export class MemoryRoomStore implements RoomStore {
       else p.roomId = null;
     }
     for (const e of this.events) if (e.roomId && goneRooms.has(e.roomId)) e.roomId = null;
+    for (const f of this.feedback.values()) {
+      if (f.roomId && goneRooms.has(f.roomId)) Object.assign(f, { roomId: null, sessionId: null, playerId: null });
+    }
 
     let history = 0;
     for (const [hash, mine] of this.seen) {
@@ -444,7 +452,50 @@ export class MemoryRoomStore implements RoomStore {
         paymentEvents++;
       }
     }
-    return { rooms: goneRooms.size, questionHistory: history, events: before - kept.length, paymentEvents };
+    let feedback = 0;
+    for (const [key, f] of this.feedback) {
+      if (f.createdAt < cutoffs.feedback) {
+        this.feedback.delete(key);
+        feedback++;
+      }
+    }
+    const nowMs = Date.now();
+    for (const [key, w] of this.rateWindows) if (w.resetAt < nowMs) this.rateWindows.delete(key);
+    return { rooms: goneRooms.size, questionHistory: history, events: before - kept.length, paymentEvents, feedback };
+  }
+
+  async hitRateLimit(key: string, max: number, windowMs: number, now: string) {
+    const t = new Date(now).getTime();
+    const w = this.rateWindows.get(key);
+    if (!w || w.resetAt <= t) {
+      this.rateWindows.set(key, { count: 1, resetAt: t + windowMs });
+      return 1 <= max;
+    }
+    w.count++;
+    return w.count <= max;
+  }
+
+  async saveFeedback(input: Parameters<RoomStore["saveFeedback"]>[0]) {
+    const key = `${input.sessionId}:${input.playerId}`;
+    const existing = this.feedback.get(key);
+    this.feedback.set(key, {
+      roomId: input.roomId,
+      sessionId: input.sessionId,
+      playerId: input.playerId,
+      mode: input.mode,
+      rating: input.rating,
+      comment: input.comment,
+      createdAt: existing?.createdAt ?? input.now,
+      updatedAt: input.now,
+    });
+  }
+
+  async listFeedback(sinceIso: string, limit: number) {
+    return [...this.feedback.values()]
+      .filter((f) => f.createdAt >= sinceIso)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, limit)
+      .map(({ mode, rating, comment, createdAt }) => ({ mode, rating, comment, createdAt }));
   }
 
   /** Test helper: force a room's expiry. */

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import type { GameScreenProps } from "@/components/game/types";
 import { trackClient } from "@/lib/client-api";
+import { FeedbackCard } from "./feedback-card";
 import { ShareActions } from "./share-actions";
 import {
   reportNames,
@@ -33,6 +34,7 @@ export function WrappedScreen({ view }: { view: GameScreenProps["view"] }) {
       {twoPlayer && report.rounds.some((r) => r.possible > 0) && <WrappedBreakdown report={report} />}
       {report.highlight && <WrappedHighlightCard highlight={report.highlight} names={names} />}
       <ShareActions roomId={roomId} mode={report.mode} />
+      <FeedbackCard roomId={roomId} />
     </>
   );
 }

@@ -1,4 +1,5 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
+import { expectAccessible } from "./helpers";
 
 async function newPlayer(browser: Browser): Promise<Page> {
   return (await browser.newContext()).newPage();
@@ -228,4 +229,19 @@ test("Circle: a full game ends on Wrapped with the night's awards", async ({ bro
   await expect(host.getByText("Us Score")).toHaveCount(0); // Circle plays for badges, not points
   await expectWrappedFits(guests[1]);
   await expectShareCard(guests[0]);
+
+  await expectAccessible(guests[0]); // Wrapped, with the feedback card
+
+  // Beta feedback: one tap saves the rating, a comment is optional, and it isn't asked again.
+  const [ana] = guests;
+  const rate = ana.getByRole("group", { name: "How was the game?" });
+  await rate.getByRole("button", { name: /Loved it/ }).click();
+  await expect(rate.getByRole("button", { name: /Loved it/ })).toHaveAttribute("aria-pressed", "true");
+  await ana.getByLabel(/Anything we should know/).fill("The awards were hilarious");
+  await ana.getByRole("button", { name: "Send" }).click();
+  await expect(ana.getByText("Thanks for the feedback! 💜")).toBeVisible();
+  await ana.reload();
+  await expect(ana.getByText("Thanks for the feedback! 💜")).toBeVisible();
+  await expect(ana.getByRole("group", { name: "How was the game?" })).toHaveCount(0);
+  await expect(host.getByRole("group", { name: "How was the game?" })).toBeVisible(); // each phone asks its own player
 });

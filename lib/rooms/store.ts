@@ -21,6 +21,16 @@ export interface AnalyticsEvent {
   createdAt: string;
 }
 
+/** A player's rating of a finished game (1 = not for us … 4 = loved it). */
+export type FeedbackRating = 1 | 2 | 3 | 4;
+
+export interface FeedbackEntry {
+  mode: Mode;
+  rating: FeedbackRating;
+  comment: string | null;
+  createdAt: string;
+}
+
 /** Anything older than these timestamps (ISO) is removed by `cleanupExpiredData`. */
 export interface CleanupCutoffs {
   /** Rooms whose expiry is before this, with everything in them. */
@@ -28,6 +38,7 @@ export interface CleanupCutoffs {
   questionHistory: string;
   events: string;
   paymentEvents: string;
+  feedback: string;
 }
 
 export interface CleanupResult {
@@ -35,6 +46,7 @@ export interface CleanupResult {
   questionHistory: number;
   events: number;
   paymentEvents: number;
+  feedback: number;
 }
 
 /**
@@ -161,6 +173,26 @@ export interface RoomStore {
    * unlinked from the room; unpaid ones go with it.
    */
   cleanupExpiredData(cutoffs: CleanupCutoffs): Promise<CleanupResult>;
+
+  /**
+   * Counts one request against a fixed window shared by every server instance.
+   * True while `key` is within `max` hits per `windowMs`.
+   */
+  hitRateLimit(key: string, max: number, windowMs: number, now: string): Promise<boolean>;
+
+  /** One rating per player per game; sending again replaces it (e.g. adding a comment). */
+  saveFeedback(input: {
+    roomId: string;
+    sessionId: string;
+    playerId: string;
+    mode: Mode;
+    rating: FeedbackRating;
+    comment: string | null;
+    now: string;
+  }): Promise<void>;
+
+  /** Feedback since `sinceIso`, newest first, at most `limit`. */
+  listFeedback(sinceIso: string, limit: number): Promise<FeedbackEntry[]>;
 
   // --- Premium (Phase 5) ---
 

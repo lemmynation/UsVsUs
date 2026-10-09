@@ -8,16 +8,16 @@ The product spec is [`docs/design.docx`](docs/design.docx) (text export: [`docs/
 
 ## Status
 
-| Phase              | What                                                                      | State   |
-| ------------------ | ------------------------------------------------------------------------- | ------- |
-| 0 — Foundation     | Next.js, Tailwind, shadcn/ui, lint/test tooling, env validation, CI       | ✅ Done |
-| 1 — Rooms          | Create/join rooms, anonymous sessions, live lobby, invite, host controls  | ✅ Done |
-| 2 — Realtime       | Server-run game flow, private answers, reveal sync, presence, reconnect   | ✅ Done |
-| 3 — Game engine    | Mind Reader, Who's More Likely, This or That predictions, scoring, badges | ✅ Done |
-| 4 — Wrapped        | Us Score, awards, highlight, roast line, 1080×1920 share card             | ✅ Done |
-| 5 — Premium        | Chaos Night pack (₱99), PayMongo checkout, server-verified room unlock    | ✅ Done |
-| 6 — Analytics & QA | Error monitoring, metrics dashboard, data cleanup, accessibility pass     | ✅ Done |
-| 7 — Beta           | Deploy, production database, webhook, feedback                            | Next    |
+| Phase              | What                                                                      | State           |
+| ------------------ | ------------------------------------------------------------------------- | --------------- |
+| 0 — Foundation     | Next.js, Tailwind, shadcn/ui, lint/test tooling, env validation, CI       | ✅ Done         |
+| 1 — Rooms          | Create/join rooms, anonymous sessions, live lobby, invite, host controls  | ✅ Done         |
+| 2 — Realtime       | Server-run game flow, private answers, reveal sync, presence, reconnect   | ✅ Done         |
+| 3 — Game engine    | Mind Reader, Who's More Likely, This or That predictions, scoring, badges | ✅ Done         |
+| 4 — Wrapped        | Us Score, awards, highlight, roast line, 1080×1920 share card             | ✅ Done         |
+| 5 — Premium        | Chaos Night pack (₱99), PayMongo checkout, server-verified room unlock    | ✅ Done         |
+| 6 — Analytics & QA | Error monitoring, metrics dashboard, data cleanup, accessibility pass     | ✅ Done         |
+| 7 — Beta           | Feedback, shared rate limits, daily cleanup, launch setup, 319 questions  | Ready to deploy |
 
 ## Run it locally
 
@@ -51,6 +51,11 @@ Packs are data in `content/packs.json` (price in centavos). To try payments loca
 `APP_URL`. Once deployed, create a PayMongo webhook for `checkout_session.payment.paid` pointing at
 `/api/payments/webhook` and set `PAYMONGO_WEBHOOK_SECRET`. Until then, payments are still confirmed when the
 host returns from checkout (or taps "Check payment").
+
+## Deploying
+
+See [`docs/launch.md`](docs/launch.md): Vercel + a production Supabase project, both in Singapore, with
+premium off until PayMongo verification. After deploying, run `node scripts/smoke.mjs https://<your-site>`.
 
 ## Metrics and data cleanup
 
@@ -93,8 +98,9 @@ See [`CLAUDE.md`](CLAUDE.md) for engineering rules.
 
 ## Known limits (beta)
 
-- Rate limiting is in-process memory: fine for one server, not for multi-instance/serverless scale.
-- Rooms expire lazily (they read as expired after 24 h). Old data is deleted when cleanup runs (button or
-  scheduled call) — schedule it when deploying.
+- Room creation, joining, checkout and admin login are rate-limited in the database (shared by every
+  server); high-volume calls (room refresh, answers) use a per-server count.
+- Rooms expire lazily (they read as expired after 24 h; a game in progress gets 6 more hours to finish).
+  Old data is deleted by the daily cleanup job.
 - The metrics page reads at most 100,000 events per period (it says so when it hits that).
 - Kicked players are blocked per browser session; a new browser/incognito window can rejoin.

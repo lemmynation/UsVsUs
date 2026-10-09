@@ -2,7 +2,11 @@
   {
     "id": "ml-become-a-millionaire",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "money",
     "intensity": "safe",
     "prompt": "Who's most likely to become a millionaire?",
@@ -12,7 +16,11 @@
   {
     "id": "ml-be-late",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "habits",
     "intensity": "safe",
     "prompt": "Who's most likely to be late?",
@@ -22,7 +30,11 @@
   {
     "id": "ml-leave-a-message-on-read",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "habits",
     "intensity": "safe",
     "prompt": "Who's most likely to leave a message on read?",
@@ -32,7 +44,11 @@
   {
     "id": "ml-fall-asleep-first-at-a-sleepover",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "habits",
     "intensity": "safe",
     "prompt": "Who's most likely to fall asleep first at a sleepover?",
@@ -42,7 +58,11 @@
   {
     "id": "ml-have-100-unread-messages",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "habits",
     "intensity": "safe",
     "prompt": "Who's most likely to have 100+ unread messages?",
@@ -52,7 +72,11 @@
   {
     "id": "ml-snooze-the-alarm-five-times",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "habits",
     "intensity": "safe",
     "prompt": "Who's most likely to snooze the alarm five times?",
@@ -62,7 +86,11 @@
   {
     "id": "ml-finish-everyone-s-leftovers",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "food",
     "intensity": "safe",
     "prompt": "Who's most likely to finish everyone's leftovers?",
@@ -72,7 +100,11 @@
   {
     "id": "ml-try-the-weirdest-dish-on-the-menu",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "food",
     "intensity": "safe",
     "prompt": "Who's most likely to try the weirdest dish on the menu?",
@@ -82,7 +114,11 @@
   {
     "id": "ml-eat-dessert-first",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "food",
     "intensity": "safe",
     "prompt": "Who's most likely to eat dessert first?",
@@ -92,7 +128,11 @@
   {
     "id": "ml-get-lost-even-with-gps",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "travel",
     "intensity": "safe",
     "prompt": "Who's most likely to get lost even with GPS?",
@@ -102,7 +142,11 @@
   {
     "id": "ml-overpack-for-a-weekend-trip",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "travel",
     "intensity": "safe",
     "prompt": "Who's most likely to overpack for a weekend trip?",
@@ -112,7 +156,11 @@
   {
     "id": "ml-book-a-trip-on-a-whim",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "travel",
     "intensity": "safe",
     "prompt": "Who's most likely to book a trip on a whim?",
@@ -122,7 +170,11 @@
   {
     "id": "ml-cry-at-a-commercial",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "personality",
     "intensity": "safe",
     "prompt": "Who's most likely to cry at a commercial?",
@@ -132,7 +184,11 @@
   {
     "id": "ml-talk-to-strangers",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "personality",
     "intensity": "safe",
     "prompt": "Who's most likely to talk to strangers?",
@@ -142,7 +198,11 @@
   {
     "id": "ml-start-a-business",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "personality",
     "intensity": "safe",
     "prompt": "Who's most likely to start a business?",
@@ -152,7 +212,11 @@
   {
     "id": "ml-become-famous",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "personality",
     "intensity": "safe",
     "prompt": "Who's most likely to become famous?",
@@ -162,7 +226,11 @@
   {
     "id": "ml-win-a-debate",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "personality",
     "intensity": "safe",
     "prompt": "Who's most likely to win a debate?",
@@ -172,7 +240,11 @@
   {
     "id": "ml-adopt-five-pets",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "personality",
     "intensity": "safe",
     "prompt": "Who's most likely to adopt five pets?",
@@ -182,7 +254,11 @@
   {
     "id": "ml-remember-everyone-s-birthday",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "personality",
     "intensity": "safe",
     "prompt": "Who's most likely to remember everyone's birthday?",
@@ -192,7 +268,11 @@
   {
     "id": "ml-give-the-best-advice",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "personality",
     "intensity": "safe",
     "prompt": "Who's most likely to give the best advice?",
@@ -202,7 +282,11 @@
   {
     "id": "ml-laugh-at-their-own-joke",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "personality",
     "intensity": "safe",
     "prompt": "Who's most likely to laugh at their own joke?",
@@ -212,7 +296,11 @@
   {
     "id": "ml-cry-from-laughing",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "personality",
     "intensity": "safe",
     "prompt": "Who's most likely to cry from laughing?",
@@ -222,7 +310,11 @@
   {
     "id": "ml-spend-it-all-on-a-sale",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "money",
     "intensity": "safe",
     "prompt": "Who's most likely to spend it all on a sale?",
@@ -232,7 +324,11 @@
   {
     "id": "ml-have-savings-for-emergencies",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "money",
     "intensity": "safe",
     "prompt": "Who's most likely to have savings for emergencies?",
@@ -242,7 +338,11 @@
   {
     "id": "ml-break-something-by-accident",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "chaos",
     "intensity": "playful",
     "prompt": "Who's most likely to break something by accident?",
@@ -252,7 +352,11 @@
   {
     "id": "ml-survive-a-zombie-apocalypse",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "chaos",
     "intensity": "playful",
     "prompt": "Who's most likely to survive a zombie apocalypse?",
@@ -262,7 +366,11 @@
   {
     "id": "ml-sing-in-the-shower-the-loudest",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "chaos",
     "intensity": "playful",
     "prompt": "Who's most likely to sing in the shower the loudest?",
@@ -272,7 +380,11 @@
   {
     "id": "ml-win-a-dance-off",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "chaos",
     "intensity": "playful",
     "prompt": "Who's most likely to win a dance-off?",
@@ -282,7 +394,11 @@
   {
     "id": "ml-forget-why-they-walked-into-a-room",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "chaos",
     "intensity": "playful",
     "prompt": "Who's most likely to forget why they walked into a room?",
@@ -292,7 +408,11 @@
   {
     "id": "ml-keep-old-photos-forever",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "memories",
     "intensity": "safe",
     "prompt": "Who's most likely to keep old photos forever?",
@@ -302,7 +422,11 @@
   {
     "id": "ml-bring-up-an-embarrassing-story",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "memories",
     "intensity": "safe",
     "prompt": "Who's most likely to bring up an embarrassing story?",
@@ -312,7 +436,11 @@
   {
     "id": "ml-take-the-most-selfies",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "habits",
     "intensity": "safe",
     "prompt": "Who's most likely to take the most selfies?",
@@ -322,7 +450,11 @@
   {
     "id": "ml-cancel-plans-to-stay-home",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "habits",
     "intensity": "safe",
     "prompt": "Who's most likely to cancel plans to stay home?",
@@ -332,7 +464,11 @@
   {
     "id": "ml-cook-for-everyone",
     "gameType": "most_likely",
-    "modes": ["couple", "friends", "circle"],
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
     "category": "food",
     "intensity": "safe",
     "prompt": "Who's most likely to cook for everyone?",
@@ -342,7 +478,9 @@
   {
     "id": "ml-start-the-videoke-and-never-let-go-of-the-mic",
     "gameType": "most_likely",
-    "modes": ["circle"],
+    "modes": [
+      "circle"
+    ],
     "category": "chaos",
     "intensity": "playful",
     "prompt": "Who's most likely to start the videoke and never let go of the mic?",
@@ -352,7 +490,9 @@
   {
     "id": "ml-plan-the-next-barkada-trip",
     "gameType": "most_likely",
-    "modes": ["circle"],
+    "modes": [
+      "circle"
+    ],
     "category": "chaos",
     "intensity": "playful",
     "prompt": "Who's most likely to plan the next barkada trip?",
@@ -362,7 +502,9 @@
   {
     "id": "ml-be-the-last-one-to-leave-the-party",
     "gameType": "most_likely",
-    "modes": ["circle"],
+    "modes": [
+      "circle"
+    ],
     "category": "chaos",
     "intensity": "playful",
     "prompt": "Who's most likely to be the last one to leave the party?",
@@ -372,7 +514,9 @@
   {
     "id": "ml-reply-omw-while-still-at-home",
     "gameType": "most_likely",
-    "modes": ["circle"],
+    "modes": [
+      "circle"
+    ],
     "category": "chaos",
     "intensity": "playful",
     "prompt": "Who's most likely to reply 'omw' while still at home?",
@@ -382,7 +526,9 @@
   {
     "id": "ml-start-a-group-chat-drama-by-accident",
     "gameType": "most_likely",
-    "modes": ["circle"],
+    "modes": [
+      "circle"
+    ],
     "category": "chaos",
     "intensity": "playful",
     "prompt": "Who's most likely to start a group chat drama by accident?",
@@ -392,7 +538,9 @@
   {
     "id": "ml-win-the-exchange-gift",
     "gameType": "most_likely",
-    "modes": ["circle"],
+    "modes": [
+      "circle"
+    ],
     "category": "chaos",
     "intensity": "playful",
     "prompt": "Who's most likely to win the exchange gift?",
@@ -402,7 +550,9 @@
   {
     "id": "ml-know-all-the-chismis-first",
     "gameType": "most_likely",
-    "modes": ["circle"],
+    "modes": [
+      "circle"
+    ],
     "category": "chaos",
     "intensity": "playful",
     "prompt": "Who's most likely to know all the chismis first?",
@@ -412,7 +562,9 @@
   {
     "id": "ml-be-everyone-s-emergency-contact",
     "gameType": "most_likely",
-    "modes": ["circle"],
+    "modes": [
+      "circle"
+    ],
     "category": "chaos",
     "intensity": "playful",
     "prompt": "Who's most likely to be everyone's emergency contact?",
@@ -422,7 +574,9 @@
   {
     "id": "ml-organize-the-reunion",
     "gameType": "most_likely",
-    "modes": ["circle"],
+    "modes": [
+      "circle"
+    ],
     "category": "chaos",
     "intensity": "playful",
     "prompt": "Who's most likely to organize the reunion?",
@@ -432,7 +586,9 @@
   {
     "id": "ml-still-have-the-group-s-first-photo",
     "gameType": "most_likely",
-    "modes": ["circle"],
+    "modes": [
+      "circle"
+    ],
     "category": "memories",
     "intensity": "safe",
     "prompt": "Who's most likely to still have the group's first photo?",
@@ -442,7 +598,9 @@
   {
     "id": "ml-bring-food-nobody-asked-for",
     "gameType": "most_likely",
-    "modes": ["circle"],
+    "modes": [
+      "circle"
+    ],
     "category": "chaos",
     "intensity": "playful",
     "prompt": "Who's most likely to bring food nobody asked for?",
@@ -452,11 +610,813 @@
   {
     "id": "ml-fall-asleep-during-movie-night",
     "gameType": "most_likely",
-    "modes": ["circle"],
+    "modes": [
+      "circle"
+    ],
     "category": "chaos",
     "intensity": "playful",
     "prompt": "Who's most likely to fall asleep during movie night?",
     "options": [],
     "award": "Movie Napper 🎬"
+  },
+  {
+    "id": "ml-reply-to-a-group-chat-a-day-late",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Who's most likely to reply to a group chat a day late?",
+    "options": [],
+    "award": "Late Replier 🐢"
+  },
+  {
+    "id": "ml-have-the-cleanest-phone-gallery",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Who's most likely to have the cleanest phone gallery?",
+    "options": [],
+    "award": "Gallery Curator 📸"
+  },
+  {
+    "id": "ml-fall-asleep-in-the-car",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Who's most likely to fall asleep in the car?",
+    "options": [],
+    "award": "Backseat Sleeper 😴"
+  },
+  {
+    "id": "ml-forget-where-they-parked",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Who's most likely to forget where they parked?",
+    "options": [],
+    "award": "Lost in the Parking 🚗"
+  },
+  {
+    "id": "ml-have-50-browser-tabs-open",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Who's most likely to have 50 browser tabs open?",
+    "options": [],
+    "award": "Tab Hoarder 💻"
+  },
+  {
+    "id": "ml-clean-when-stressed",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Who's most likely to clean when stressed?",
+    "options": [],
+    "award": "Stress Cleaner 🧹"
+  },
+  {
+    "id": "ml-order-the-same-thing-every-time",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Who's most likely to order the same thing every time?",
+    "options": [],
+    "award": "Creature of Habit 🍔"
+  },
+  {
+    "id": "ml-ask-for-extra-rice",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Who's most likely to ask for extra rice?",
+    "options": [],
+    "award": "Unli-Rice Champion 🍚"
+  },
+  {
+    "id": "ml-know-the-best-food-spot-in-town",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Who's most likely to know the best food spot in town?",
+    "options": [],
+    "award": "Food Guide 🍜"
+  },
+  {
+    "id": "ml-eat-something-that-fell-on-the-floor",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "food",
+    "intensity": "playful",
+    "prompt": "Who's most likely to eat something that fell on the floor?",
+    "options": [],
+    "award": "Five-Second Rule 🍪"
+  },
+  {
+    "id": "ml-add-chili-to-everything",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Who's most likely to add chili to everything?",
+    "options": [],
+    "award": "Spice Lord 🌶️"
+  },
+  {
+    "id": "ml-take-a-photo-of-the-food-before-eating",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Who's most likely to take a photo of the food before eating?",
+    "options": [],
+    "award": "Food Photographer 📷"
+  },
+  {
+    "id": "ml-miss-a-flight",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "travel",
+    "intensity": "playful",
+    "prompt": "Who's most likely to miss a flight?",
+    "options": [],
+    "award": "Final Boarding Call ✈️"
+  },
+  {
+    "id": "ml-bring-home-the-most-pasalubong",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "travel",
+    "intensity": "safe",
+    "prompt": "Who's most likely to bring home the most pasalubong?",
+    "options": [],
+    "award": "Pasalubong King 🎁"
+  },
+  {
+    "id": "ml-make-friends-with-the-tour-guide",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "travel",
+    "intensity": "safe",
+    "prompt": "Who's most likely to make friends with the tour guide?",
+    "options": [],
+    "award": "Instant Bestie 🤝"
+  },
+  {
+    "id": "ml-plan-a-trip-and-never-actually-go",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "travel",
+    "intensity": "playful",
+    "prompt": "Who's most likely to plan a trip and never actually go?",
+    "options": [],
+    "award": "All Plans, No Flights 🗺️"
+  },
+  {
+    "id": "ml-haggle-at-the-market",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "money",
+    "intensity": "safe",
+    "prompt": "Who's most likely to haggle at the market?",
+    "options": [],
+    "award": "Tawad Master 💸"
+  },
+  {
+    "id": "ml-buy-something-just-because-it-s-on-sale",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "money",
+    "intensity": "safe",
+    "prompt": "Who's most likely to buy something just because it's on sale?",
+    "options": [],
+    "award": "Sale Victim 🏷️"
+  },
+  {
+    "id": "ml-lend-money-and-forget-about-it",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "money",
+    "intensity": "safe",
+    "prompt": "Who's most likely to lend money and forget about it?",
+    "options": [],
+    "award": "Generous Soul 💝"
+  },
+  {
+    "id": "ml-split-the-bill-down-to-the-centavo",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "money",
+    "intensity": "safe",
+    "prompt": "Who's most likely to split the bill down to the centavo?",
+    "options": [],
+    "award": "Exact Change 🧾"
+  },
+  {
+    "id": "ml-win-a-game-show",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Who's most likely to win a game show?",
+    "options": [],
+    "award": "Game Show Champ 🏆"
+  },
+  {
+    "id": "ml-cry-at-a-wedding",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Who's most likely to cry at a wedding?",
+    "options": [],
+    "award": "Happy Crier 😭"
+  },
+  {
+    "id": "ml-become-a-teacher",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Who's most likely to become a teacher?",
+    "options": [],
+    "award": "Born Teacher 📚"
+  },
+  {
+    "id": "ml-say-yes-to-every-invite",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Who's most likely to say yes to every invite?",
+    "options": [],
+    "award": "Always Down 🙌"
+  },
+  {
+    "id": "ml-give-a-speech-without-preparing",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Who's most likely to give a speech without preparing?",
+    "options": [],
+    "award": "Mic Ready 🎤"
+  },
+  {
+    "id": "ml-get-along-with-everyone-s-parents",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Who's most likely to get along with everyone's parents?",
+    "options": [],
+    "award": "Parents' Favorite 👵"
+  },
+  {
+    "id": "ml-go-viral-online",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "personality",
+    "intensity": "playful",
+    "prompt": "Who's most likely to go viral online?",
+    "options": [],
+    "award": "Internet Famous 📱"
+  },
+  {
+    "id": "ml-run-a-marathon-someday",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Who's most likely to run a marathon someday?",
+    "options": [],
+    "award": "Marathoner 🏃"
+  },
+  {
+    "id": "ml-remember-a-joke-from-years-ago",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "Who's most likely to remember a joke from years ago?",
+    "options": [],
+    "award": "Joke Archive 🗂️"
+  },
+  {
+    "id": "ml-still-have-their-high-school-id",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "Who's most likely to still have their high school ID?",
+    "options": [],
+    "award": "Keeper of Things 🎒"
+  },
+  {
+    "id": "ml-remember-exactly-what-everyone-wore",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "Who's most likely to remember exactly what everyone wore?",
+    "options": [],
+    "award": "Fashion Memory 👗"
+  },
+  {
+    "id": "ml-cry-looking-at-old-photos",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "Who's most likely to cry looking at old photos?",
+    "options": [],
+    "award": "Nostalgia Queen 🥺"
+  },
+  {
+    "id": "ml-trip-on-nothing",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to trip on nothing?",
+    "options": [],
+    "award": "Gravity's Victim 🤸"
+  },
+  {
+    "id": "ml-send-a-message-to-the-wrong-chat",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to send a message to the wrong chat?",
+    "options": [],
+    "award": "Wrong Chat Hero 🙈"
+  },
+  {
+    "id": "ml-laugh-at-the-worst-possible-moment",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to laugh at the worst possible moment?",
+    "options": [],
+    "award": "Bad Timing Laugher 🤭"
+  },
+  {
+    "id": "ml-start-a-dance-at-a-family-party",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to start a dance at a family party?",
+    "options": [],
+    "award": "Party Starter 🕺"
+  },
+  {
+    "id": "ml-get-scared-by-their-own-reflection",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to get scared by their own reflection?",
+    "options": [],
+    "award": "Jumpy One 👻"
+  },
+  {
+    "id": "ml-lose-their-phone-while-holding-it",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to lose their phone while holding it?",
+    "options": [],
+    "award": "Where's My Phone 🔍"
+  },
+  {
+    "id": "ml-argue-with-a-gps",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to argue with a GPS?",
+    "options": [],
+    "award": "GPS Rebel 🧭"
+  },
+  {
+    "id": "ml-accidentally-like-an-old-post",
+    "gameType": "most_likely",
+    "modes": [
+      "couple",
+      "friends",
+      "circle"
+    ],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to accidentally like an old post?",
+    "options": [],
+    "award": "Deep Scroller 👀"
+  },
+  {
+    "id": "ml-leave-the-group-chat-on-mute-forever",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Who's most likely to leave the group chat on mute forever?",
+    "options": [],
+    "award": "Silent Member 🔕"
+  },
+  {
+    "id": "ml-be-the-official-group-photographer",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Who's most likely to be the official group photographer?",
+    "options": [],
+    "award": "Group Photographer 📸"
+  },
+  {
+    "id": "ml-suggest-a-food-trip-at-midnight",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "food",
+    "intensity": "playful",
+    "prompt": "Who's most likely to suggest a food trip at midnight?",
+    "options": [],
+    "award": "Midnight Cravings 🌙"
+  },
+  {
+    "id": "ml-finish-the-last-slice-without-asking",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "food",
+    "intensity": "playful",
+    "prompt": "Who's most likely to finish the last slice without asking?",
+    "options": [],
+    "award": "Last Slice Thief 🍕"
+  },
+  {
+    "id": "ml-arrive-early-and-wait-for-everyone",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Who's most likely to arrive early and wait for everyone?",
+    "options": [],
+    "award": "Always Early ⏱️"
+  },
+  {
+    "id": "ml-say-next-time-and-mean-never",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to say 'next time' and mean never?",
+    "options": [],
+    "award": "Next Time Promiser 🤞"
+  },
+  {
+    "id": "ml-bring-a-speaker-to-every-hangout",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to bring a speaker to every hangout?",
+    "options": [],
+    "award": "DJ of the Barkada 🎧"
+  },
+  {
+    "id": "ml-fall-for-a-prank-every-time",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to fall for a prank every time?",
+    "options": [],
+    "award": "Easy Target 🎯"
+  },
+  {
+    "id": "ml-start-the-picture-picture-before-eating",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Who's most likely to start the picture-picture before eating?",
+    "options": [],
+    "award": "Picture Muna 📷"
+  },
+  {
+    "id": "ml-volunteer-to-drive-everyone-home",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Who's most likely to volunteer to drive everyone home?",
+    "options": [],
+    "award": "Designated Driver 🚙"
+  },
+  {
+    "id": "ml-know-everyone-s-crush",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to know everyone's crush?",
+    "options": [],
+    "award": "Secret Keeper 🤫"
+  },
+  {
+    "id": "ml-cry-first-during-a-movie-night",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Who's most likely to cry first during a movie night?",
+    "options": [],
+    "award": "Soft Heart 💧"
+  },
+  {
+    "id": "ml-bring-up-an-old-inside-joke",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "Who's most likely to bring up an old inside joke?",
+    "options": [],
+    "award": "Inside Joke Keeper 😂"
+  },
+  {
+    "id": "ml-collect-money-for-the-gift",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "money",
+    "intensity": "safe",
+    "prompt": "Who's most likely to collect money for the gift?",
+    "options": [],
+    "award": "Group Treasurer 💰"
+  },
+  {
+    "id": "ml-be-the-referee-in-every-argument",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Who's most likely to be the referee in every argument?",
+    "options": [],
+    "award": "Peacekeeper ⚖️"
+  },
+  {
+    "id": "ml-post-the-hangout-before-it-ends",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Who's most likely to post the hangout before it ends?",
+    "options": [],
+    "award": "Live Updater 📲"
+  },
+  {
+    "id": "ml-get-the-group-lost-on-a-road-trip",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "travel",
+    "intensity": "playful",
+    "prompt": "Who's most likely to get the group lost on a road trip?",
+    "options": [],
+    "award": "Shortcut Taker 🛣️"
+  },
+  {
+    "id": "ml-win-every-card-game",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to win every card game?",
+    "options": [],
+    "award": "Card Shark 🃏"
+  },
+  {
+    "id": "ml-show-up-with-a-new-hairstyle",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Who's most likely to show up with a new hairstyle?",
+    "options": [],
+    "award": "Glow-Up Pro 💇"
+  },
+  {
+    "id": "ml-host-the-next-hangout",
+    "gameType": "most_likely",
+    "modes": [
+      "circle"
+    ],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Who's most likely to host the next hangout?",
+    "options": [],
+    "award": "Host with the Most 🏠"
   }
 ]

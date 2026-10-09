@@ -15,6 +15,8 @@ export const RETENTION_DAYS = {
   events: 395,
   /** Payment provider webhook ids (only used to ignore retries). */
   paymentEvents: 90,
+  /** Ratings and comments players leave after a game. */
+  feedback: 395,
 } as const;
 
 export function retentionCutoffs(now: Date): CleanupCutoffs {
@@ -24,5 +26,6 @@ export function retentionCutoffs(now: Date): CleanupCutoffs {
     questionHistory: before(RETENTION_DAYS.questionHistory),
     events: before(RETENTION_DAYS.events),
     paymentEvents: before(RETENTION_DAYS.paymentEvents),
+    feedback: before(RETENTION_DAYS.feedback),
   };
 }

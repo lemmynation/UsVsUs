@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -12,7 +13,17 @@ import { getRoomService } from "@/lib/rooms/server";
 import { readSessionHash } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
-export const metadata = { title: "You're invited — Us vs. Us" };
+export const metadata: Metadata = {
+  title: "You're invited — Us vs. Us",
+  // Shareable (link previews) but not searchable.
+  robots: { index: false, follow: false },
+  openGraph: {
+    title: "You're invited to play Us vs. Us",
+    description: "Tap to join the room from your phone. No app, no sign-up.",
+    // Setting openGraph here replaces the inherited one, so name the preview image again.
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Us vs. Us" }],
+  },
+};
 
 const UNAVAILABLE_COPY: Record<string, { emoji: string; title: string }> = {
   invalid_code: { emoji: "🔤", title: "That code looks off" },
@@ -52,7 +63,15 @@ async function JoinContent({ params }: { params: PageProps<"/join/[code]">["para
   return (
     <div className={cn(meta.className, "flex flex-col gap-6")}>
       <section className="border-mode-gradient flex flex-col gap-1 rounded-3xl p-5">
-        <p className="text-muted-foreground text-base">You&apos;re invited to</p>
+        <p className="text-muted-foreground text-base">
+          {preview.hostNickname ? (
+            <>
+              <span className="text-foreground font-semibold">{preview.hostNickname}</span> invited you to
+            </>
+          ) : (
+            <>You&apos;re invited to</>
+          )}
+        </p>
         <h1 className="font-heading text-3xl font-extrabold break-words">{preview.name ?? `${meta.label} game`}</h1>
         <p className="text-muted-foreground text-base">
           {meta.emoji} {meta.label} · {preview.playerCount}/{preview.maxPlayers} players · code{" "}

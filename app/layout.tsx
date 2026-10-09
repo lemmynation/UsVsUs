@@ -19,10 +19,33 @@ const display = Bricolage_Grotesque({
   weight: ["700", "800"],
 });
 
+/** Absolute URLs for link previews: the configured site address, else Vercel's production domain. */
+function siteUrl(): URL | undefined {
+  const raw =
+    process.env.APP_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : undefined);
+  try {
+    return raw ? new URL(raw) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const description =
+  "A quick party game for couples, best friends and whole friend groups. Share a link, play from your phones.";
+
 export const metadata: Metadata = {
+  metadataBase: siteUrl(),
   title: "Us vs. Us — How well do you really know your people?",
-  description:
-    "A quick party game for couples, best friends and whole friend groups. Share a link, play from your phones.",
+  description,
+  openGraph: {
+    type: "website",
+    siteName: "Us vs. Us",
+    title: "Us vs. Us — How well do you really know your people?",
+    description,
+    locale: "en_PH",
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {

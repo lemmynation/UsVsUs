@@ -11,8 +11,16 @@ import type {
 } from "@/types/game";
 import type { Player, Room } from "@/types/room";
 import { loadMembership, type MembershipError } from "@/lib/rooms/membership";
-import { activePlayers, checkCanStart, isOnline, MODE_RULES, type Result, type StartError } from "@/lib/rooms/rules";
-import type { RoomStore } from "@/lib/rooms/store";
+import {
+  activePlayers,
+  checkCanStart,
+  isOnline,
+  MODE_RULES,
+  sanitizeFeedbackComment,
+  type Result,
+  type StartError,
+} from "@/lib/rooms/rules";
+import type { FeedbackRating, RoomStore } from "@/lib/rooms/store";
 import { findPack } from "@/lib/premium/catalog";
 import {
   answerOptions,
@@ -351,6 +359,29 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
       const game = await store.getLatestGame(roomId);
       if (!game || game.session.phase !== "FINISHED") return fail("game_not_finished");
       return ok(await wrappedFor(game, room, players));
+    },
+
+    /** A player's rating of the game they just finished; sending again replaces it. */
+    async submitFeedback(
+      roomId: string,
+      sessionHash: string,
+      input: { rating: FeedbackRating; comment?: string | null },
+    ): Promise<Result<null, WrappedError>> {
+      const membership = await loadMembership(store, roomId, sessionHash);
+      if (!membership.ok) return membership;
+      const { room, me } = membership.value;
+      const game = await store.getLatestGame(roomId);
+      if (!game || game.session.phase !== "FINISHED") return fail("game_not_finished");
+      await store.saveFeedback({
+        roomId,
+        sessionId: game.session.id,
+        playerId: me.id,
+        mode: room.mode,
+        rating: input.rating,
+        comment: sanitizeFeedbackComment(input.comment),
+        now: now().toISOString(),
+      });
+      return ok(null);
     },
 
     /** After someone leaves or is removed, the people left may all have answered already. */

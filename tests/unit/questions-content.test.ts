@@ -20,8 +20,8 @@ describe("question bank", () => {
     }
   });
 
-  it.each(MODES)("has enough questions of every game type for 4 fresh %s games", (mode) => {
-    const games = 4;
+  it.each(MODES)("has enough questions of every game type for 10 fresh %s games", (mode) => {
+    const games = 10; // beta: regular groups shouldn't see repeats for a good while
     for (const gameType of new Set(ROUND_LINEUP[mode])) {
       const rounds = ROUND_LINEUP[mode].filter((t) => t === gameType).length;
       const available = BUNDLED_QUESTIONS.filter(

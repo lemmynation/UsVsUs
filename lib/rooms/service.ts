@@ -55,6 +55,7 @@ function toPreview(room: Room, players: Player[]): RoomPreview {
     joinCode: room.joinCode,
     mode: room.mode,
     name: room.name,
+    hostNickname: activePlayers(players).find((p) => p.id === room.hostPlayerId)?.nickname ?? null,
     playerCount: activePlayers(players).length,
     maxPlayers: MODE_RULES[room.mode].maxPlayers,
   };

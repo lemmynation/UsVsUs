@@ -62,6 +62,8 @@ export interface RoomPreview {
   joinCode: string;
   mode: Mode;
   name: string | null;
+  /** Who's inviting: the current host's nickname (null if the room has no host right now). */
+  hostNickname: string | null;
   playerCount: number;
   maxPlayers: number;
 }

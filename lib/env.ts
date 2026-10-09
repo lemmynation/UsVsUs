@@ -69,9 +69,17 @@ let paymentCached: PaymentEnv | undefined;
 
 /** Which payment provider to use. "none" hides premium entirely. */
 export function getPaymentEnv(): PaymentEnv {
-  paymentCached ??= resolvePaymentEnv(process.env, {
-    production: process.env.NODE_ENV === "production",
-    memoryStore: getServerEnv().store === "memory",
-  });
+  if (paymentCached) return paymentCached;
+  try {
+    paymentCached = resolvePaymentEnv(process.env, {
+      production: process.env.NODE_ENV === "production",
+      memoryStore: getServerEnv().store === "memory",
+    });
+  } catch (error) {
+    // A payment setting mistake must not take the free game down with it: every guard
+    // fails safe by turning premium off (no checkout, no charges), loudly in the logs.
+    console.error("[premium] payments are OFF because of a settings problem:", (error as Error).message);
+    paymentCached = { provider: "none" };
+  }
   return paymentCached;
 }

@@ -709,3 +709,27 @@ describe("Phase 4: Wrapped", () => {
     expect((await view(room.id, "host")).wrapped).toBeNull();
   });
 });
+
+describe("Phase 7: feedback", () => {
+  it("only takes feedback from members, once the game is over, one per player", async () => {
+    const room = await setup("couple");
+    await game.startGame(room.id, "host");
+    expect(await game.submitFeedback(room.id, "g1", { rating: 4 })).toEqual({
+      ok: false,
+      error: "game_not_finished",
+    });
+
+    await playTo(room.id, ["host", "g1"], () => false);
+    expect(await game.submitFeedback(room.id, "stranger", { rating: 4 })).toMatchObject({ ok: false });
+
+    expect(await game.submitFeedback(room.id, "g1", { rating: 3 })).toEqual({ ok: true, value: null });
+    // Adding a comment later replaces the first rating instead of adding another.
+    await game.submitFeedback(room.id, "g1", { rating: 4, comment: "  So   fun!​ " });
+    await game.submitFeedback(room.id, "host", { rating: 2, comment: "" });
+
+    const all = await store.listFeedback("2000-01-01T00:00:00Z", 10);
+    expect(all).toHaveLength(2);
+    expect(all.find((f) => f.rating === 4)).toMatchObject({ mode: "couple", comment: "So fun!" });
+    expect(all.find((f) => f.rating === 2)?.comment).toBeNull();
+  });
+});

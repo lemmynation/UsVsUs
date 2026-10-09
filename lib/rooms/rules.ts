@@ -50,7 +50,16 @@ export function normalizeJoinCode(input: string): string | null {
 const INVISIBLE_CHARS = /(?!‍)[\p{Cc}\p{Cf}]/gu;
 
 function cleanText(input: string): string {
-  return input.replace(INVISIBLE_CHARS, "").replace(/\s+/g, " ").trim();
+  // Whitespace first: line breaks and tabs are control characters too, and should become spaces.
+  return input.replace(/\s+/g, " ").replace(INVISIBLE_CHARS, "").replace(/ {2,}/g, " ").trim();
+}
+
+export const FEEDBACK_COMMENT_MAX = 500;
+
+/** Optional free text with a game rating: tidied, capped, and null when empty. */
+export function sanitizeFeedbackComment(input: string | null | undefined): string | null {
+  const text = cleanText(input ?? "");
+  return text.length === 0 ? null : [...text].slice(0, FEEDBACK_COMMENT_MAX).join("");
 }
 
 export function sanitizeNickname(input: string): Result<string, "nickname_required" | "nickname_too_long"> {
