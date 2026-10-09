@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timed } from "@/lib/timing";
 import { z } from "zod";
 import { track } from "@/lib/analytics/server";
 import { apiError, isRateLimited, parseBody } from "@/lib/api";
@@ -13,7 +14,7 @@ const bodySchema = z.object({
 });
 
 /** Create a room; the caller becomes its host. */
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   if (isRateLimited(request, "createRoom")) return apiError("rate_limited");
   const body = await parseBody(request, bodySchema);
   if (!body) return apiError("invalid_input");
@@ -26,3 +27,5 @@ export async function POST(request: Request) {
   await track("room_created", { sessionHash, roomId: room.id, properties: { mode: room.mode } });
   return NextResponse.json({ roomId: room.id, joinCode: room.joinCode }, { status: 201 });
 }
+
+export const POST = timed("create_room", handlePOST);

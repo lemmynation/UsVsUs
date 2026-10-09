@@ -8,6 +8,11 @@ export const SERVER_EVENTS = [
   "checkout_started",
   "purchase_succeeded",
   "purchase_failed",
+  // Technical health (design doc §14)
+  "join_failed",
+  "api_timing",
+  "server_error",
+  "client_error",
 ] as const;
 
 /** Events the browser may report itself. Anything else is rejected. */
@@ -19,6 +24,8 @@ export const CLIENT_EVENTS = [
   "wrapped_shared",
   "play_again_clicked",
   "premium_pack_viewed",
+  // Sent when a phone gets its connection back (it can't report while offline).
+  "connection_restored",
 ] as const;
 
 export type ServerEventName = (typeof SERVER_EVENTS)[number];

@@ -28,6 +28,12 @@ export default function LandingPage() {
       <Link href="/join" className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "w-full")}>
         Join with code
       </Link>
+
+      <footer className="text-muted-foreground mt-auto text-center text-sm">
+        <Link href="/privacy" className="inline-flex min-h-11 items-center underline underline-offset-4">
+          Privacy
+        </Link>
+      </footer>
     </PageShell>
   );
 }

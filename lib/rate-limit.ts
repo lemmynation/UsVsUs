@@ -12,6 +12,7 @@ export const LIMITS = {
   roomAction: { max: 60, windowMs: 60_000 },
   roomState: { max: 120, windowMs: 60_000 },
   events: { max: 60, windowMs: 60_000 },
+  adminLogin: { max: 5, windowMs: 15 * 60_000 },
 } as const;
 
 /**

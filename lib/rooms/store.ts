@@ -21,6 +21,22 @@ export interface AnalyticsEvent {
   createdAt: string;
 }
 
+/** Anything older than these timestamps (ISO) is removed by `cleanupExpiredData`. */
+export interface CleanupCutoffs {
+  /** Rooms whose expiry is before this, with everything in them. */
+  rooms: string;
+  questionHistory: string;
+  events: string;
+  paymentEvents: string;
+}
+
+export interface CleanupResult {
+  rooms: number;
+  questionHistory: number;
+  events: number;
+  paymentEvents: number;
+}
+
 /**
  * Persistence boundary for rooms. Implementations must enforce the hard
  * invariants (capacity, open status, unique active nickname, host handover)
@@ -135,6 +151,16 @@ export interface RoomStore {
   touchPlayer(playerId: string, now: string): Promise<void>;
 
   recordEvent(event: AnalyticsEvent): Promise<void>;
+
+  /** Events since `sinceIso`, oldest first, at most `limit`. */
+  listEvents(sinceIso: string, limit: number): Promise<AnalyticsEvent[]>;
+
+  /**
+   * Retention (design doc §15): deletes expired rooms and everything in them, old
+   * question history, old events and old webhook ids. Paid payment records are kept,
+   * unlinked from the room; unpaid ones go with it.
+   */
+  cleanupExpiredData(cutoffs: CleanupCutoffs): Promise<CleanupResult>;
 
   // --- Premium (Phase 5) ---
 

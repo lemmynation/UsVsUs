@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { E2E_ADMIN_TOKEN } from "./tests/e2e/env";
 
 const PORT = 3100;
 
@@ -15,8 +16,17 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     trace: "retain-on-failure",
   },
-  // Phones first: the reference viewport from the design doc is 390×844.
-  projects: [{ name: "mobile", use: { ...devices["iPhone 14"], browserName: "chromium" } }],
+  // Phones first: the reference viewport from the design doc is 390×844. Specs tagged @layout
+  // also run on small phones, where overflow and cramped buttons show up first.
+  projects: [
+    { name: "mobile", use: { ...devices["iPhone 14"], browserName: "chromium" } },
+    {
+      name: "small-android",
+      grep: /@layout/,
+      use: { ...devices["Pixel 5"], viewport: { width: 360, height: 640 }, browserName: "chromium" },
+    },
+    { name: "iphone-se", grep: /@layout/, use: { ...devices["iPhone SE"], browserName: "chromium" } },
+  ],
   webServer: {
     // CI tests a production build: every route is compiled up front (dev compiles on first
     // use, which starved CI's small runners) and it's what real players get. Local runs use dev.
@@ -24,7 +34,7 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     // In-memory rooms so E2E needs no database. Supabase-specific behaviour is covered separately.
     // Every simulated phone shares one IP, so per-IP rate limits are off for the test server only.
-    env: { ROOM_STORE: "memory", PAYMENT_PROVIDER: "fake", RATE_LIMITS: "off" },
+    env: { ROOM_STORE: "memory", PAYMENT_PROVIDER: "fake", RATE_LIMITS: "off", ADMIN_TOKEN: E2E_ADMIN_TOKEN },
     reuseExistingServer: !process.env.CI,
     timeout: 300_000, // includes the build on CI
   },
