@@ -15,7 +15,7 @@ import type {
 } from "@/types/game";
 import type { Payment, PaymentProviderName, PaymentStatus } from "@/types/premium";
 import type { Mode, Player, PlayerStatus, Room, RoomStatus } from "@/types/room";
-import type { AnalyticsEvent, RoomStore } from "./store";
+import type { AnalyticsEvent, CleanupCutoffs, CleanupResult, RoomStore } from "./store";
 
 interface RoomRow {
   id: string;
@@ -79,7 +79,7 @@ interface SessionRow {
 
 interface PaymentRow {
   id: string;
-  room_id: string;
+  room_id: string | null;
   pack_id: string;
   provider: PaymentProviderName;
   provider_checkout_id: string | null;
@@ -527,13 +527,68 @@ export class SupabaseRoomStore implements RoomStore {
   }
 
   async recordEvent(event: AnalyticsEvent) {
-    const { error } = await this.db.from("events").insert({
+    const row = {
       anonymous_session_id: event.anonymousSessionId,
       room_id: event.roomId,
       event_name: event.eventName,
       properties: event.properties,
       created_at: event.createdAt,
-    });
+    };
+    let { error } = await this.db.from("events").insert(row);
+    // A client may name a room that doesn't exist (or was cleaned up): keep the event, drop the link.
+    if (error?.code === "23503" && row.room_id)
+      ({ error } = await this.db.from("events").insert({ ...row, room_id: null }));
     check(error, "recordEvent");
+  }
+
+  async listEvents(sinceIso: string, limit: number) {
+    const PAGE = 1000; // PostgREST caps a response at 1000 rows
+    const out: AnalyticsEvent[] = [];
+    while (out.length < limit) {
+      const from = out.length;
+      const to = Math.min(limit, from + PAGE) - 1;
+      const { data, error } = await this.db
+        .from("events")
+        .select("anonymous_session_id, room_id, event_name, properties, created_at")
+        .gte("created_at", sinceIso)
+        .order("created_at", { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, to);
+      check(error, "listEvents");
+      const rows = data as Array<{
+        anonymous_session_id: string | null;
+        room_id: string | null;
+        event_name: string;
+        properties: Record<string, unknown> | null;
+        created_at: string;
+      }>;
+      for (const r of rows)
+        out.push({
+          anonymousSessionId: r.anonymous_session_id,
+          roomId: r.room_id,
+          eventName: r.event_name,
+          properties: r.properties ?? {},
+          createdAt: new Date(r.created_at).toISOString(),
+        });
+      if (rows.length < to - from + 1) break;
+    }
+    return out;
+  }
+
+  async cleanupExpiredData(cutoffs: CleanupCutoffs) {
+    const { data, error } = await this.db.rpc("cleanup_expired_data", {
+      p_rooms_before: cutoffs.rooms,
+      p_history_before: cutoffs.questionHistory,
+      p_events_before: cutoffs.events,
+      p_payment_events_before: cutoffs.paymentEvents,
+    });
+    check(error, "cleanup_expired_data");
+    const r = data as Partial<CleanupResult> | null;
+    return {
+      rooms: r?.rooms ?? 0,
+      questionHistory: r?.questionHistory ?? 0,
+      events: r?.events ?? 0,
+      paymentEvents: r?.paymentEvents ?? 0,
+    };
   }
 }

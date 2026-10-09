@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { timed } from "@/lib/timing";
 import { z } from "zod";
 import { track } from "@/lib/analytics/server";
 import { apiError, isRateLimited } from "@/lib/api";
@@ -10,7 +11,7 @@ import { readSessionHash } from "@/lib/session";
  * Re-checks the room's pending payments with the provider — used when the host
  * returns from checkout, so a pack unlocks even if the provider's webhook is lost.
  */
-export async function POST(request: NextRequest, ctx: RouteContext<"/api/rooms/[roomId]/payments/confirm">) {
+async function handlePOST(request: NextRequest, ctx: RouteContext<"/api/rooms/[roomId]/payments/confirm">) {
   const sessionHash = await readSessionHash();
   if (isRateLimited(request, "roomAction", sessionHash)) return apiError("rate_limited");
   const { roomId } = await ctx.params;
@@ -33,3 +34,5 @@ export async function POST(request: NextRequest, ctx: RouteContext<"/api/rooms/[
     { headers: { "Cache-Control": "no-store" } },
   );
 }
+
+export const POST = timed("payment_confirm", handlePOST);

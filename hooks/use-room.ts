@@ -2,7 +2,7 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ApiError, apiFetch } from "@/lib/client-api";
+import { ApiError, apiFetch, trackClient } from "@/lib/client-api";
 import { ROOM_CHANGED_EVENT, roomChannelName } from "@/lib/realtime/channel";
 import type { RoomView } from "@/types/room";
 
@@ -109,6 +109,18 @@ export function useRoom(initial: RoomView, realtime: RealtimeConfig | null) {
       window.removeEventListener("offline", onOffline);
     };
   }, [refresh]);
+
+  // Report a dropped connection once it's back, with how long it lasted (doc §14 health).
+  const offlineSince = useRef<number | null>(null);
+  useEffect(() => {
+    if (networkDown) {
+      offlineSince.current ??= Date.now();
+    } else if (offlineSince.current !== null) {
+      const seconds = Math.round((Date.now() - offlineSince.current) / 1000);
+      offlineSince.current = null;
+      trackClient("connection_restored", { seconds }, roomId);
+    }
+  }, [networkDown, roomId]);
 
   const players = presentIds
     ? view.players.map((p) => ({ ...p, isOnline: p.id === myId || presentIds.has(p.id) }))

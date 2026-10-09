@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { timed } from "@/lib/timing";
 import { z } from "zod";
 import { track } from "@/lib/analytics/server";
 import { apiError, isRateLimited, parseBody } from "@/lib/api";
@@ -9,7 +10,7 @@ import { readSessionHash } from "@/lib/session";
 const bodySchema = z.object({ stateVersion: z.number().int().positive() });
 
 /** Host-only: next step of the game. Sending the version you saw makes double taps harmless. */
-export async function POST(request: NextRequest, ctx: RouteContext<"/api/rooms/[roomId]/advance">) {
+async function handlePOST(request: NextRequest, ctx: RouteContext<"/api/rooms/[roomId]/advance">) {
   const sessionHash = await readSessionHash();
   if (isRateLimited(request, "roomAction", sessionHash)) return apiError("rate_limited");
   const { roomId } = await ctx.params;
@@ -28,3 +29,5 @@ export async function POST(request: NextRequest, ctx: RouteContext<"/api/rooms/[
   ]);
   return NextResponse.json({ ok: true, stateVersion: result.value.stateVersion });
 }
+
+export const POST = timed("advance", handlePOST);

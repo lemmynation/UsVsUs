@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
   if (payment && (outcome === "granted" || outcome === "mismatch")) {
     await Promise.all([
-      outcome === "granted" ? notifyRoomChanged(payment.roomId) : Promise.resolve(),
+      outcome === "granted" && payment.roomId ? notifyRoomChanged(payment.roomId) : Promise.resolve(),
       track(outcome === "granted" ? "purchase_succeeded" : "purchase_failed", {
         roomId: payment.roomId,
         properties: { pack: payment.packSlug, via: "webhook" },

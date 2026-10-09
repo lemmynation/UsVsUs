@@ -6,7 +6,7 @@ import { findPack } from "@/lib/premium/catalog";
 import type { Payment } from "@/types/premium";
 import type { Player, Room } from "@/types/room";
 import { nextHost } from "./rules";
-import type { AnalyticsEvent, RoomStore } from "./store";
+import type { AnalyticsEvent, CleanupCutoffs, RoomStore } from "./store";
 
 /**
  * In-process store for local development without Supabase and for tests.
@@ -23,7 +23,8 @@ export class MemoryRoomStore implements RoomStore {
   private payments = new Map<string, Payment>();
   /** roomId → pack slugs unlocked */
   private entitlements = new Map<string, Set<string>>();
-  private paymentEvents = new Set<string>();
+  /** "provider:eventId" → received at */
+  private paymentEvents = new Map<string, string>();
   /** sessionTokenHash → questionId → history */
   private seen = new Map<string, Map<string, QuestionHistory>>();
   readonly events: AnalyticsEvent[] = [];
@@ -367,6 +368,7 @@ export class MemoryRoomStore implements RoomStore {
     const payment = this.payments.get(paymentId);
     if (!payment) return "not_found" as const;
     if (payment.status !== "pending") return "already" as const;
+    if (!payment.roomId) return "not_found" as const; // room cleaned up
     const unlocked = this.entitlements.get(payment.roomId) ?? new Set<string>();
     const fresh = !unlocked.has(payment.packSlug);
     unlocked.add(payment.packSlug);
@@ -379,15 +381,69 @@ export class MemoryRoomStore implements RoomStore {
     return [...(this.entitlements.get(roomId) ?? [])];
   }
 
-  async recordPaymentEvent(provider: string, eventId: string) {
+  async recordPaymentEvent(provider: string, eventId: string, now: string) {
     const key = `${provider}:${eventId}`;
     if (this.paymentEvents.has(key)) return false;
-    this.paymentEvents.add(key);
+    this.paymentEvents.set(key, now);
     return true;
   }
 
   async recordEvent(event: AnalyticsEvent) {
     this.events.push(event);
+  }
+
+  async listEvents(sinceIso: string, limit: number) {
+    return this.events
+      .filter((e) => e.createdAt >= sinceIso)
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      .slice(0, limit)
+      .map((e) => structuredClone(e));
+  }
+
+  async cleanupExpiredData(cutoffs: CleanupCutoffs) {
+    const goneRooms = new Set([...this.rooms.values()].filter((r) => r.expiresAt < cutoffs.rooms).map((r) => r.id));
+    const goneSessions = new Set([...this.sessions.values()].filter((s) => goneRooms.has(s.roomId)).map((s) => s.id));
+    for (const id of goneRooms) {
+      this.rooms.delete(id);
+      this.entitlements.delete(id);
+    }
+    for (const [id, p] of this.players) if (goneRooms.has(p.roomId)) this.players.delete(id);
+    for (const id of goneSessions) {
+      this.sessions.delete(id);
+      this.wrapped.delete(id);
+    }
+    for (const [id, r] of this.rounds) if (goneSessions.has(r.sessionId)) this.rounds.delete(id);
+    this.responses = this.responses.filter((r) => !goneSessions.has(r.sessionId));
+    this.scores = this.scores.filter((s) => !goneSessions.has(s.sessionId));
+    // Paid records are kept for accounting, unlinked from the room; unpaid intents go.
+    for (const [id, p] of this.payments) {
+      if (!p.roomId || !goneRooms.has(p.roomId)) continue;
+      if (p.status === "pending") this.payments.delete(id);
+      else p.roomId = null;
+    }
+    for (const e of this.events) if (e.roomId && goneRooms.has(e.roomId)) e.roomId = null;
+
+    let history = 0;
+    for (const [hash, mine] of this.seen) {
+      for (const [questionId, h] of mine) {
+        if (h.lastSeenAt < cutoffs.questionHistory) {
+          mine.delete(questionId);
+          history++;
+        }
+      }
+      if (mine.size === 0) this.seen.delete(hash);
+    }
+    const before = this.events.length;
+    const kept = this.events.filter((e) => e.createdAt >= cutoffs.events);
+    this.events.splice(0, this.events.length, ...kept);
+    let paymentEvents = 0;
+    for (const [key, at] of this.paymentEvents) {
+      if (at < cutoffs.paymentEvents) {
+        this.paymentEvents.delete(key);
+        paymentEvents++;
+      }
+    }
+    return { rooms: goneRooms.size, questionHistory: history, events: before - kept.length, paymentEvents };
   }
 
   /** Test helper: force a room's expiry. */

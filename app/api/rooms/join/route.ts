@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timed } from "@/lib/timing";
 import { z } from "zod";
 import { track } from "@/lib/analytics/server";
 import { apiError, isRateLimited, parseBody } from "@/lib/api";
@@ -11,14 +12,17 @@ const bodySchema = z.object({
   nickname: z.string().max(200),
 });
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   if (isRateLimited(request, "joinRoom")) return apiError("rate_limited");
   const body = await parseBody(request, bodySchema);
   if (!body) return apiError("invalid_input");
 
   const sessionHash = await getOrCreateSessionHash();
   const result = await getRoomService().joinRoom({ ...body, sessionHash });
-  if (!result.ok) return apiError(result.error);
+  if (!result.ok) {
+    await track("join_failed", { sessionHash, properties: { reason: result.error } });
+    return apiError(result.error);
+  }
 
   const { roomId, alreadyMember } = result.value;
   if (!alreadyMember) {
@@ -26,3 +30,5 @@ export async function POST(request: Request) {
   }
   return NextResponse.json({ roomId });
 }
+
+export const POST = timed("join_room", handlePOST);

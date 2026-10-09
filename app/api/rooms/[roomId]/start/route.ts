@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { timed } from "@/lib/timing";
 import { z } from "zod";
 import { track } from "@/lib/analytics/server";
 import { apiError, isRateLimited, parseBody } from "@/lib/api";
@@ -12,7 +13,7 @@ const bodySchema = z.object({ packSlug: z.string().max(40).nullish() });
  * Host-only: pick fresh questions, create the game and move the room from LOBBY
  * to IN_GAME. With a pack, the room's entitlement is checked in the same step.
  */
-export async function POST(request: NextRequest, ctx: RouteContext<"/api/rooms/[roomId]/start">) {
+async function handlePOST(request: NextRequest, ctx: RouteContext<"/api/rooms/[roomId]/start">) {
   const sessionHash = await readSessionHash();
   if (isRateLimited(request, "roomAction", sessionHash)) return apiError("rate_limited");
   const { roomId } = await ctx.params;
@@ -32,3 +33,5 @@ export async function POST(request: NextRequest, ctx: RouteContext<"/api/rooms/[
   ]);
   return NextResponse.json({ ok: true });
 }
+
+export const POST = timed("start_game", handlePOST);

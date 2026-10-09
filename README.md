@@ -16,8 +16,8 @@ The product spec is [`docs/design.docx`](docs/design.docx) (text export: [`docs/
 | 3 — Game engine    | Mind Reader, Who's More Likely, This or That predictions, scoring, badges | ✅ Done |
 | 4 — Wrapped        | Us Score, awards, highlight, roast line, 1080×1920 share card             | ✅ Done |
 | 5 — Premium        | Chaos Night pack (₱99), PayMongo checkout, server-verified room unlock    | ✅ Done |
-| 6 — Analytics & QA | Error monitoring, funnel dashboard, accessibility pass                    | Next    |
-| 7 — Beta           | Deploy, production database, webhook, feedback                            | —       |
+| 6 — Analytics & QA | Error monitoring, metrics dashboard, data cleanup, accessibility pass     | ✅ Done |
+| 7 — Beta           | Deploy, production database, webhook, feedback                            | Next    |
 
 ## Run it locally
 
@@ -52,6 +52,16 @@ Packs are data in `content/packs.json` (price in centavos). To try payments loca
 `/api/payments/webhook` and set `PAYMONGO_WEBHOOK_SECRET`. Until then, payments are still confirmed when the
 host returns from checkout (or taps "Check payment").
 
+## Metrics and data cleanup
+
+Set `ADMIN_TOKEN` (any random string, 16+ characters) to turn on the private dashboard at
+`/admin/metrics`: the design doc's decision metrics (activation, completion, invites, shares, replay, paid
+conversion), the funnel, and technical health (failed joins, reconnects, payment failures, server timings,
+and recent errors from the server and from players' phones, with ids, emails and keys scrubbed). Without the
+token the page doesn't exist. Its **Run cleanup now** button applies the retention policy in
+`lib/retention.ts` (also described on `/privacy`); a scheduled job can call `POST /api/admin/cleanup` with
+`Authorization: Bearer <ADMIN_TOKEN>`.
+
 ## Questions
 
 The question bank is plain data in `content/questions/`. To add or change questions, edit the JSON, run
@@ -84,5 +94,7 @@ See [`CLAUDE.md`](CLAUDE.md) for engineering rules.
 ## Known limits (beta)
 
 - Rate limiting is in-process memory: fine for one server, not for multi-instance/serverless scale.
-- Rooms expire lazily (they read as expired after 24 h); a scheduled cleanup job comes later.
+- Rooms expire lazily (they read as expired after 24 h). Old data is deleted when cleanup runs (button or
+  scheduled call) — schedule it when deploying.
+- The metrics page reads at most 100,000 events per period (it says so when it hits that).
 - Kicked players are blocked per browser session; a new browser/incognito window can rejoin.

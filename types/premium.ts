@@ -8,7 +8,8 @@ export type PaymentProviderName = "paymongo" | "fake";
 
 export interface Payment {
   id: string;
-  roomId: string;
+  /** Null once the room has been cleaned up (paid records are kept). */
+  roomId: string | null;
   packSlug: string;
   provider: PaymentProviderName;
   checkoutId: string | null;

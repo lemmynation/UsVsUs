@@ -76,6 +76,15 @@ Do not introduce a new dependency unless it materially simplifies the implementa
   checkout and "Check payment" all just trigger that re-check — never trust a client or webhook body. Prices
   come from `content/packs.json` on the server. Pack questions carry `pack` and never appear in free games.
   `PAYMENT_PROVIDER=fake` gives a local test checkout (refused in production); E2E uses it.
+- **Analytics & errors** (`lib/analytics/`): events go through `track` (server) / `trackClient`; names are
+  whitelisted in `events.ts`. Never put nicknames, answers or raw error text in properties — run messages
+  and paths through `sanitize.ts`. Server errors arrive via `instrumentation.ts`, phone errors via
+  `/api/errors`; key routes are wrapped in `timed()` (`lib/timing.ts`). `metrics.ts` turns events into the
+  §14 numbers (pure, unit-tested) for `/admin/metrics`, which exists only when `ADMIN_TOKEN` is set.
+- **Retention** (`lib/retention.ts`): `cleanupExpiredData` deletes long-expired rooms and old history/events;
+  paid payment records survive with `room_id` null. `/privacy` quotes the same periods — change both together.
+- **E2E**: shared helpers live in `tests/e2e/helpers.ts` (`expectAccessible` = axe WCAG A/AA scan,
+  `expectPhoneFriendly`). Tag a spec `@layout` to also run it on the small-phone projects.
 - **Emoji**: stick to Unicode ≤ 12 (a content test enforces it for questions); newer ones render as boxes
   on Windows 10 and older phones. Use `GradientText` for gradient headings so emoji keep their colors.
 - **Anonymous players**: an httpOnly `uvu_session` cookie holds a random token; the DB stores only its

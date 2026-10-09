@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { timed } from "@/lib/timing";
 import { z } from "zod";
 import { track } from "@/lib/analytics/server";
 import { apiError, isRateLimited, parseBody } from "@/lib/api";
@@ -19,7 +20,7 @@ const bodySchema = z.object({
 });
 
 /** Lock in the caller's answer to the open question. Safe to retry: a second answer is ignored. */
-export async function POST(request: NextRequest, ctx: RouteContext<"/api/rooms/[roomId]/answer">) {
+async function handlePOST(request: NextRequest, ctx: RouteContext<"/api/rooms/[roomId]/answer">) {
   const sessionHash = await readSessionHash();
   if (isRateLimited(request, "roomAction", sessionHash)) return apiError("rate_limited");
   const { roomId } = await ctx.params;
@@ -37,3 +38,5 @@ export async function POST(request: NextRequest, ctx: RouteContext<"/api/rooms/[
   }
   return NextResponse.json({ ok: true });
 }
+
+export const POST = timed("answer", handlePOST);
