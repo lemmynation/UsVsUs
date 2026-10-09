@@ -70,7 +70,10 @@ export default function PrivacyPage() {
           <p>No ads, no selling data, no tracking you across other sites. Shared Wrapped cards show nicknames only.</p>
         </Section>
 
-        <Link href="/" className="text-primary inline-flex min-h-11 items-center self-start font-medium underline underline-offset-4">
+        <Link
+          href="/"
+          className="text-primary inline-flex min-h-11 items-center self-start font-medium underline underline-offset-4"
+        >
           Back to the game
         </Link>
       </article>

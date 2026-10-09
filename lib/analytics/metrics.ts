@@ -118,6 +118,10 @@ export function computeMetrics(events: AnalyticsEvent[], window: { from: Date; n
     const reason = String(e.properties.reason ?? "unknown");
     byReason.set(reason, (byReason.get(reason) ?? 0) + 1);
   }
+  // A taken or too-long nickname is a typo the player fixes, not a failed join.
+  const hardJoinFailures = joinFailures.filter(
+    (e) => !String(e.properties.reason ?? "").startsWith("nickname_"),
+  ).length;
 
   const reconnectSeconds = named("connection_restored")
     .map((e) => Number(e.properties.seconds))
@@ -169,7 +173,7 @@ export function computeMetrics(events: AnalyticsEvent[], window: { from: Date; n
       paidConversion: rate(paid.size, viewedPremium.size),
     },
     health: {
-      joinFailureRate: rate(joinFailures.length, joinFailures.length + joins),
+      joinFailureRate: rate(hardJoinFailures, hardJoinFailures + joins),
       joinFailuresByReason: [...byReason]
         .map(([reason, count]) => ({ reason, count }))
         .sort((a, b) => b.count - a.count),

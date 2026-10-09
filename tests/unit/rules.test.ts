@@ -13,6 +13,7 @@ import {
   nextHost,
   normalizeJoinCode,
   ROOM_TTL_MS,
+  IN_GAME_GRACE_MS,
   sanitizeNickname,
   sanitizeRoomName,
 } from "@/lib/rooms/rules";
@@ -136,6 +137,15 @@ describe("expiry", () => {
     const r = room();
     expect(effectiveStatus(r, NOW)).toBe("LOBBY");
     expect(effectiveStatus(r, new Date(NOW.getTime() + ROOM_TTL_MS))).toBe("EXPIRED");
+  });
+
+  it("lets a game that is already running finish past the deadline, within a grace period", () => {
+    const r = room({ status: "IN_GAME" });
+    const deadline = new Date(r.expiresAt).getTime();
+    expect(effectiveStatus(r, new Date(deadline + 60_000))).toBe("IN_GAME");
+    expect(effectiveStatus(r, new Date(deadline + IN_GAME_GRACE_MS))).toBe("EXPIRED");
+    // A lobby gets no grace: nobody can start a game in an expired room.
+    expect(effectiveStatus(room(), new Date(deadline + 60_000))).toBe("EXPIRED");
   });
 
   it("leaves finished rooms alone", () => {

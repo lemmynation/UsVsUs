@@ -99,7 +99,7 @@ export function MetricsView({ metrics }: { metrics: Metrics }) {
 
         {health.joinFailuresByReason.length > 0 && (
           <p className="text-muted-foreground text-sm">
-            Join failures:{" "}
+            Join problems:{" "}
             {health.joinFailuresByReason.map((r) => `${r.reason.replaceAll("_", " ")} (${r.count})`).join(", ")}
           </p>
         )}

@@ -435,7 +435,8 @@ export class MemoryRoomStore implements RoomStore {
     }
     const before = this.events.length;
     const kept = this.events.filter((e) => e.createdAt >= cutoffs.events);
-    this.events.splice(0, this.events.length, ...kept);
+    this.events.length = 0;
+    for (const e of kept) this.events.push(e);
     let paymentEvents = 0;
     for (const [key, at] of this.paymentEvents) {
       if (at < cutoffs.paymentEvents) {

@@ -11,6 +11,8 @@ export const MODE_RULES: Record<Mode, { minPlayers: number; maxPlayers: number }
 };
 
 export const ROOM_TTL_MS = 24 * 60 * 60 * 1000;
+/** Extra time a game already in progress gets past the room's expiry. */
+export const IN_GAME_GRACE_MS = 6 * 60 * 60 * 1000;
 export const ONLINE_WINDOW_MS = 20_000;
 
 /** No 0/O, 1/I/L — codes get read aloud and typed on phones. */
@@ -69,11 +71,15 @@ export function computeExpiresAt(now: Date): string {
   return new Date(now.getTime() + ROOM_TTL_MS).toISOString();
 }
 
-/** Rooms expire lazily: an open room past its expiry reads as EXPIRED. */
+/**
+ * Rooms expire lazily: an open room past its expiry reads as EXPIRED. A game that
+ * started shortly before the deadline gets a grace period to finish instead of
+ * being cut off mid-question.
+ */
 export function effectiveStatus(room: Room, now: Date): RoomStatus {
-  const open = room.status === "LOBBY" || room.status === "IN_GAME";
-  if (open && new Date(room.expiresAt).getTime() <= now.getTime()) return "EXPIRED";
-  return room.status;
+  if (room.status !== "LOBBY" && room.status !== "IN_GAME") return room.status;
+  const grace = room.status === "IN_GAME" ? IN_GAME_GRACE_MS : 0;
+  return new Date(room.expiresAt).getTime() + grace <= now.getTime() ? "EXPIRED" : room.status;
 }
 
 export function activePlayers(players: Player[]): Player[] {

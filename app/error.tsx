@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 /** A screen crashed: say so plainly, offer a retry, and report it. */
 export default function ErrorPage({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
   useEffect(() => reportClientError("boundary", error, error.digest), [error]);
+  // After a new release, an old page can't load its code anymore: only a full reload fixes that.
+  const staleCode = error.name === "ChunkLoadError" || /Loading (CSS )?chunk .* failed/i.test(error.message);
   return (
     <PageShell>
       <section role="alert" className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
@@ -20,7 +22,7 @@ export default function ErrorPage({ error, retry }: { error: Error & { digest?: 
         <p className="text-muted-foreground max-w-xs text-lg">
           Your game is safe — the server keeps it. Try again, or head back home.
         </p>
-        <Button size="lg" className="mt-2 w-full" onClick={() => retry()}>
+        <Button size="lg" className="mt-2 w-full" onClick={() => (staleCode ? window.location.reload() : retry())}>
           Try again
         </Button>
         <Link href="/" className={cn(buttonVariants({ size: "lg", variant: "ghost" }), "w-full")}>

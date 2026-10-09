@@ -90,6 +90,7 @@ describe("health metrics", () => {
     ev("player_joined", day(2)),
     ev("player_joined", day(2)),
     ev("join_failed", day(2), { properties: { reason: "room_full" } }),
+    ev("join_failed", day(2), { properties: { reason: "nickname_taken" } }), // a typo, not a failure
     ev("connection_restored", day(2), { properties: { seconds: 4 } }),
     ev("connection_restored", day(2), { properties: { seconds: 30 } }),
     ev("connection_restored", day(2), { properties: { seconds: 9 } }),
@@ -104,7 +105,10 @@ describe("health metrics", () => {
 
   it("rates join failures against all join attempts, by reason", () => {
     expect(m.health.joinFailureRate).toEqual({ numerator: 1, denominator: 4, value: 0.25 });
-    expect(m.health.joinFailuresByReason).toEqual([{ reason: "room_full", count: 1 }]);
+    expect(m.health.joinFailuresByReason).toEqual([
+      { reason: "room_full", count: 1 },
+      { reason: "nickname_taken", count: 1 },
+    ]);
   });
 
   it("reports reconnects with the median time offline", () => {
