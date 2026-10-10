@@ -1,4 +1,5 @@
 import type { GameService } from "@/lib/game/service";
+import { claimOwnedPacksSafely } from "@/lib/premium/owned";
 import type { PremiumView } from "@/types/premium";
 import type { Mode, Player, Room, RoomPreview, RoomView } from "@/types/room";
 import { loadMembership as loadMembershipFrom, type MembershipError } from "./membership";
@@ -86,7 +87,11 @@ export function createRoomService({ store, now, randomInt, game, premium }: Room
           now: at.toISOString(),
           host: { nickname: nickname.value, sessionTokenHash: input.sessionHash },
         });
-        if (created !== "join_code_taken") return ok(created);
+        if (created !== "join_code_taken") {
+          // Packs follow your phone: whatever the host bought before is unlocked here too.
+          await claimOwnedPacksSafely(store, created.room.id, input.sessionHash, at.toISOString());
+          return ok(created);
+        }
       }
       return fail("code_generation_failed");
     },
@@ -204,6 +209,12 @@ export function createRoomService({ store, now, randomInt, game, premium }: Room
       const membership = await loadMembership(roomId, sessionHash);
       if (!membership.ok) return membership;
       await store.removePlayer(membership.value.me.id);
+      if (membership.value.me.isHost) {
+        // The new host's own packs come with them.
+        const [room, players] = await Promise.all([store.getRoomById(roomId), store.listPlayers(roomId)]);
+        const newHost = players.find((p) => p.id === room?.hostPlayerId);
+        if (newHost) await claimOwnedPacksSafely(store, roomId, newHost.sessionTokenHash, now().toISOString());
+      }
       await game?.afterRosterChange(roomId);
       return ok(null);
     },

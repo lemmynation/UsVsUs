@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ROUND_LINEUP } from "@/lib/game/engines";
+import { PREMIUM_LINEUP, ROUND_LINEUP } from "@/lib/game/engines";
 import { GAME_CONFIG } from "@/lib/game/state-machine";
 import { BUNDLED_QUESTIONS } from "@/lib/game/questions";
 import { PACKS } from "@/lib/premium/catalog";
@@ -51,6 +51,24 @@ describe("question bank", () => {
       ).toBe(true);
     }
   });
+
+  it.each(PACKS.map((p) => [p.slug, p] as const))(
+    "has its own questions for 2 fresh premium games in every mode the %s pack is sold for",
+    (_slug, pack) => {
+      const games = 2;
+      for (const mode of pack.modes) {
+        for (const gameType of new Set(PREMIUM_LINEUP[mode])) {
+          const rounds = PREMIUM_LINEUP[mode].filter((t) => t === gameType).length;
+          const own = BUNDLED_QUESTIONS.filter(
+            (q) => q.pack === pack.slug && q.gameType === gameType && q.modes.includes(mode),
+          ).length;
+          expect(own, `${pack.slug} ${mode} ${gameType}`).toBeGreaterThanOrEqual(
+            rounds * GAME_CONFIG.premiumQuestionsPerRound * games,
+          );
+        }
+      }
+    },
+  );
 
   it.each(PACKS.map((p) => [p.slug, p] as const))("has at least 40 questions in the %s pack", (_slug, pack) => {
     expect(BUNDLED_QUESTIONS.filter((q) => q.pack === pack.slug).length).toBeGreaterThanOrEqual(40);

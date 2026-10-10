@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ApiError, apiFetch } from "@/lib/client-api";
+import { takeTypedValue } from "@/lib/typed-before-hydration";
 import { NICKNAME_MAX } from "@/lib/rooms/rules";
 
 export function JoinRoomForm({ code }: { code: string }) {
@@ -16,6 +17,8 @@ export function JoinRoomForm({ code }: { code: string }) {
   // Next keeps this page alive (hidden) after we navigate to the room. Clear the
   // "in progress" state when it hides, or coming back shows a stuck button.
   useEffect(() => () => setPending(false), []);
+  // Keep anything typed before the page's code loaded (slow phones).
+  useEffect(() => takeTypedValue("nickname", setNickname), []);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

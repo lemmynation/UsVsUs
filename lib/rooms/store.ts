@@ -238,6 +238,13 @@ export interface RoomStore {
   /** Pack slugs the room has unlocked. */
   listEntitlements(roomId: string): Promise<string[]>;
 
+  /**
+   * Packs follow your phone: unlocks in this room every pack the given session
+   * bought (for the room's mode). Idempotent; returns how many were newly unlocked.
+   * Buying a pack (`grantEntitlement`) also records the buyer's ownership.
+   */
+  claimOwnedPacks(roomId: string, sessionTokenHash: string, now: string): Promise<number>;
+
   /** True the first time a provider event id is seen (webhook dedupe). */
   recordPaymentEvent(provider: PaymentProviderName, eventId: string, now: string): Promise<boolean>;
 }

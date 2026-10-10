@@ -75,3 +75,20 @@ test("Friends mode plays its own lineup", async ({ browser }) => {
   // Friends questions never use Couple-only romance prompts.
   await expect(room.guests[0].getByRole("heading", { level: 1 })).not.toHaveText(/date|anniversary/i);
 });
+
+test("a nickname typed before the page's code loads still counts (slow phones)", async ({ page }) => {
+  // Hold back the app's JavaScript, like a slow connection, so the form is typed into first.
+  let release!: () => void;
+  const loaded = new Promise<void>((resolve) => (release = resolve));
+  await page.route(/\/_next\/static\/chunks\/.*\.js/, async (route) => {
+    await loaded;
+    await route.continue();
+  });
+  await page.goto("/create?mode=friends", { waitUntil: "commit" });
+  await page.getByLabel("Your nickname").fill("Lem");
+  release();
+  const create = page.getByRole("button", { name: "Create Friends room" });
+  await expect(create).toBeEnabled();
+  await create.click();
+  await expect(page).toHaveURL(/\/room\//);
+});

@@ -5,7 +5,7 @@ import { track } from "@/lib/analytics/server";
 import { apiError, isRateLimited, parseBody } from "@/lib/api";
 import { notifyRoomChanged } from "@/lib/realtime/server";
 import { getGameService } from "@/lib/rooms/server";
-import { readSessionHash } from "@/lib/session";
+import { readSessionHashAndRenew } from "@/lib/session";
 
 const bodySchema = z.object({ packSlug: z.string().max(40).nullish() });
 
@@ -14,7 +14,7 @@ const bodySchema = z.object({ packSlug: z.string().max(40).nullish() });
  * to IN_GAME. With a pack, the room's entitlement is checked in the same step.
  */
 async function handlePOST(request: NextRequest, ctx: RouteContext<"/api/rooms/[roomId]/start">) {
-  const sessionHash = await readSessionHash();
+  const sessionHash = await readSessionHashAndRenew();
   if (isRateLimited(request, "roomAction", sessionHash)) return apiError("rate_limited");
   const { roomId } = await ctx.params;
   if (!z.uuid().safeParse(roomId).success) return apiError("room_not_found");

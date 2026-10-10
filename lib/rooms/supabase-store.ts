@@ -521,6 +521,16 @@ export class SupabaseRoomStore implements RoomStore {
     return (data as unknown as Array<{ pack: { slug: string } | null }>).flatMap((r) => (r.pack ? [r.pack.slug] : []));
   }
 
+  async claimOwnedPacks(roomId: string, sessionTokenHash: string, now: string) {
+    const { data, error } = await this.db.rpc("claim_owned_packs", {
+      p_room_id: roomId,
+      p_session_token_hash: sessionTokenHash,
+      p_now: now,
+    });
+    check(error, "claim_owned_packs");
+    return typeof data === "number" ? data : 0;
+  }
+
   async recordPaymentEvent(provider: PaymentProviderName, eventId: string, now: string) {
     const { data, error } = await this.db.rpc("record_payment_event", {
       p_provider: provider,

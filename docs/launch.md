@@ -131,5 +131,6 @@ Do **not** set `ROOM_STORE`, `PAYMENT_PROVIDER`, `RATE_LIMITS` or any `PAYMONGO_
    (`https://us-vs-us-chi.vercel.app` or your domain).
 4. In PayMongo → Developers → Webhooks, add `<site>/api/payments/webhook` for
    `checkout_session.payment.paid`, then add its secret as `PAYMONGO_WEBHOOK_SECRET`.
-5. Redeploy. The pack picker appears in Circle lobbies on its own. If a payment setting is wrong, premium
+5. Redeploy. The pack picker appears in Circle (Chaos Night) and Couple (Date Night Deep Dive) lobbies on its own.
+   A pack belongs to the phone that bought it and unlocks in every room that phone hosts. If a payment setting is wrong, premium
    stays hidden (the game keeps working) and the reason is in Vercel's logs.

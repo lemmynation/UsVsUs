@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { ApiError, apiFetch } from "@/lib/client-api";
 import { MODE_META } from "@/lib/modes";
 import { NICKNAME_MAX, ROOM_NAME_MAX } from "@/lib/rooms/rules";
+import { takeTypedValue } from "@/lib/typed-before-hydration";
 import type { Mode } from "@/types/room";
 
 export function CreateRoomForm({ mode }: { mode: Mode }) {
@@ -19,6 +20,11 @@ export function CreateRoomForm({ mode }: { mode: Mode }) {
   // Next keeps this page alive (hidden) after we navigate to the room. Clear the
   // "in progress" state when it hides, or coming back shows a stuck button.
   useEffect(() => () => setPending(false), []);
+  // Keep anything typed before the page's code loaded (slow phones).
+  useEffect(() => {
+    takeTypedValue("nickname", setNickname);
+    takeTypedValue("roomName", setRoomName);
+  }, []);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

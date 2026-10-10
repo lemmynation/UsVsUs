@@ -25,6 +25,7 @@ import {
 } from "@/lib/rooms/rules";
 import type { FeedbackRating, RoomStore } from "@/lib/rooms/store";
 import { findPack } from "@/lib/premium/catalog";
+import { claimOwnedPacksSafely } from "@/lib/premium/owned";
 import {
   answerOptions,
   isTwoPlayer,
@@ -256,6 +257,9 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
 
       const pack = options.packSlug ? findPack(options.packSlug) : undefined;
       if (options.packSlug && (!pack || !pack.modes.includes(room.mode))) return fail("pack_not_found");
+      // Safety net for "packs follow your phone": the host's own packs count even if the
+      // room was made before they bought (or before this host took over).
+      if (pack) await claimOwnedPacksSafely(store, room.id, me.sessionTokenHash, now().toISOString());
 
       const active = byJoinOrder(activePlayers(players));
       const [questions, history] = await Promise.all([
@@ -447,7 +451,11 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
       if (!successor) return false;
 
       const passed = await store.transferHost(room.id, host.id, successor.id);
-      if (passed) await onRoomChanged?.(room.id);
+      if (passed) {
+        // Packs follow your phone: the new host's packs are there for the next game.
+        await claimOwnedPacksSafely(store, room.id, successor.sessionTokenHash, at.toISOString());
+        await onRoomChanged?.(room.id);
+      }
       return passed;
     },
 

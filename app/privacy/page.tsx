@@ -33,8 +33,9 @@ export default function PrivacyPage() {
               players only see answers after each reveal.
             </li>
             <li>
-              <strong>A random cookie</strong> that keeps you in your room if you refresh. We store only a scrambled
-              (hashed) version of it, never anything that identifies you.
+              <strong>A random cookie</strong> that keeps you in your room if you refresh and lets this phone keep the
+              packs it bought. It lasts about a year and renews while you play. We store only a scrambled (hashed)
+              version of it, never anything that identifies you.
             </li>
             <li>
               <strong>Which questions your browser has seen</strong>, so your group doesn&apos;t get repeats.
@@ -58,7 +59,9 @@ export default function PrivacyPage() {
         <Section title="Payments">
           <p>
             Premium packs are paid through PayMongo on their own checkout page. Card and e-wallet details go to them,
-            never to us. We keep a record of the purchase (amount, pack, date) for refunds and accounting.
+            never to us. We keep a record of the purchase (amount, pack, date) for refunds and accounting, and note that
+            your phone (its scrambled cookie) owns the pack, so it unlocks in every room you host from that phone.
+            Clearing your browser data or switching phones forgets that.
           </p>
         </Section>
 
@@ -72,7 +75,10 @@ export default function PrivacyPage() {
             <li>
               Anonymous usage events, error reports and feedback: about {Math.round(RETENTION_DAYS.events / 30)} months.
             </li>
-            <li>Purchase records: kept, without any link to the room or its players.</li>
+            <li>
+              Purchase records and which phone owns a pack: kept, so your packs keep working. The record isn&apos;t
+              linked to your nickname.
+            </li>
           </ul>
         </Section>
 
