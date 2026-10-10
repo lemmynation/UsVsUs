@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/client-api";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,7 @@ export function FeedbackCard({ roomId }: { roomId: string }) {
   const [rating, setRating] = useState<Rating | null>(null);
   const [comment, setComment] = useState("");
   const [state, setState] = useState<"idle" | "saving" | "done" | "error">("idle");
+  const queue = useRef<Promise<unknown>>(Promise.resolve());
   // Read after hydration: the server can't know what this phone already sent.
   const doneBefore = useSyncExternalStore(
     noSubscribe,
@@ -45,10 +46,17 @@ export function FeedbackCard({ roomId }: { roomId: string }) {
     // Tapping a rating saves quietly in the background; only "Send" shows progress.
     setState(withComment ? "saving" : "idle");
     try {
-      await apiFetch(`/api/rooms/${roomId}/feedback`, {
-        method: "POST",
-        body: { rating: nextRating, comment: withComment ? comment : null },
-      });
+      // One request at a time, in tap order, so a slow rating save can't land after "Send".
+      const request = queue.current
+        .catch(() => undefined)
+        .then(() =>
+          apiFetch(`/api/rooms/${roomId}/feedback`, {
+            method: "POST",
+            body: { rating: nextRating, comment: withComment ? comment : null },
+          }),
+        );
+      queue.current = request;
+      await request;
       if (withComment) {
         setState("done");
         try {

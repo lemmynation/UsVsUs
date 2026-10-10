@@ -189,7 +189,10 @@ export interface RoomStore {
    */
   hitRateLimit(key: string, max: number, windowMs: number, now: string): Promise<boolean>;
 
-  /** One rating per player per game; sending again replaces it (e.g. adding a comment). */
+  /**
+   * One rating per player per game; sending again replaces the rating. A null comment
+   * keeps any comment already saved (a rating tap can land after the comment).
+   */
   saveFeedback(input: {
     roomId: string;
     sessionId: string;

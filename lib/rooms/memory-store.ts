@@ -523,7 +523,8 @@ export class MemoryRoomStore implements RoomStore {
       playerId: input.playerId,
       mode: input.mode,
       rating: input.rating,
-      comment: input.comment,
+      // A save without a comment (just a rating tap) never erases one already sent.
+      comment: input.comment ?? existing?.comment ?? null,
       createdAt: existing?.createdAt ?? input.now,
       updatedAt: input.now,
     });

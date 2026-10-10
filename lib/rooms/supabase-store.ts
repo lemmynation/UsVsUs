@@ -643,7 +643,9 @@ export class SupabaseRoomStore implements RoomStore {
         player_id: input.playerId,
         mode: input.mode,
         rating: input.rating,
-        comment: input.comment,
+        // Columns left out of an upsert keep their stored value, so a rating tap without a
+        // comment never erases one already sent (the two requests can arrive in any order).
+        ...(input.comment !== null ? { comment: input.comment } : {}),
         updated_at: input.now,
       },
       { onConflict: "game_session_id,player_id" },
