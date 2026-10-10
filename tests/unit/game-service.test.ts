@@ -731,6 +731,13 @@ describe("Phase 7: feedback", () => {
     expect(all).toHaveLength(2);
     expect(all.find((f) => f.rating === 4)).toMatchObject({ mode: "couple", comment: "So fun!" });
     expect(all.find((f) => f.rating === 2)?.comment).toBeNull();
+
+    // The race found in the live beta test: "Send" (with the comment) lands first, then the
+    // slower rating tap (no comment) arrives. The comment must survive.
+    await game.submitFeedback(room.id, "host", { rating: 3, comment: "Loved the reveals" });
+    await game.submitFeedback(room.id, "host", { rating: 3, comment: null });
+    const host = (await store.listFeedback("2000-01-01T00:00:00Z", 10)).find((f) => f.rating === 3);
+    expect(host?.comment).toBe("Loved the reveals");
   });
 });
 

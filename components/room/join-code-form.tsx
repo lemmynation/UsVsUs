@@ -1,17 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { errorMessage } from "@/lib/rooms/errors";
 import { JOIN_CODE_LENGTH, normalizeJoinCode } from "@/lib/rooms/rules";
+import { takeTypedValue } from "@/lib/typed-before-hydration";
 
 export function JoinCodeForm() {
   const router = useRouter();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
+  // Keep anything typed before the page's code loaded (slow phones).
+  useEffect(() => takeTypedValue("code", setCode), []);
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

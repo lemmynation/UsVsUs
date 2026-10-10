@@ -25,6 +25,8 @@ export class MemoryRoomStore implements RoomStore {
   private entitlements = new Map<string, Set<string>>();
   /** "provider:eventId" → received at */
   private paymentEvents = new Map<string, string>();
+  /** sessionTokenHash → pack slugs bought from that phone */
+  private ownedPacks = new Map<string, Set<string>>();
   /** sessionTokenHash → questionId → history */
   private seen = new Map<string, Map<string, QuestionHistory>>();
   readonly events: AnalyticsEvent[] = [];
@@ -395,7 +397,28 @@ export class MemoryRoomStore implements RoomStore {
     unlocked.add(payment.packSlug);
     this.entitlements.set(payment.roomId, unlocked);
     Object.assign(payment, { status: fresh ? "paid" : "duplicate", paidAt: now, providerPaymentId });
+    // The buyer's phone owns it too (a duplicate payment still counts).
+    const buyer = payment.createdByPlayerId ? this.players.get(payment.createdByPlayerId) : undefined;
+    if (buyer) {
+      const owned = this.ownedPacks.get(buyer.sessionTokenHash) ?? new Set<string>();
+      owned.add(payment.packSlug);
+      this.ownedPacks.set(buyer.sessionTokenHash, owned);
+    }
     return fresh ? ("granted" as const) : ("duplicate" as const);
+  }
+
+  async claimOwnedPacks(roomId: string, sessionTokenHash: string) {
+    const room = this.rooms.get(roomId);
+    if (!room) return 0;
+    const unlocked = this.entitlements.get(roomId) ?? new Set<string>();
+    let added = 0;
+    for (const slug of this.ownedPacks.get(sessionTokenHash) ?? []) {
+      if (unlocked.has(slug) || !findPack(slug)?.modes.includes(room.mode)) continue;
+      unlocked.add(slug);
+      added++;
+    }
+    this.entitlements.set(roomId, unlocked);
+    return added;
   }
 
   async listEntitlements(roomId: string) {
@@ -500,7 +523,8 @@ export class MemoryRoomStore implements RoomStore {
       playerId: input.playerId,
       mode: input.mode,
       rating: input.rating,
-      comment: input.comment,
+      // A save without a comment (just a rating tap) never erases one already sent.
+      comment: input.comment ?? existing?.comment ?? null,
       createdAt: existing?.createdAt ?? input.now,
       updatedAt: input.now,
     });

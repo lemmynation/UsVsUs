@@ -70,3 +70,36 @@ test("the server refuses guests' checkouts, locked packs and forged webhooks", a
   });
   expect(forged.status()).toBe(401);
 });
+
+test("Date Night Deep Dive: bought once, it's still unlocked in the couple's next room", async ({ browser }) => {
+  const host = await (await browser.newContext()).newPage();
+  const ana = await (await browser.newContext()).newPage();
+  const coupleRoom = async () => {
+    await host.goto("/create?mode=couple");
+    await host.getByLabel("Your nickname").fill("Lem");
+    await host.getByRole("button", { name: "Create Couple room" }).click();
+    await expect(host).toHaveURL(/\/room\//);
+    const code = (await host.getByTestId("join-code").textContent())!.trim();
+    await ana.goto(`/join/${code}`);
+    await ana.getByLabel("Your nickname").fill("Ana");
+    await ana.getByRole("button", { name: "Join room" }).click();
+    await expect(ana).toHaveURL(/\/room\//);
+  };
+
+  await coupleRoom();
+  // Not bought yet: a card with an Unlock button, not something you can pick.
+  await expect(host.getByText("💞 Date Night Deep Dive")).toBeVisible();
+  await expect(host.getByRole("radio", { name: /Date Night Deep Dive/ })).toHaveCount(0);
+  await host.getByRole("button", { name: "Unlock for ₱99" }).click();
+  await expect(host).toHaveURL(/\/dev\/fake-checkout\//, { timeout: 20_000 });
+  await host.getByRole("button", { name: "Pay ₱99 (test)" }).click();
+  await expect(host.getByText("🎉 Unlocked for everyone in this room!")).toBeVisible();
+
+  // A week later: a brand-new room from the same phone. No checkout, already theirs.
+  await coupleRoom();
+  await expect(host.getByRole("radio", { name: /Date Night Deep Dive/ })).toBeVisible();
+  await expect(host.getByRole("button", { name: "Unlock for ₱99" })).toHaveCount(0);
+  await host.getByRole("radio", { name: /Date Night Deep Dive/ }).click();
+  await host.getByRole("button", { name: "Start Date Night Deep Dive" }).click();
+  for (const p of [host, ana]) await expect(p.getByText("Round 1 of 4")).toBeVisible();
+});

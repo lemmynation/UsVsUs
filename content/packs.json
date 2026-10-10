@@ -8,5 +8,15 @@
     "currency": "PHP",
     "tagline": "Spicier call-outs, more badges, longer night.",
     "perks": ["4 rounds instead of 3", "40+ new chaotic questions", "More badges to hand out"]
+  },
+  {
+    "slug": "date-night",
+    "name": "Date Night Deep Dive",
+    "emoji": "💞",
+    "modes": ["couple"],
+    "priceMinor": 9900,
+    "currency": "PHP",
+    "tagline": "Flirty, heartfelt and a little revealing. Just for you two.",
+    "perks": ["4 rounds instead of 3", "50+ questions just for couples", "Yours on this phone for every date night"]
   }
 ]

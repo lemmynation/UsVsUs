@@ -2,6 +2,7 @@ import { z } from "zod";
 import { MODES } from "@/types/room";
 import { GAME_TYPES, QUESTION_CATEGORIES, type Question } from "@/types/game";
 import chaosNight from "@/content/questions/chaos-night.json";
+import dateNight from "@/content/questions/date-night.json";
 import mindReader from "@/content/questions/mind-reader.json";
 import mostLikely from "@/content/questions/most-likely.json";
 import thisOrThat from "@/content/questions/this-or-that.json";
@@ -50,4 +51,4 @@ export const questionSchema = z
  */
 export const BUNDLED_QUESTIONS: Question[] = z
   .array(questionSchema)
-  .parse([...mindReader, ...mostLikely, ...thisOrThat, ...chaosNight]);
+  .parse([...mindReader, ...mostLikely, ...thisOrThat, ...chaosNight, ...dateNight]);

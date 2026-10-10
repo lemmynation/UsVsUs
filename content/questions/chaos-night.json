@@ -610,5 +610,115 @@
       }
     ],
     "pack": "chaos-night"
+  },
+  {
+    "id": "cn-ml-text-the-wrong-group-chat-at-2am",
+    "gameType": "most_likely",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to text the wrong group chat at 2am?",
+    "options": [],
+    "award": "Wrong Chat Legend 📲",
+    "pack": "chaos-night"
+  },
+  {
+    "id": "cn-ml-become-a-meme-in-the-family-group-chat",
+    "gameType": "most_likely",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to become a meme in the family group chat?",
+    "options": [],
+    "award": "Family Meme 🤳",
+    "pack": "chaos-night"
+  },
+  {
+    "id": "cn-ml-start-a-dance-battle-at-a-wedding",
+    "gameType": "most_likely",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to start a dance battle at a wedding?",
+    "options": [],
+    "award": "Dance Floor Menace 🕺",
+    "pack": "chaos-night"
+  },
+  {
+    "id": "cn-ml-get-kicked-out-of-a-karaoke-room-for-overtime",
+    "gameType": "most_likely",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to get kicked out of a karaoke room for overtime?",
+    "options": [],
+    "award": "Karaoke Overstayer 🎤",
+    "pack": "chaos-night"
+  },
+  {
+    "id": "cn-ml-bring-their-ex-up-at-the-worst-time",
+    "gameType": "most_likely",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to bring their ex up at the worst time?",
+    "options": [],
+    "award": "Plot Twist Starter 🌪️",
+    "pack": "chaos-night"
+  },
+  {
+    "id": "cn-ml-order-food-for-everyone-without-asking",
+    "gameType": "most_likely",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to order food for everyone without asking?",
+    "options": [],
+    "award": "Self-Appointed Caterer 🍗",
+    "pack": "chaos-night"
+  },
+  {
+    "id": "cn-ml-fall-asleep-first-at-a-sleepover-and-get-prank",
+    "gameType": "most_likely",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to fall asleep first at a sleepover and get pranked?",
+    "options": [],
+    "award": "Prank Magnet 😴",
+    "pack": "chaos-night"
+  },
+  {
+    "id": "cn-ml-cry-during-a-game-of-monopoly",
+    "gameType": "most_likely",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to cry during a game of Monopoly?",
+    "options": [],
+    "award": "Board Game Drama 🎲",
+    "pack": "chaos-night"
+  },
+  {
+    "id": "cn-ml-say-they-are-5-minutes-away-while-still-in-bed",
+    "gameType": "most_likely",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to say they are 5 minutes away while still in bed?",
+    "options": [],
+    "award": "Fake ETA Champion ⏰",
+    "pack": "chaos-night"
+  },
+  {
+    "id": "cn-ml-pick-a-fight-with-a-vending-machine",
+    "gameType": "most_likely",
+    "modes": ["circle"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "Who's most likely to pick a fight with a vending machine?",
+    "options": [],
+    "award": "Machine Rival 🥤",
+    "pack": "chaos-night"
   }
 ]

@@ -1,0 +1,1006 @@
+[
+  {
+    "id": "dn-mr-what-made-name-fall-for-you-first",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "playful",
+    "prompt": "What made {name} fall for you first?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Your smile"
+      },
+      {
+        "id": "b",
+        "label": "Your humor"
+      },
+      {
+        "id": "c",
+        "label": "How you listened"
+      },
+      {
+        "id": "d",
+        "label": "Your cooking"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-mr-name-s-favorite-way-to-be-comforted-after-a-ba",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "{name}'s favorite way to be comforted after a bad day?",
+    "options": [
+      {
+        "id": "a",
+        "label": "A long hug"
+      },
+      {
+        "id": "b",
+        "label": "Talking it out"
+      },
+      {
+        "id": "c",
+        "label": "Favorite food"
+      },
+      {
+        "id": "d",
+        "label": "Quiet time together"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-mr-where-does-name-picture-you-two-in-five-years",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Where does {name} picture you two in five years?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Our own home"
+      },
+      {
+        "id": "b",
+        "label": "Traveling the world"
+      },
+      {
+        "id": "c",
+        "label": "Starting a family"
+      },
+      {
+        "id": "d",
+        "label": "Building a business"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-mr-name-s-love-language-honestly",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "{name}'s love language, honestly?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Words"
+      },
+      {
+        "id": "b",
+        "label": "Quality time"
+      },
+      {
+        "id": "c",
+        "label": "Gifts"
+      },
+      {
+        "id": "d",
+        "label": "Touch"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-mr-what-would-name-want-for-your-dream-date",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "playful",
+    "prompt": "What would {name} want for your dream date?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Rooftop dinner"
+      },
+      {
+        "id": "b",
+        "label": "Beach sunset"
+      },
+      {
+        "id": "c",
+        "label": "Cozy movie marathon"
+      },
+      {
+        "id": "d",
+        "label": "Spontaneous road trip"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-mr-name-s-favorite-memory-of-the-two-of-you",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "{name}'s favorite memory of the two of you?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Our first date"
+      },
+      {
+        "id": "b",
+        "label": "A trip together"
+      },
+      {
+        "id": "c",
+        "label": "A silly inside joke"
+      },
+      {
+        "id": "d",
+        "label": "A quiet ordinary day"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-mr-what-would-name-never-forgive-you-for-forgetti",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "playful",
+    "prompt": "What would {name} never forgive you for forgetting?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Our anniversary"
+      },
+      {
+        "id": "b",
+        "label": "Their birthday"
+      },
+      {
+        "id": "c",
+        "label": "Their coffee order"
+      },
+      {
+        "id": "d",
+        "label": "Their mom's name"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-mr-what-does-name-secretly-love-that-you-do",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "playful",
+    "prompt": "What does {name} secretly love that you do?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Your laugh"
+      },
+      {
+        "id": "b",
+        "label": "How you sleep"
+      },
+      {
+        "id": "c",
+        "label": "Your random singing"
+      },
+      {
+        "id": "d",
+        "label": "How you say their name"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-mr-name-s-pick-for-your-wedding-song-genre",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "{name}'s pick for your wedding song genre?",
+    "options": [
+      {
+        "id": "a",
+        "label": "OPM classic"
+      },
+      {
+        "id": "b",
+        "label": "Pop ballad"
+      },
+      {
+        "id": "c",
+        "label": "Something funny"
+      },
+      {
+        "id": "d",
+        "label": "Our song"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-mr-if-name-wrote-you-a-love-letter-it-d-be",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "playful",
+    "prompt": "If {name} wrote you a love letter, it'd be…",
+    "options": [
+      {
+        "id": "a",
+        "label": "Pages long"
+      },
+      {
+        "id": "b",
+        "label": "One perfect line"
+      },
+      {
+        "id": "c",
+        "label": "Full of memes"
+      },
+      {
+        "id": "d",
+        "label": "Never finished"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-mr-what-does-name-think-your-best-feature-is",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "personality",
+    "intensity": "playful",
+    "prompt": "What does {name} think your best feature is?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Your eyes"
+      },
+      {
+        "id": "b",
+        "label": "Your heart"
+      },
+      {
+        "id": "c",
+        "label": "Your brain"
+      },
+      {
+        "id": "d",
+        "label": "Your cooking"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-mr-name-s-idea-of-a-perfect-lazy-day-with-you",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "{name}'s idea of a perfect lazy day with you?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Breakfast in bed"
+      },
+      {
+        "id": "b",
+        "label": "Series marathon"
+      },
+      {
+        "id": "c",
+        "label": "Long nap together"
+      },
+      {
+        "id": "d",
+        "label": "Cooking together"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-mr-which-trip-would-name-take-with-you-tomorrow",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "travel",
+    "intensity": "safe",
+    "prompt": "Which trip would {name} take with you tomorrow?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Siargao"
+      },
+      {
+        "id": "b",
+        "label": "Japan"
+      },
+      {
+        "id": "c",
+        "label": "A quiet province town"
+      },
+      {
+        "id": "d",
+        "label": "Anywhere, just us"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-mr-what-would-name-name-your-first-pet-together",
+    "gameType": "mind_reader",
+    "modes": ["couple"],
+    "category": "chaos",
+    "intensity": "playful",
+    "prompt": "What would {name} name your first pet together?",
+    "options": [
+      {
+        "id": "a",
+        "label": "A food name"
+      },
+      {
+        "id": "b",
+        "label": "A celebrity name"
+      },
+      {
+        "id": "c",
+        "label": "A human name"
+      },
+      {
+        "id": "d",
+        "label": "Something cute"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-love-letter-or-love-song",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Love letter or love song?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Love letter"
+      },
+      {
+        "id": "b",
+        "label": "Love song"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-candlelight-dinner-or-street-food-date",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Candlelight dinner or street food date?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Candlelight dinner"
+      },
+      {
+        "id": "b",
+        "label": "Street food date"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-plan-every-date-or-keep-it-a-surprise",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Plan every date or keep it a surprise?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Plan it all"
+      },
+      {
+        "id": "b",
+        "label": "Surprise me"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-big-wedding-or-intimate-one",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Big wedding or intimate one?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Big wedding"
+      },
+      {
+        "id": "b",
+        "label": "Intimate wedding"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-matching-outfits-or-never",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "playful",
+    "prompt": "Matching outfits or never?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Matching!"
+      },
+      {
+        "id": "b",
+        "label": "Never"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-morning-cuddles-or-late-night-talks",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "playful",
+    "prompt": "Morning cuddles or late-night talks?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Morning cuddles"
+      },
+      {
+        "id": "b",
+        "label": "Late-night talks"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-say-i-love-you-first-or-wait-to-hear-it",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "playful",
+    "prompt": "Say 'I love you' first or wait to hear it?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Say it first"
+      },
+      {
+        "id": "b",
+        "label": "Wait to hear it"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-share-dessert-or-each-get-your-own",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Share dessert or each get your own?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Share"
+      },
+      {
+        "id": "b",
+        "label": "My own, please"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-slow-dance-in-the-kitchen-or-karaoke-duet",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "playful",
+    "prompt": "Slow dance in the kitchen or karaoke duet?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Slow dance"
+      },
+      {
+        "id": "b",
+        "label": "Karaoke duet"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-beach-honeymoon-or-city-honeymoon",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "travel",
+    "intensity": "safe",
+    "prompt": "Beach honeymoon or city honeymoon?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Beach"
+      },
+      {
+        "id": "b",
+        "label": "City"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-handwritten-note-or-surprise-gift",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Handwritten note or surprise gift?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Handwritten note"
+      },
+      {
+        "id": "b",
+        "label": "Surprise gift"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-stargazing-or-sunrise-watching",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Stargazing or sunrise watching?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Stargazing"
+      },
+      {
+        "id": "b",
+        "label": "Sunrise"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-couple-selfies-or-candid-shots",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Couple selfies or candid shots?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Couple selfies"
+      },
+      {
+        "id": "b",
+        "label": "Candid shots"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-talk-it-out-right-away-or-cool-off-first",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Talk it out right away or cool off first?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Talk right away"
+      },
+      {
+        "id": "b",
+        "label": "Cool off first"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-cook-together-or-order-in",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "food",
+    "intensity": "safe",
+    "prompt": "Cook together or order in?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Cook together"
+      },
+      {
+        "id": "b",
+        "label": "Order in"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-sweet-good-morning-text-or-good-night-call",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "playful",
+    "prompt": "Sweet good-morning text or good-night call?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Good-morning text"
+      },
+      {
+        "id": "b",
+        "label": "Good-night call"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-anniversary-trip-or-anniversary-party",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Anniversary trip or anniversary party?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Trip"
+      },
+      {
+        "id": "b",
+        "label": "Party"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-hold-hands-or-link-arms",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "playful",
+    "prompt": "Hold hands or link arms?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Hold hands"
+      },
+      {
+        "id": "b",
+        "label": "Link arms"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-same-side-of-the-bed-always-or-switch-it-up",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "habits",
+    "intensity": "playful",
+    "prompt": "Same side of the bed always or switch it up?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Same side"
+      },
+      {
+        "id": "b",
+        "label": "Switch it up"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-recreate-your-first-date-or-try-something-new",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "Recreate your first date or try something new?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Recreate it"
+      },
+      {
+        "id": "b",
+        "label": "Something new"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-long-voice-notes-or-quick-texts",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "habits",
+    "intensity": "safe",
+    "prompt": "Long voice notes or quick texts?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Voice notes"
+      },
+      {
+        "id": "b",
+        "label": "Quick texts"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-joint-savings-or-separate-wallets",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "money",
+    "intensity": "safe",
+    "prompt": "Joint savings or separate wallets?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Joint savings"
+      },
+      {
+        "id": "b",
+        "label": "Separate wallets"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-grow-old-in-the-city-or-the-province",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "travel",
+    "intensity": "safe",
+    "prompt": "Grow old in the city or the province?",
+    "options": [
+      {
+        "id": "a",
+        "label": "City"
+      },
+      {
+        "id": "b",
+        "label": "Province"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-read-each-other-s-old-diaries-or-keep-the-myst",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "memories",
+    "intensity": "playful",
+    "prompt": "Read each other's old diaries or keep the mystery?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Read them"
+      },
+      {
+        "id": "b",
+        "label": "Keep the mystery"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-rainy-day-date-indoors-or-dancing-in-the-rain",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "playful",
+    "prompt": "Rainy-day date indoors or dancing in the rain?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Stay in"
+      },
+      {
+        "id": "b",
+        "label": "Dance in the rain"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-tt-surprise-proposal-or-planned-together",
+    "gameType": "this_or_that",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Surprise proposal or planned together?",
+    "options": [
+      {
+        "id": "a",
+        "label": "Surprise"
+      },
+      {
+        "id": "b",
+        "label": "Planned together"
+      }
+    ],
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-ml-say-i-love-you-first-after-a-fight",
+    "gameType": "most_likely",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Who's more likely to say 'I love you' first after a fight?",
+    "options": [],
+    "award": "Peacemaker 🕊️",
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-ml-plan-a-surprise-date",
+    "gameType": "most_likely",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Who's more likely to plan a surprise date?",
+    "options": [],
+    "award": "Surprise Planner 🎁",
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-ml-cry-at-your-wedding",
+    "gameType": "most_likely",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "safe",
+    "prompt": "Who's more likely to cry at your wedding?",
+    "options": [],
+    "award": "Happy Crier 😭",
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-ml-remember-your-first-date-outfit",
+    "gameType": "most_likely",
+    "modes": ["couple"],
+    "category": "memories",
+    "intensity": "safe",
+    "prompt": "Who's more likely to remember your first date outfit?",
+    "options": [],
+    "award": "Memory Keeper 💭",
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-ml-steal-the-blanket-at-night",
+    "gameType": "most_likely",
+    "modes": ["couple"],
+    "category": "habits",
+    "intensity": "playful",
+    "prompt": "Who's more likely to steal the blanket at night?",
+    "options": [],
+    "award": "Blanket Thief 🛌",
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-ml-send-a-cheesy-love-quote",
+    "gameType": "most_likely",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "playful",
+    "prompt": "Who's more likely to send a cheesy love quote?",
+    "options": [],
+    "award": "Cheese Master 🧀",
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-ml-get-jealous-over-nothing",
+    "gameType": "most_likely",
+    "modes": ["couple"],
+    "category": "personality",
+    "intensity": "playful",
+    "prompt": "Who's more likely to get jealous over nothing?",
+    "options": [],
+    "award": "Green-Eyed One 👀",
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-ml-forget-your-anniversary",
+    "gameType": "most_likely",
+    "modes": ["couple"],
+    "category": "memories",
+    "intensity": "playful",
+    "prompt": "Who's more likely to forget your anniversary?",
+    "options": [],
+    "award": "Calendar Rookie 📅",
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-ml-fall-asleep-during-a-movie-date",
+    "gameType": "most_likely",
+    "modes": ["couple"],
+    "category": "habits",
+    "intensity": "playful",
+    "prompt": "Who's more likely to fall asleep during a movie date?",
+    "options": [],
+    "award": "Movie Napper 😴",
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-ml-write-a-song-about-the-other",
+    "gameType": "most_likely",
+    "modes": ["couple"],
+    "category": "romance",
+    "intensity": "playful",
+    "prompt": "Who's more likely to write a song about the other?",
+    "options": [],
+    "award": "Lovesick Songwriter 🎸",
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-ml-plan-your-future-down-to-the-house-color",
+    "gameType": "most_likely",
+    "modes": ["couple"],
+    "category": "personality",
+    "intensity": "safe",
+    "prompt": "Who's more likely to plan your future down to the house color?",
+    "options": [],
+    "award": "Future Planner 🏡",
+    "pack": "date-night"
+  },
+  {
+    "id": "dn-ml-eat-the-last-bite-without-asking",
+    "gameType": "most_likely",
+    "modes": ["couple"],
+    "category": "food",
+    "intensity": "playful",
+    "prompt": "Who's more likely to eat the last bite without asking?",
+    "options": [],
+    "award": "Last Bite Bandit 🍰",
+    "pack": "date-night"
+  }
+]

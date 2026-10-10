@@ -76,6 +76,11 @@ Do not introduce a new dependency unless it materially simplifies the implementa
   checkout and "Check payment" all just trigger that re-check — never trust a client or webhook body. Prices
   come from `content/packs.json` on the server. Pack questions carry `pack` and never appear in free games.
   `PAYMENT_PROVIDER=fake` gives a local test checkout (refused in production); E2E uses it.
+  **Packs follow your phone**: `grant_entitlement` also records `owned_packs` (buyer's session hash → pack), and
+  `claimOwnedPacks` copies the host's owned packs (for the room's mode) into the room when a room is created,
+  when a new host takes over, and right before a pack game starts. The session cookie lasts ~400 days and is
+  renewed on create/join/start/rematch. Every pack must have its own questions for 2 premium games per mode
+  (content test).
 - **Analytics & errors** (`lib/analytics/`): events go through `track` (server) / `trackClient`; names are
   whitelisted in `events.ts`. Never put nicknames, answers or raw error text in properties — run messages
   and paths through `sanitize.ts`. Server errors arrive via `instrumentation.ts`, phone errors via

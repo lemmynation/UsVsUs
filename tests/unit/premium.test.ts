@@ -86,7 +86,7 @@ describe("premium view", () => {
   });
 
   it("is hidden for modes with no packs", async () => {
-    const room = await setup("couple", ["Ana"]);
+    const room = await setup("friends", ["Ana"]);
     expect(await premiumView(room.id)).toMatchObject({ enabled: false, packs: [] });
   });
 });
@@ -334,5 +334,98 @@ describe("abandoned checkouts", () => {
 
     fake.pay(checkoutIdOf(checkoutUrl)); // paid late, e.g. in the wallet app
     expect(await premium.confirmForRoom(room.id, "host")).toMatchObject({ value: { granted: ["chaos-night"] } });
+  });
+});
+
+describe("packs follow your phone", () => {
+  const DATE_NIGHT = PACKS.find((p) => p.slug === "date-night")!;
+
+  async function buy(roomId: string, packSlug: string, hash = "host") {
+    const r = await premium.startCheckout(roomId, hash, { packSlug, origin: ORIGIN });
+    if (!r.ok) throw new Error(r.error);
+    fake.pay(checkoutIdOf(r.value.checkoutUrl));
+    await premium.confirmForRoom(roomId, hash);
+  }
+  async function newRoom(mode: Mode, sessionHash: string) {
+    const created = await rooms.createRoom({ mode, nickname: "Lem", sessionHash });
+    if (!created.ok) throw new Error(created.error);
+    return created.value.room;
+  }
+
+  it("sells Date Night Deep Dive to couples at ₱99", () => {
+    expect(DATE_NIGHT).toMatchObject({ name: "Date Night Deep Dive", priceMinor: 9900, modes: ["couple"] });
+  });
+
+  it("unlocks a bought pack in every new room the buyer hosts, with no second charge", async () => {
+    const first = await setup("couple", ["Ana"]);
+    await buy(first.id, DATE_NIGHT.slug);
+
+    const next = await newRoom("couple", "host"); // next week, same phone
+    expect(await store.listEntitlements(next.id)).toEqual(["date-night"]);
+    expect(await premium.startCheckout(next.id, "host", { packSlug: DATE_NIGHT.slug, origin: ORIGIN })).toEqual({
+      ok: false,
+      error: "already_unlocked",
+    });
+    expect(await rooms.joinRoom({ code: next.joinCode, nickname: "Ana", sessionHash: "g1" })).toMatchObject({
+      ok: true,
+    });
+    expect(await game.startGame(next.id, "host", { packSlug: DATE_NIGHT.slug })).toMatchObject({ ok: true });
+  });
+
+  it("belongs to the buyer, not to guests who were in the room", async () => {
+    const first = await setup("couple", ["Ana"]);
+    await buy(first.id, DATE_NIGHT.slug);
+    const guestsRoom = await newRoom("couple", "g1");
+    expect(await store.listEntitlements(guestsRoom.id)).toEqual([]);
+  });
+
+  it("only unlocks packs sold for the room's mode", async () => {
+    const circle = await setup("circle");
+    await buy(circle.id, CHAOS.slug);
+    expect(await store.listEntitlements((await newRoom("couple", "host")).id)).toEqual([]);
+    expect(await store.listEntitlements((await newRoom("circle", "host")).id)).toEqual(["chaos-night"]);
+  });
+
+  it("comes along when the buyer takes over as host", async () => {
+    // Ana bought Date Night in her own room earlier.
+    const anas = await newRoom("couple", "g1");
+    await rooms.joinRoom({ code: anas.joinCode, nickname: "Ben", sessionHash: "g2" });
+    await buy(anas.id, DATE_NIGHT.slug, "g1");
+
+    // Now she joins Lem's room; Lem leaves, so Ana hosts, and her pack comes with her.
+    const lems = await setup("couple", ["Ana"]);
+    expect(await store.listEntitlements(lems.id)).toEqual([]);
+    expect(await rooms.leaveRoom(lems.id, "host")).toMatchObject({ ok: true });
+    expect(await store.listEntitlements(lems.id)).toEqual(["date-night"]);
+  });
+
+  it("counts at game start even for a room made before the purchase", async () => {
+    const before = await setup("couple", ["Ana"]); // made first
+    const other = await newRoom("couple", "host");
+    await rooms.joinRoom({ code: other.joinCode, nickname: "Ana", sessionHash: "g9" });
+    await buy(other.id, DATE_NIGHT.slug); // bought in a different room afterwards
+    expect(await game.startGame(before.id, "host", { packSlug: DATE_NIGHT.slug })).toMatchObject({ ok: true });
+  });
+});
+
+describe("owned packs never block a game", () => {
+  it("still creates the room if unlocking owned packs fails", async () => {
+    class FlakyStore extends MemoryRoomStore {
+      override async claimOwnedPacks(): Promise<number> {
+        throw new Error("database hiccup");
+      }
+    }
+    store = new FlakyStore(structuredClone(BUNDLED_QUESTIONS));
+    build(fake);
+    const errors: unknown[] = [];
+    const original = console.error;
+    console.error = (...args: unknown[]) => errors.push(args);
+    try {
+      const created = await rooms.createRoom({ mode: "couple", nickname: "Lem", sessionHash: "host" });
+      expect(created.ok).toBe(true);
+      expect(errors).toHaveLength(1); // logged, not thrown
+    } finally {
+      console.error = original;
+    }
   });
 });

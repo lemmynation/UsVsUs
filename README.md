@@ -15,7 +15,7 @@ The product spec is [`docs/design.docx`](docs/design.docx) (text export: [`docs/
 | 2 — Realtime       | Server-run game flow, private answers, reveal sync, presence, reconnect   | ✅ Done |
 | 3 — Game engine    | Mind Reader, Who's More Likely, This or That predictions, scoring, badges | ✅ Done |
 | 4 — Wrapped        | Us Score, awards, highlight, roast line, 1080×1920 share card             | ✅ Done |
-| 5 — Premium        | Chaos Night pack (₱99), PayMongo checkout, server-verified room unlock    | ✅ Done |
+| 5 — Premium        | Chaos Night + Date Night Deep Dive (₱99 each), packs follow your phone    | ✅ Done |
 | 6 — Analytics & QA | Error monitoring, metrics dashboard, data cleanup, accessibility pass     | ✅ Done |
 | 7 — Beta           | Feedback, shared rate limits, daily cleanup, launch setup, 319 questions  | ✅ Live |
 | 8 — Engagement     | One-tap Rematch + series score, reveal drumroll and callouts, reactions   | ✅ Done |
