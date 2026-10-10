@@ -1,4 +1,7 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
+import { closeExtraPhones } from "./helpers";
+
+test.afterEach(closeExtraPhones);
 
 /** Each player gets their own browser context = their own phone and cookie. */
 async function newPlayer(browser: Browser): Promise<Page> {

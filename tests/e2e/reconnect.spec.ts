@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { lobby, options, startGame } from "./helpers";
+import { closeExtraPhones, lobby, options, startGame } from "./helpers";
+
+test.afterEach(closeExtraPhones);
 
 /** Design doc §16 resilience: a dropped phone shows it, keeps its place and catches up. */
 

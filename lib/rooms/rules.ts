@@ -149,6 +149,19 @@ export function checkCanStart(room: Room, players: Player[], actor: Player, now:
   return ok(null);
 }
 
+export type RematchError = "not_host" | "game_not_finished";
+
+/**
+ * Rematch: the host sends the whole group from Wrapped back to the lobby of the
+ * same room. Already back in the lobby (a double tap, or it just happened) is fine.
+ */
+export function checkCanRematch(room: Room, actor: Player): Result<{ alreadyInLobby: boolean }, RematchError> {
+  if (!actor.isHost || room.hostPlayerId !== actor.id) return fail("not_host");
+  if (room.status === "LOBBY") return ok({ alreadyInLobby: true });
+  if (room.status !== "WRAPPED") return fail("game_not_finished");
+  return ok({ alreadyInLobby: false });
+}
+
 export type KickError = "not_host" | "cannot_kick_self" | "player_not_found" | "room_closed";
 
 export function checkCanKick(

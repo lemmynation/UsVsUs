@@ -89,10 +89,16 @@ Do not introduce a new dependency unless it materially simplifies the implementa
   turns premium off (logged) instead of failing requests. Live at https://us-vs-us-chi.vercel.app; deploy and
   release steps in `docs/launch.md`. Migrations must be applied to BOTH Supabase projects (dev + production).
   Production settings are in the git-ignored `.env.vercel-production`; scripts read it with `--env-file`.
+- **Engagement** (rematch, reveal moments, reactions): Rematch moves WRAPPED → LOBBY in the same room via the
+  atomic `reopenRoom` (`reopen_room` in SQL), so pack unlocks and question history carry over. Streak and
+  lead-change callouts come from `lib/game/moments.ts`, the series score from `lib/game/series.ts` (both pure,
+  built only from locked-in scores and frozen Wrapped reports). JS effects (drumroll, confetti, buzz) check
+  `useReducedMotion`; CSS animations are covered by the global reduced-motion rule.
 - **Preserved pages**: with Cache Components, Next keeps visited pages alive (hidden `<Activity>`), so state
   like "Creating…" survives navigation. Reset in-progress flags in an effect cleanup (see
   `create-room-form.tsx`), and on `pageshow` for pages left via a full redirect (checkout).
-- **E2E**: shared helpers live in `tests/e2e/helpers.ts` (`expectAccessible` = axe WCAG A/AA scan,
+- **E2E**: every spec calls `test.afterEach(closeExtraPhones)`, since phones opened with `browser.newContext()` keep
+  polling until closed and slow the whole run. Shared helpers live in `tests/e2e/helpers.ts` (`expectAccessible` = axe WCAG A/AA scan,
   `expectPhoneFriendly`). Tag a spec `@layout` to also run it on the small-phone projects.
 - **Emoji**: stick to Unicode ≤ 12 (a content test enforces it for questions); newer ones render as boxes
   on Windows 10 and older phones. Use `GradientText` for gradient headings so emoji keep their colors.
@@ -101,7 +107,9 @@ Do not introduce a new dependency unless it materially simplifies the implementa
 - **Database access**: server only, via the secret key (`sb_secret_…`, service_role). RLS is on with no
   policies, so the browser's publishable key cannot touch tables.
 - **Realtime**: the server broadcasts a payload-free `room_changed` ping on `room:<id>`; clients refetch
-  `/api/rooms/<id>`. Never put room data or answers in a broadcast. `hooks/use-room.ts` also polls as a
+  `/api/rooms/<id>`. Never put room data or answers in a broadcast. The one exception is `reaction`: an
+  emoji from the fixed `REACTIONS` list plus the sender's random nonce, sent by the server after
+  `/api/rooms/<id>/react` checks membership and phase. Never who sent it. `hooks/use-room.ts` also polls as a
   fallback and refetches on reconnect/visibility.
 - **Touch targets**: buttons default to 44px (`h-11`), large to 56px. Inputs are 48px with 16px text (no
   iOS zoom). Don't shrink these.

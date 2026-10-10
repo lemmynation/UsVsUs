@@ -21,6 +21,10 @@ export interface Metrics {
     shareRate: Rate;
     replay7d: Rate;
     paidConversion: Rate;
+    /** Finished rooms where the host started a rematch (engagement phase). */
+    rematchRate: Rate;
+    /** Live reactions sent per finished game. */
+    reactionsPerGame: number | null;
   };
   health: {
     joinFailureRate: Rate;
@@ -75,6 +79,8 @@ export function computeMetrics(events: AnalyticsEvent[], window: { from: Date; n
   const viewedPremium = roomsWith("premium_pack_viewed");
   const paid = roomsWith("purchase_succeeded");
   const joins = named("player_joined").length;
+  // Games, not rooms: a room that rematched finished more than one.
+  const completedGames = named("game_completed").length;
 
   // Replay: of the people who played a finished game, how many started their own room
   // within 7 days. Only people whose 7-day window has fully passed are counted.
@@ -171,6 +177,8 @@ export function computeMetrics(events: AnalyticsEvent[], window: { from: Date; n
       shareRate: rate(shared.size, completed.size),
       replay7d: rate(replayed, matured),
       paidConversion: rate(paid.size, viewedPremium.size),
+      rematchRate: rate([...roomsWith("rematch_started")].filter((id) => completed.has(id)).length, completed.size),
+      reactionsPerGame: completedGames > 0 ? named("reaction_sent").length / completedGames : null,
     },
     health: {
       joinFailureRate: rate(hardJoinFailures, hardJoinFailures + joins),

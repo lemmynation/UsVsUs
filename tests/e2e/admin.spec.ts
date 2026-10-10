@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { E2E_ADMIN_TOKEN } from "./env";
-import { expectAccessible, lobby } from "./helpers";
+import { closeExtraPhones, expectAccessible, lobby } from "./helpers";
+
+test.afterEach(closeExtraPhones);
 
 test("the metrics page needs the admin token, then shows the numbers", async ({ browser, page }) => {
   // Something to count.

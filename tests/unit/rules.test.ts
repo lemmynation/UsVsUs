@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   checkCanJoin,
+  checkCanRematch,
   checkCanKick,
   checkCanStart,
   computeExpiresAt,
@@ -284,5 +285,17 @@ describe("isOnline", () => {
   it("treats players seen in the last 20 seconds as here", () => {
     expect(isOnline(player("p", { lastSeenAt: new Date(NOW.getTime() - 19_000).toISOString() }), NOW)).toBe(true);
     expect(isOnline(player("p", { lastSeenAt: new Date(NOW.getTime() - 21_000).toISOString() }), NOW)).toBe(false);
+  });
+});
+
+describe("rematch", () => {
+  it("is for the host, after a game, and fine to repeat", () => {
+    expect(checkCanRematch(room({ status: "WRAPPED" }), host())).toEqual({
+      ok: true,
+      value: { alreadyInLobby: false },
+    });
+    expect(checkCanRematch(room({ status: "LOBBY" }), host())).toEqual({ ok: true, value: { alreadyInLobby: true } });
+    expect(checkCanRematch(room({ status: "IN_GAME" }), host())).toEqual({ ok: false, error: "game_not_finished" });
+    expect(checkCanRematch(room({ status: "WRAPPED" }), player("p2"))).toEqual({ ok: false, error: "not_host" });
   });
 });

@@ -20,7 +20,7 @@ function browserCanShareFiles(): boolean {
 
 /**
  * Share the 1080×1920 card through the phone's share sheet when it can take
- * files; otherwise (most desktops) save it. Play again starts a fresh room.
+ * files; otherwise (most desktops) save it. "New room" starts over elsewhere (Rematch keeps the group).
  */
 export function ShareActions({ roomId, mode }: { roomId: string; mode: Mode }) {
   const imageUrl = `/api/rooms/${roomId}/wrapped/image`;
@@ -85,7 +85,7 @@ export function ShareActions({ roomId, mode }: { roomId: string; mode: Mode }) {
         onClick={() => trackClient("play_again_clicked", { mode }, roomId)}
         className={cn(buttonVariants({ size: "lg", variant: "outline" }), "w-full")}
       >
-        Play again
+        New room
       </Link>
     </div>
   );

@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { expectPhoneFriendly, lobby, options, startGame } from "./helpers";
+import { closeExtraPhones, expectPhoneFriendly, lobby, options, startGame } from "./helpers";
+
+test.afterEach(closeExtraPhones);
 
 /**
  * @layout specs also run on the small-phone projects in playwright.config.ts
@@ -15,6 +17,7 @@ test("landing, create, join and privacy fit the phone @layout", async ({ page })
 });
 
 test("a full Circle lobby fits the phone @layout", async ({ browser }) => {
+  test.setTimeout(90_000); // five phones join one by one; slow when the dev server is busy
   const { host } = await lobby(browser, "Circle", ["Anastasia", "Benjamin", "Catalina", "Dominic"]);
   await expect(host.getByTestId("player-count")).toHaveText("5/10");
   await expectPhoneFriendly(host);

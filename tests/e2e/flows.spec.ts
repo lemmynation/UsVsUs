@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { lobby, newPlayer, options, startGame } from "./helpers";
+import { closeExtraPhones, lobby, newPlayer, options, startGame } from "./helpers";
+
+test.afterEach(closeExtraPhones);
 
 /** Everyday paths not covered elsewhere: joining by typed code, leaving, host handover, play again. */
 
@@ -45,16 +47,16 @@ test("if your partner leaves mid-game, the game ends with a recap instead of han
   await expect(ana).toHaveURL(/\/$/);
 
   await expect(host.getByText("Everyone else left, so the game ended early.")).toBeVisible();
-  await expect(host.getByRole("link", { name: "Play again" })).toBeVisible();
+  await expect(host.getByRole("link", { name: "New room" })).toBeVisible();
 });
 
-test("Play again after a game opens a fresh room in the same mode", async ({ browser }) => {
+test("New room after a game opens a fresh room in the same mode", async ({ browser }) => {
   const { host, guests } = await startGame(browser, "Couple", ["Ana"]);
   await expect(host.getByRole("heading", { name: "Mind Reader" })).toBeVisible();
   // Finish quickly: the guest leaves, which ends the game for the host.
   guests[0].on("dialog", (d) => void d.accept());
   await guests[0].getByRole("button", { name: "Leave game" }).click();
-  await host.getByRole("link", { name: "Play again" }).click();
+  await host.getByRole("link", { name: "New room" }).click();
   await expect(host).toHaveURL(/\/create\?mode=couple$/);
   // The host's earlier create page is kept alive by Next: it must come back usable, not stuck on "Creating…".
   await host.getByLabel("Your nickname").fill("Lem");

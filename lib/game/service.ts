@@ -13,10 +13,13 @@ import type { Player, Room } from "@/types/room";
 import { loadMembership, type MembershipError } from "@/lib/rooms/membership";
 import {
   activePlayers,
+  checkCanRematch,
   checkCanStart,
+  computeExpiresAt,
   isOnline,
   MODE_RULES,
   sanitizeFeedbackComment,
+  type RematchError,
   type Result,
   type StartError,
 } from "@/lib/rooms/rules";
@@ -41,6 +44,8 @@ import {
   nextPosition,
   type AdvanceError,
 } from "./state-machine";
+import { revealMoments } from "./moments";
+import { seriesFor } from "./series";
 import { buildWrapped, type PlayedQuestion } from "./wrapped";
 
 export interface GameServiceDeps {
@@ -55,6 +60,7 @@ export type StartGameError = MembershipError | StartError | "no_questions" | "pa
 export type AnswerError = MembershipError | "not_open" | "invalid_answer";
 export type GameAdvanceError = MembershipError | AdvanceError | "not_open";
 export type WrappedError = MembershipError | "game_not_finished";
+export type RematchGameError = MembershipError | RematchError;
 
 const ok = <T>(value: T) => ({ ok: true, value }) as const;
 const fail = <E extends string>(error: E) => ({ ok: false, error }) as const;
@@ -361,6 +367,35 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
       return ok(await wrappedFor(game, room, players));
     },
 
+    /**
+     * Rematch: the host sends everyone from Wrapped back to this room's lobby, so
+     * the same group plays again without new invites. Pack unlocks stay with the
+     * room, and the question picker keeps everything they've seen out of game two.
+     */
+    async rematch(roomId: string, sessionHash: string): Promise<Result<{ reopened: boolean }, RematchGameError>> {
+      const membership = await loadMembership(store, roomId, sessionHash);
+      if (!membership.ok) return membership;
+      const { room, me } = membership.value;
+      const check = checkCanRematch(room, me);
+      if (!check.ok) return check;
+      if (check.value.alreadyInLobby) return ok({ reopened: false });
+      const result = await store.reopenRoom({ roomId, expiresAt: computeExpiresAt(now()) });
+      // Lost a race with another rematch: the room is in the lobby either way.
+      return ok({ reopened: result === "reopened" });
+    },
+
+    /** Live reactions are for the moments everyone looks at together: reveals and Wrapped. */
+    async canReact(roomId: string, sessionHash: string): Promise<Result<null, MembershipError | "not_open">> {
+      const membership = await loadMembership(store, roomId, sessionHash);
+      if (!membership.ok) return membership;
+      const { room } = membership.value;
+      const game = await store.getLatestGame(roomId);
+      const live =
+        (room.status === "IN_GAME" && game?.session.phase === "REVEAL") ||
+        (room.status === "WRAPPED" && game?.session.phase === "FINISHED");
+      return live ? ok(null) : fail("not_open");
+    },
+
     /** A player's rating of the game they just finished; sending again replaces it. */
     async submitFeedback(
       roomId: string,
@@ -478,6 +513,30 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
       const totals = totalPoints(entries);
       const thisRound = totalPoints(entries.filter((e) => e.roundIndex === session.roundIndex));
 
+      // Every question revealed so far, in play order, ending with the one on screen.
+      const moments =
+        session.phase === "REVEAL"
+          ? revealMoments({
+              scores: entries,
+              revealed: rounds.flatMap((r) =>
+                r.questionIds
+                  .map((_, questionIndex) => ({
+                    roundIndex: r.roundIndex,
+                    questionIndex,
+                    subjectPlayerId: r.subjectPlayerIds[questionIndex] ?? null,
+                  }))
+                  .filter(
+                    (p) =>
+                      p.roundIndex < session.roundIndex ||
+                      (p.roundIndex === session.roundIndex && p.questionIndex <= session.questionIndex),
+                  ),
+              ),
+              meId: me.id,
+              playerIds: [...activeIds],
+              trackLeader: twoPlayer,
+            })
+          : null;
+
       return {
         sessionId: session.id,
         phase: session.phase,
@@ -499,6 +558,10 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
         awards: entries.filter((e) => e.award).map((e) => ({ label: e.award!, playerId: e.playerId })),
         wrapped: session.phase === "FINISHED" ? await wrappedFor(game, room, players) : null,
         packSlug: session.packSlug,
+        moments,
+        // Shown on Wrapped and in the lobby before a rematch, so only computed then.
+        series: session.phase === "FINISHED" ? seriesFor(await store.listRoomWrapped(room.id), [...activeIds]) : null,
+        phaseAgeMs: Math.max(0, now().getTime() - new Date(session.phaseStartedAt).getTime()),
       };
     },
   };

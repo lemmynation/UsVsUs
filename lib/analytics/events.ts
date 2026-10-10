@@ -8,6 +8,8 @@ export const SERVER_EVENTS = [
   "checkout_started",
   "purchase_succeeded",
   "purchase_failed",
+  "rematch_started",
+  "reaction_sent",
   // Technical health (design doc §14)
   "join_failed",
   "api_timing",

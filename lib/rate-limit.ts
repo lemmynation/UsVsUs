@@ -14,6 +14,8 @@ export const LIMITS = {
   events: { max: 60, windowMs: 60_000 },
   adminLogin: { max: 5, windowMs: 15 * 60_000 },
   checkout: { max: 10, windowMs: 10 * 60_000 },
+  // Per player: enough for a burst of laughing, not enough to flood everyone's screen.
+  reaction: { max: 12, windowMs: 10_000 },
 } as const;
 
 /**

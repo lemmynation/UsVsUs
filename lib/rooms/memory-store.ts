@@ -166,6 +166,13 @@ export class MemoryRoomStore implements RoomStore {
     return report ? structuredClone(report) : null;
   }
 
+  async listRoomWrapped(roomId: string) {
+    return [...this.sessions.values()]
+      .filter((s) => s.roomId === roomId && this.wrapped.has(s.id))
+      .sort((a, b) => a.startedAt.localeCompare(b.startedAt))
+      .map((s) => structuredClone(this.wrapped.get(s.id)!));
+  }
+
   async saveWrapped(sessionId: string, report: WrappedReport) {
     // Mirrors the SQL: the first report saved wins.
     if (!this.wrapped.has(sessionId) && this.sessions.has(sessionId)) {
@@ -237,6 +244,15 @@ export class MemoryRoomStore implements RoomStore {
       if (room?.status === "IN_GAME") room.status = "WRAPPED";
     }
     return { ...s };
+  }
+
+  async reopenRoom(input: { roomId: string; expiresAt: string }) {
+    const room = this.rooms.get(input.roomId);
+    if (!room || room.status !== "WRAPPED") return "not_wrapped" as const;
+    room.status = "LOBBY";
+    room.selectedPackId = null;
+    if (room.expiresAt < input.expiresAt) room.expiresAt = input.expiresAt;
+    return "reopened" as const;
   }
 
   async transferHost(roomId: string, fromPlayerId: string, toPlayerId: string) {

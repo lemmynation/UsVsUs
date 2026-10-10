@@ -5,12 +5,14 @@ import { useCallback, useRef, useState } from "react";
 import { Wordmark } from "@/components/brand/wordmark";
 import { ConnectionBanner } from "@/components/game/connection-banner";
 import { GameScreen } from "@/components/game/game-screen";
+import { FloatingReactions, ReactionsContext } from "@/components/game/reactions";
 import { CheckoutReturn } from "@/components/premium/checkout-return";
 import { PackPicker } from "@/components/premium/pack-picker";
 import { Button } from "@/components/ui/button";
 import { useRoom, type RealtimeConfig } from "@/hooks/use-room";
 import { ApiError, apiFetch } from "@/lib/client-api";
 import { MODE_META } from "@/lib/modes";
+import { seriesHeadline } from "@/lib/game/series";
 import { errorMessage } from "@/lib/rooms/errors";
 import { cn } from "@/lib/utils";
 import type { RoomView } from "@/types/room";
@@ -20,7 +22,7 @@ import { StatusCard } from "./status-card";
 
 export function Lobby({ initialView, realtime }: { initialView: RoomView; realtime: RealtimeConfig | null }) {
   const router = useRouter();
-  const { view, error, refresh, reconnecting } = useRoom(initialView, realtime);
+  const { view, error, refresh, reconnecting, floating, sendReaction } = useRoom(initialView, realtime);
   const [actionError, setActionError] = useState<string | null>(null);
   const [pending, setPending] = useState<string | null>(null);
   // State updates only land on the next render; a fast double-tap gets in before that.
@@ -37,6 +39,7 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
   );
 
   const { room, players, me } = view;
+  const nicknameOf = (id: string) => players.find((p) => p.id === id)?.nickname ?? "Someone who left";
   const meta = MODE_META[room.mode];
   const host = players.find((p) => p.isHost);
   const missing = Math.max(0, room.minPlayers - players.length);
@@ -125,7 +128,10 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
 
       {inGame ? (
         <>
-          <GameScreen view={{ ...view, game }} act={act} pending={pending} />
+          <ReactionsContext.Provider value={sendReaction}>
+            <GameScreen view={{ ...view, game }} act={act} pending={pending} />
+          </ReactionsContext.Provider>
+          <FloatingReactions items={floating} />
           {actionError && (
             <p role="alert" className="text-destructive text-base">
               {actionError}
@@ -144,6 +150,17 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
           <div>
             <p className="text-muted-foreground text-base">{room.name ? "Lobby" : `${meta.label} lobby`}</p>
             <h1 className="font-heading text-4xl font-extrabold break-words">{room.name ?? "Waiting room"}</h1>
+            {game?.phase === "FINISHED" && (
+              <p role="status" className="mt-2 text-base">
+                🔁 <span className="font-semibold">Rematch!</span> Same crew, fresh questions. Anyone who left can
+                rejoin with the code.
+                {game.series && (
+                  <span className="mt-1 block font-semibold">
+                    🏆 {seriesHeadline(game.series, (id) => (id === me.playerId ? "You" : nicknameOf(id)))}
+                  </span>
+                )}
+              </p>
+            )}
           </div>
 
           <InvitePanel roomId={room.id} joinCode={room.joinCode} />

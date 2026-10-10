@@ -103,6 +103,9 @@ export interface RoomStore {
   /** The game's frozen Wrapped report, if it has been saved. */
   getWrapped(sessionId: string): Promise<WrappedReport | null>;
 
+  /** Every finished game's Wrapped report in this room, oldest first (for the series score). */
+  listRoomWrapped(roomId: string): Promise<WrappedReport[]>;
+
   /**
    * Saves the Wrapped report once. If one is already saved (a racing request
    * got there first) that one is kept and returned, so everyone sees the same.
@@ -144,6 +147,12 @@ export interface RoomStore {
    * question; entries for players who have left are skipped.
    */
   recordScores(sessionId: string, entries: ScoreEntry[]): Promise<void>;
+
+  /**
+   * Rematch: WRAPPED → LOBBY for the same group, atomically (only from WRAPPED), and
+   * pushes the expiry out to at least `expiresAt` so the next game has a full day.
+   */
+  reopenRoom(input: { roomId: string; expiresAt: string }): Promise<"reopened" | "not_wrapped">;
 
   /** Moves host from one player to another only if `fromPlayerId` is still host. */
   transferHost(roomId: string, fromPlayerId: string, toPlayerId: string): Promise<boolean>;

@@ -320,6 +320,17 @@ export class SupabaseRoomStore implements RoomStore {
     return data ? (data.report as WrappedReport) : null;
   }
 
+  async listRoomWrapped(roomId: string) {
+    const { data, error } = await this.db
+      .from("wrapped_reports")
+      .select("report, session:game_sessions!inner(room_id, started_at)")
+      .eq("session.room_id", roomId);
+    check(error, "listRoomWrapped");
+    return (data as unknown as Array<{ report: WrappedReport; session: { started_at: string } }>)
+      .sort((a, b) => a.session.started_at.localeCompare(b.session.started_at))
+      .map((r) => r.report);
+  }
+
   async saveWrapped(sessionId: string, report: WrappedReport, now: string) {
     const { data, error } = await this.db.rpc("save_wrapped", {
       p_session_id: sessionId,
@@ -379,6 +390,15 @@ export class SupabaseRoomStore implements RoomStore {
     const result = data as { error?: "stale"; session?: SessionRow };
     if (result.error) return result.error;
     return toSession(result.session!, await this.packSlugOf(result.session!.pack_id));
+  }
+
+  async reopenRoom(input: { roomId: string; expiresAt: string }) {
+    const { data, error } = await this.db.rpc("reopen_room", {
+      p_room_id: input.roomId,
+      p_expires_at: input.expiresAt,
+    });
+    check(error, "reopen_room");
+    return data === "reopened" ? ("reopened" as const) : ("not_wrapped" as const);
   }
 
   async transferHost(roomId: string, fromPlayerId: string, toPlayerId: string) {

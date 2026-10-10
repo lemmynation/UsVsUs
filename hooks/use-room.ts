@@ -3,13 +3,25 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, apiFetch, trackClient } from "@/lib/client-api";
-import { ROOM_CHANGED_EVENT, roomChannelName } from "@/lib/realtime/channel";
+import { isReaction, REACTION_EVENT, ROOM_CHANGED_EVENT, roomChannelName, type Reaction } from "@/lib/realtime/channel";
 import type { RoomView } from "@/types/room";
 
 export interface RealtimeConfig {
   url: string;
   publishableKey: string;
 }
+
+/** A reaction floating up the screen. */
+export interface FloatingReaction {
+  id: number;
+  emoji: Reaction;
+  /** Horizontal start, 0–100 (% of the screen). */
+  left: number;
+}
+
+/** How long a reaction floats, and how many can be on screen at once. */
+const REACTION_MS = 2600;
+const MAX_FLOATING = 24;
 
 /** Without realtime we poll quickly; with it, polling is just a heartbeat + safety net. */
 const POLL_FAST_MS = 2_000;
@@ -41,6 +53,29 @@ export function useRoom(initial: RoomView, realtime: RealtimeConfig | null) {
   const inFlight = useRef(false);
   const again = useRef(false);
   const roomId = initial.room.id;
+
+  // Live reactions: shown instantly for the sender, then echoed to everyone else by the server.
+  const [floating, setFloating] = useState<FloatingReaction[]>([]);
+  const floatSeq = useRef(0);
+  const sentNonces = useRef(new Set<string>());
+  const showReaction = useCallback((emoji: Reaction) => {
+    const id = ++floatSeq.current;
+    const left = 8 + ((id * 37) % 84); // spread out, no two in a row on top of each other
+    setFloating((f) => [...f.slice(-(MAX_FLOATING - 1)), { id, emoji, left }]);
+    setTimeout(() => setFloating((f) => f.filter((x) => x.id !== id)), REACTION_MS);
+  }, []);
+  const sendReaction = useCallback(
+    (emoji: Reaction) => {
+      const nonce = crypto.randomUUID().replaceAll("-", "").slice(0, 16);
+      // Echoes that never arrive (no realtime, dropped message) must not pile up.
+      if (sentNonces.current.size > 100) sentNonces.current.clear();
+      sentNonces.current.add(nonce);
+      showReaction(emoji);
+      // Fire and forget: a dropped reaction isn't worth an error message.
+      apiFetch(`/api/rooms/${roomId}/react`, { method: "POST", body: { emoji, nonce } }).catch(() => {});
+    },
+    [roomId, showReaction],
+  );
   const myId = initial.me.playerId;
 
   const refresh = useCallback(async () => {
@@ -75,6 +110,12 @@ export function useRoom(initial: RoomView, realtime: RealtimeConfig | null) {
     const channel = supabase.channel(roomChannelName(roomId), { config: { presence: { key: myId } } });
     channel
       .on("broadcast", { event: ROOM_CHANGED_EVENT }, () => void refresh())
+      .on("broadcast", { event: REACTION_EVENT }, ({ payload }) => {
+        const { e, n } = (payload ?? {}) as { e?: unknown; n?: unknown };
+        if (!isReaction(e)) return;
+        if (typeof n === "string" && sentNonces.current.delete(n)) return; // our own, already shown
+        showReaction(e);
+      })
       .on("presence", { event: "sync" }, () => setPresentIds(new Set(Object.keys(channel.presenceState()))))
       .subscribe((status) => {
         setConnected(status === "SUBSCRIBED");
@@ -88,7 +129,7 @@ export function useRoom(initial: RoomView, realtime: RealtimeConfig | null) {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [realtime, roomId, myId, refresh]);
+  }, [realtime, roomId, myId, refresh, showReaction]);
 
   useEffect(() => {
     if (error) return;
@@ -126,5 +167,5 @@ export function useRoom(initial: RoomView, realtime: RealtimeConfig | null) {
     ? view.players.map((p) => ({ ...p, isOnline: p.id === myId || presentIds.has(p.id) }))
     : view.players;
 
-  return { view: { ...view, players }, error, refresh, reconnecting: networkDown };
+  return { view: { ...view, players }, error, refresh, reconnecting: networkDown, floating, sendReaction };
 }

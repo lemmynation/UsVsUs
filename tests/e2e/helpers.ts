@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, type Browser, type Page } from "@playwright/test";
+import { expect, type Browser, type BrowserContext, type Page } from "@playwright/test";
 
 /** Each player gets their own browser context = their own phone and cookie. */
 export async function newPlayer(browser: Browser): Promise<Page> {
@@ -70,4 +70,19 @@ export async function expectAccessible(page: Page) {
     .filter((v) => v.impact === "serious" || v.impact === "critical")
     .map((v) => ({ rule: v.id, help: v.help, targets: v.nodes.slice(0, 3).map((n) => n.target.join(" ")) }));
   expect(blocking).toEqual([]);
+}
+
+/**
+ * Closes the extra "phones" a test opened with browser.newContext(). Playwright
+ * only closes its own default context, and every room page keeps polling, so
+ * leftovers pile up over a run and slow the server for later tests.
+ * Use in every spec: `test.afterEach(closeExtraPhones);`
+ */
+export async function closeExtraPhones({ browser, context }: { browser: Browser; context: BrowserContext }) {
+  await Promise.all(
+    browser
+      .contexts()
+      .filter((c) => c !== context)
+      .map((c) => c.close()),
+  );
 }
