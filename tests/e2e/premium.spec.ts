@@ -1,4 +1,7 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
+import { closeExtraPhones } from "./helpers";
+
+test.afterEach(closeExtraPhones);
 
 /** Uses the fake payment provider (PAYMENT_PROVIDER=fake in playwright.config.ts). */
 async function newPlayer(browser: Browser): Promise<Page> {

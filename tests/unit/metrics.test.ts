@@ -175,3 +175,21 @@ describe("feedback summary", () => {
     expect(summarizeFeedback([]).average).toBeNull();
   });
 });
+
+describe("engagement metrics", () => {
+  it("counts rematches among finished rooms and reactions per finished game", () => {
+    const m = metrics([
+      ev("room_created", day(2), { roomId: "A" }),
+      ev("game_completed", day(2), { roomId: "A" }),
+      ev("rematch_started", day(2), { roomId: "A" }),
+      ev("game_completed", day(2, 14), { roomId: "A" }), // game two in the same room
+      ev("room_created", day(3), { roomId: "B" }),
+      ev("game_completed", day(3), { roomId: "B" }),
+      ev("rematch_started", day(3), { roomId: "C" }), // not finished in this window: not counted
+      ...Array.from({ length: 9 }, () => ev("reaction_sent", day(2), { roomId: "A" })),
+    ]);
+    expect(m.decision.rematchRate).toEqual({ numerator: 1, denominator: 2, value: 0.5 });
+    expect(m.decision.reactionsPerGame).toBe(3); // 9 reactions over 3 finished games
+    expect(metrics([]).decision.reactionsPerGame).toBeNull();
+  });
+});

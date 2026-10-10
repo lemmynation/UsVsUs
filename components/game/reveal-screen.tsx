@@ -1,3 +1,5 @@
+"use client";
+
 import { PlayerAvatar } from "@/components/room/player-avatar";
 import { GradientText } from "@/components/ui/gradient-text";
 import { revealHeadline, tallyAnswers } from "@/lib/game/presentation";
@@ -6,6 +8,8 @@ import type { PlayerAnswer, QuestionOption } from "@/types/game";
 import { HostAdvance } from "./host-button";
 import { playerNames } from "./names";
 import { QuestionProgress } from "./question-progress";
+import { ReactionBar } from "./reactions";
+import { Callouts, Celebration, Drumroll, useDrumroll } from "./reveal-moments";
 import type { GameScreenProps } from "./types";
 
 /** S09: the reveal — answers (or anonymous votes), points, and a short reaction. */
@@ -13,9 +17,23 @@ export function RevealScreen(props: GameScreenProps) {
   const { view } = props;
   const { room, game } = view;
   const { question, reveal } = game;
+  const counting = useDrumroll(game.phaseAgeMs);
   if (!question || !reveal) return null;
 
+  if (counting) {
+    return (
+      <>
+        <QuestionProgress game={game} />
+        <h1 className="font-heading text-3xl font-extrabold break-words">{question.prompt}</h1>
+        <Drumroll />
+      </>
+    );
+  }
+
   const names = playerNames(view);
+  const me = view.me.playerId;
+  // Scored on this one, or (Circle) the room handed you the badge.
+  const nailedIt = (reveal.points[me] ?? 0) > 0 || (reveal.award?.playerIds.includes(me) ?? false);
   const lastInRound = game.questionIndex + 1 >= game.questionCount;
   const optionLabel = (id?: string) => question.options.find((o) => o.id === id)?.label ?? "—";
 
@@ -77,7 +95,10 @@ export function RevealScreen(props: GameScreenProps) {
           })}
         </GradientText>
       </p>
+      <Callouts moments={game.moments} nameOf={names.labelOf} />
+      {nailedIt && <Celebration />}
       {body}
+      <ReactionBar />
       {/* 2-player cards already say "Skipped"; group views only show who picked something. */}
       {reveal.skippedCount > 0 && room.mode === "circle" && (
         <p className="text-muted-foreground text-base">{reveal.skippedCount} skipped</p>

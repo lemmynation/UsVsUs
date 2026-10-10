@@ -57,6 +57,18 @@ export function MetricsView({ metrics }: { metrics: Metrics }) {
             value={pct(decision.paidConversion)}
             detail={ofTotal(decision.paidConversion)}
           />
+          <Stat
+            label="Rematch rate"
+            hint="Finished rooms that played again together"
+            value={pct(decision.rematchRate)}
+            detail={ofTotal(decision.rematchRate)}
+          />
+          <Stat
+            label="Reactions per game"
+            hint="Live emoji sent per finished game"
+            value={decision.reactionsPerGame === null ? "—" : decision.reactionsPerGame.toFixed(1)}
+            detail="reactions"
+          />
         </div>
       </Section>
 

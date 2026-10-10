@@ -733,3 +733,33 @@ describe("Phase 7: feedback", () => {
     expect(all.find((f) => f.rating === 2)?.comment).toBeNull();
   });
 });
+
+describe("Engagement: rematch", () => {
+  it("lets only the host send a finished game back to the lobby, once, with fresh questions next time", async () => {
+    const room = await setup("couple");
+    await game.startGame(room.id, "host");
+    expect(await game.rematch(room.id, "host")).toEqual({ ok: false, error: "game_not_finished" });
+
+    await playTo(room.id, ["host", "g1"], () => false);
+    const first = (await store.getLatestGame(room.id))!;
+    const firstQuestions = first.rounds.flatMap((r) => r.questionIds);
+
+    expect(await game.rematch(room.id, "g1")).toEqual({ ok: false, error: "not_host" });
+    expect(await game.rematch(room.id, "stranger")).toMatchObject({ ok: false });
+
+    tick(20 * 60 * 60 * 1000); // late in the room's day: the rematch gets a full day again
+    expect(await game.rematch(room.id, "host")).toEqual({ ok: true, value: { reopened: true } });
+    const reopened = (await store.getRoomById(room.id))!;
+    expect(reopened.status).toBe("LOBBY");
+    expect(new Date(reopened.expiresAt).getTime()).toBeGreaterThan(clock.getTime() + 23 * 60 * 60 * 1000);
+    // A double tap is harmless.
+    expect(await game.rematch(room.id, "host")).toEqual({ ok: true, value: { reopened: false } });
+
+    // Everyone is still in, and game two avoids everything game one showed.
+    expect(await game.startGame(room.id, "host")).toMatchObject({ ok: true });
+    const second = (await store.getLatestGame(room.id))!;
+    expect(second.session.id).not.toBe(first.session.id);
+    const repeats = second.rounds.flatMap((r) => r.questionIds).filter((id) => firstQuestions.includes(id));
+    expect(repeats).toEqual([]);
+  });
+});

@@ -1,5 +1,7 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import { expectAccessible } from "./helpers";
+import { closeExtraPhones, expectAccessible } from "./helpers";
+
+test.afterEach(closeExtraPhones);
 
 async function newPlayer(browser: Browser): Promise<Page> {
   return (await browser.newContext()).newPage();

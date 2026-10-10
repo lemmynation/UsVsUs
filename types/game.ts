@@ -113,6 +113,17 @@ export interface QuestionReveal {
   award: { label: string; playerIds: string[] } | null;
 }
 
+/** Across games in one room (after a Rematch): wins in 2-player modes, badges in Circle. */
+export interface Series {
+  /** Finished games counted (games that ended early don't count). */
+  games: number;
+  kind: "wins" | "badges";
+  /** Players still in the room, best first. 2-player: games won. Circle: badges earned. */
+  standings: Array<{ playerId: string; count: number }>;
+  /** 2-player modes: games that ended in a tie. */
+  draws: number;
+}
+
 /** The game as one player is allowed to see it. Other players' answers appear only in REVEAL. */
 export interface GameView {
   sessionId: string;
@@ -144,6 +155,12 @@ export interface GameView {
   wrapped: WrappedReport | null;
   /** Premium pack this game is played with, if any. */
   packSlug: string | null;
+  /** REVEAL only: streak and lead-change callouts for this player (see lib/game/moments.ts). */
+  moments: { streak: number; newLeaderId: string | null; firstLead: boolean } | null;
+  /** Across games in this room (after a Rematch): wins in 2-player modes, badges in Circle. */
+  series: Series | null;
+  /** How long ago this step started, by the server's clock (a refresh mid-reveal skips the drumroll). */
+  phaseAgeMs: number;
 }
 
 /**

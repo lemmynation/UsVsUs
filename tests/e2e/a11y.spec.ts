@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { expectAccessible, newPlayer, options, startGame } from "./helpers";
+import { closeExtraPhones, expectAccessible, newPlayer, options, startGame } from "./helpers";
+
+test.afterEach(closeExtraPhones);
 
 /** Design doc §16: every screen passes an automated WCAG A/AA scan. */
 
