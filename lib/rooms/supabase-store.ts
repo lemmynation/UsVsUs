@@ -321,7 +321,7 @@ export class SupabaseRoomStore implements RoomStore {
     });
     check(error, "start_game");
     const result = data as {
-      error?: "not_in_lobby" | "not_enough_players" | "pack_locked";
+      error?: "not_in_lobby" | "wrong_experience" | "not_enough_players" | "pack_locked";
       session?: SessionRow;
       rounds?: RoundRow[];
     };

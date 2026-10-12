@@ -118,6 +118,7 @@ export class MemoryRoomStore implements RoomStore {
   async startGame(input: Parameters<RoomStore["startGame"]>[0]) {
     const room = this.rooms.get(input.roomId);
     if (!room || room.status !== "LOBBY") return "not_in_lobby" as const;
+    if (room.experience !== "quick_party") return "wrong_experience" as const;
     const active = [...this.players.values()].filter((p) => p.roomId === room.id && p.status === "active");
     if (active.length < input.minPlayers) return "not_enough_players" as const;
     // Mirrors the SQL: the entitlement is checked in the same step as the start.

@@ -95,7 +95,13 @@ export interface RoomStore {
     now: string;
     /** Premium pack: the room's entitlement is re-checked atomically with the start. */
     packSlug?: string;
-  }): Promise<{ session: GameSession; rounds: GameRound[] } | "not_in_lobby" | "not_enough_players" | "pack_locked">;
+  }): Promise<
+    | { session: GameSession; rounds: GameRound[] }
+    | "not_in_lobby"
+    | "wrong_experience"
+    | "not_enough_players"
+    | "pack_locked"
+  >;
 
   /** The room's most recent game session, if any. */
   getLatestGame(roomId: string): Promise<{ session: GameSession; rounds: GameRound[] } | null>;

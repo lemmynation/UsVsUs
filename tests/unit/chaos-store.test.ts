@@ -86,6 +86,14 @@ describe("Chain Reactions store", () => {
     );
   });
 
+  it("never starts a quiz in a Chain Reactions room (the store refuses, whatever the app read)", async () => {
+    const chain = await room("chain_reactions");
+    expect(await store.startGame({ roomId: chain.room.id, minPlayers: 2, rounds: [], now: NOW })).toBe(
+      "wrong_experience",
+    );
+    expect((await store.getRoomById(chain.room.id))!.status).toBe("LOBBY");
+  });
+
   it("accepts only the assigned player, treats a retry as a duplicate, and allows replacing before the step closes", async () => {
     const { match, plan } = await started();
     const mine = job(plan, 1);
