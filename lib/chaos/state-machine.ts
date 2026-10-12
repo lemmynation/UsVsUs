@@ -72,3 +72,10 @@ export function decideAdvance(input: {
 
 export const stepDeadline = (plan: MatchPlan, step: number, openedAt: Date): Date =>
   new Date(openedAt.getTime() + (plan.steps.find((s) => s.index === step)?.seconds ?? 0) * 1000);
+
+/** After the timer, the host can skip; this much later the server moves on by itself. */
+export const OVERTIME_MS = 20_000;
+
+/** When a step stops waiting for anyone, even if the host isn't looking. */
+export const stepAutoSkipAt = (plan: MatchPlan, step: number, openedAt: Date): Date =>
+  new Date(stepDeadline(plan, step, openedAt).getTime() + OVERTIME_MS);

@@ -236,6 +236,50 @@ describe("Chain Reactions service: rules", () => {
     expect(await s.service.afterRosterChange(s.roomId)).toBe(true);
     expect((await s.store.getLatestChainMatch(s.roomId))!.step).toBe(2);
   });
+
+  it("moves on by itself once a step's overtime is up, even if the host never skips", async () => {
+    const s = await setup(3);
+    await s.service.start(s.roomId, "s0");
+    const catchUp = async () =>
+      s.service.catchUp((await s.store.getRoomById(s.roomId))!, await s.store.listPlayers(s.roomId));
+    const step = async () => (await s.store.getLatestChainMatch(s.roomId))!.step;
+
+    // Nobody submits. During the timer and the overtime, nothing moves.
+    s.tick(60_000);
+    expect(await catchUp()).toBe(false);
+    s.tick(19_000);
+    expect(await catchUp()).toBe(false);
+    const v = await view(s, s.players[1].id);
+    expect(new Date(v.step!.autoSkipAt).getTime() - new Date(v.step!.deadline).getTime()).toBe(20_000);
+
+    // Overtime up: the first refresh moves it, a racing second one is a no-op.
+    s.tick(1_000);
+    const [a, b] = await Promise.all([catchUp(), catchUp()]);
+    expect([a, b].filter(Boolean)).toHaveLength(1);
+    expect(await step()).toBe(2);
+    // The new step has its own full timer.
+    expect(await catchUp()).toBe(false);
+
+    // Through to the reveal; nothing auto-moves there (the host or a handed-over host leads it).
+    for (let i = 2; i <= 5; i++) {
+      s.tick(80_000);
+      expect(await catchUp()).toBe(true);
+    }
+    const match = (await s.store.getLatestChainMatch(s.roomId))!;
+    expect(match.phase).toBe("REVEAL");
+    s.tick(600_000);
+    expect(await catchUp()).toBe(false);
+    // Skipped detect steps score nothing, but nothing breaks either.
+    expect(await s.store.listChainScores(match.id)).toEqual([]);
+  });
+
+  it("never auto-moves a Quick Party room", async () => {
+    const s = await setup(3, "quick_party");
+    s.tick(600_000);
+    expect(await s.service.catchUp((await s.store.getRoomById(s.roomId))!, await s.store.listPlayers(s.roomId))).toBe(
+      false,
+    );
+  });
 });
 
 describe("Chain Reactions: what each phone can see (leak tests)", () => {

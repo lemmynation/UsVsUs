@@ -35,6 +35,8 @@ export interface RoomServiceDeps {
   chaos?: {
     viewFor(room: Room, players: Player[], me: Player): Promise<ChaosPlayerView | null>;
     afterRosterChange(roomId: string): Promise<boolean>;
+    /** Moves a step on once its overtime is up (any member's refresh can do it). */
+    catchUp(room: Room, players: Player[]): Promise<boolean>;
   };
 }
 
@@ -173,6 +175,7 @@ export function createRoomService({ store, now, randomInt, game, premium, chaos 
         if (!membership.ok) return membership;
       }
       const { room, players, me } = membership.value;
+      await chaos?.catchUp(room, players);
 
       const rules = MODE_RULES[room.mode];
       return ok({

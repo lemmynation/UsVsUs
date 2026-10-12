@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { GameAction } from "@/components/game/types";
 import { Button } from "@/components/ui/button";
 import type { Stroke } from "@/lib/chaos/artifact";
@@ -15,6 +15,8 @@ export interface ChaosScreenProps {
   view: RoomView & { chaos: ChaosPlayerView };
   act: GameAction;
   pending: string | null;
+  /** Pull the room view now (used when a step's overtime runs out). */
+  refresh?: () => void;
 }
 
 const newKey = () => crypto.randomUUID().replaceAll("-", "").slice(0, 24);
@@ -42,8 +44,18 @@ function useSecondsLeft(deadline: string | undefined) {
   return deadline ? Math.max(0, Math.ceil((new Date(deadline).getTime() - now) / 1000)) : 0;
 }
 
-function StepHeader({ chaos }: { chaos: ChaosPlayerView }) {
+function StepHeader({ chaos, refresh }: { chaos: ChaosPlayerView; refresh?: () => void }) {
   const left = useSecondsLeft(chaos.step?.deadline);
+  const overtime = useSecondsLeft(chaos.step?.autoSkipAt);
+  // Once overtime is up, ask the server: our refresh is what moves the match on if
+  // nobody else's has yet. Once per step.
+  const asked = useRef<string | null>(null);
+  const autoSkipAt = chaos.step?.autoSkipAt;
+  useEffect(() => {
+    if (!autoSkipAt || overtime > 0 || asked.current === autoSkipAt) return;
+    asked.current = autoSkipAt;
+    refresh?.();
+  }, [autoSkipAt, overtime, refresh]);
   if (!chaos.step) return null;
   const mm = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
   return (
@@ -52,9 +64,15 @@ function StepHeader({ chaos }: { chaos: ChaosPlayerView }) {
         <span>
           Step {chaos.step.index} of {chaos.step.count}
         </span>
-        <span aria-label={`${left} seconds left`} className={cn("tabular-nums", left <= 10 && "text-destructive")}>
-          ⏱ {mm}
-        </span>
+        {left > 0 ? (
+          <span aria-label={`${left} seconds left`} className={cn("tabular-nums", left <= 10 && "text-destructive")}>
+            ⏱ {mm}
+          </span>
+        ) : (
+          <span className="text-destructive tabular-nums">
+            Time&apos;s up · moving on {overtime > 0 ? `in ${overtime}s` : "now"}
+          </span>
+        )}
       </p>
       <div className="bg-muted h-2 overflow-hidden rounded-full" aria-hidden>
         <div
@@ -66,7 +84,7 @@ function StepHeader({ chaos }: { chaos: ChaosPlayerView }) {
   );
 }
 
-function JobScreen({ view, act, pending, job }: ChaosScreenProps & { job: ChaosJob }) {
+function JobScreen({ view, act, pending, refresh, job }: ChaosScreenProps & { job: ChaosJob }) {
   const { chaos, room } = view;
   const detectJobs = chaos.myJobs.filter((j) => j.kind === "detect");
   const submit = (body: Record<string, unknown>) =>
@@ -79,7 +97,7 @@ function JobScreen({ view, act, pending, job }: ChaosScreenProps & { job: ChaosJ
 
   return (
     <>
-      <StepHeader chaos={chaos} />
+      <StepHeader chaos={chaos} refresh={refresh} />
       {job.kind === "detect" ? (
         <DetectJob
           job={job}
@@ -261,13 +279,13 @@ function ChoiceGroup({
 }
 
 /** Done with this step: who we're waiting on, and (host) skip once the timer is up. */
-function Waiting({ view, act, pending }: ChaosScreenProps) {
+function Waiting({ view, act, pending, refresh }: ChaosScreenProps) {
   const { chaos, players, me, room } = view;
   const left = useSecondsLeft(chaos.step?.deadline);
   const names = chaos.waitingOn.map((id) => players.find((p) => p.id === id)?.nickname ?? "someone");
   return (
     <>
-      <StepHeader chaos={chaos} />
+      <StepHeader chaos={chaos} refresh={refresh} />
       <section
         role="status"
         aria-live="polite"

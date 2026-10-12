@@ -176,3 +176,15 @@ test("Circle Chaos with 6: phones never receive other chains' work or answers be
   await expect(host.getByText(/the reveal/)).toBeVisible();
   await revealToRecap(host, phones);
 });
+
+test("a step moves on by itself after its overtime, even if the host never skips", async ({ browser }) => {
+  test.setTimeout(180_000);
+  const { host, phones } = await chaosRoom(browser, "Circle", ["Ana", "Ben"]);
+  await host.getByRole("button", { name: "Start Mutation Machine" }).click();
+  // Ana and Ben draw; the host never draws and never taps "Skip waiting".
+  for (const p of phones.slice(1)) await doJobs(p, "describe", "x", 1);
+  await expect(phones[1].getByText(/Waiting for Lem/)).toBeVisible();
+  // 60 s timer, then "Time's up" with a countdown, then everyone is moved on.
+  await expect(phones[1].getByText(/Time's up · moving on in \d+s/)).toBeVisible({ timeout: 75_000 });
+  for (const p of phones) await expect(p.getByText("Step 2 of 5")).toBeVisible({ timeout: 40_000 });
+});

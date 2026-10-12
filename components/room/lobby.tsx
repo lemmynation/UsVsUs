@@ -139,7 +139,7 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
       {inChaos ? (
         <>
           <ReactionsContext.Provider value={sendReaction}>
-            <ChaosScreen view={{ ...view, chaos }} act={act} pending={pending} />
+            <ChaosScreen view={{ ...view, chaos }} act={act} pending={pending} refresh={refresh} />
           </ReactionsContext.Provider>
           <FloatingReactions items={floating} />
           {actionError && (

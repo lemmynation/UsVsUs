@@ -13,7 +13,14 @@ import type { ChaosContent } from "./content";
 import { choiceKey, GAME_ID, MAX_PLAYERS, MIN_PLAYERS, planMatch, type Vibe } from "./plan";
 import { detectAnswers, missingWork, playerView, type ChaosPlayerView } from "./projections";
 import { scoreDetectStep } from "./scoring";
-import { decideAdvance, jobKey, stepDeadline, type ChaosAction, type ChaosAdvanceError } from "./state-machine";
+import {
+  decideAdvance,
+  jobKey,
+  stepAutoSkipAt,
+  stepDeadline,
+  type ChaosAction,
+  type ChaosAdvanceError,
+} from "./state-machine";
 
 export interface ChaosServiceDeps {
   store: RoomStore;
@@ -202,6 +209,20 @@ export function createChaosService({ store, content, now, random, onRoomChanged 
       if (!room || room.status !== "IN_GAME" || !match || match.phase !== "STEP_OPEN") return false;
       const moved = await move(match, "auto", await store.listPlayers(roomId));
       if (moved.ok) await onRoomChanged?.(roomId);
+      return moved.ok;
+    },
+
+    /**
+     * Any member's refresh can move a step on once its overtime is up, so a match never
+     * waits on a host who isn't looking. Compare-and-swap: only one refresh wins.
+     */
+    async catchUp(room: Room, players: Player[]): Promise<boolean> {
+      if (room.experience !== "chain_reactions" || room.status !== "IN_GAME") return false;
+      const match = await store.getLatestChainMatch(room.id);
+      if (!match || match.phase !== "STEP_OPEN") return false;
+      if (now() < stepAutoSkipAt(match.plan, match.step, new Date(match.phaseStartedAt))) return false;
+      const moved = await move(match, "skip_waiting", players);
+      if (moved.ok) await onRoomChanged?.(room.id);
       return moved.ok;
     },
 

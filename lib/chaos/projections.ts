@@ -8,7 +8,7 @@ import type { Artifact } from "./artifact";
 import type { ChaosContent } from "./content";
 import { choiceKey, type MatchPlan, type StepKind } from "./plan";
 import { duoSync, titlesFor, totals, type DetectAnswer, type Missing, type ScoreEntry, type Title } from "./scoring";
-import { stepDeadline } from "./state-machine";
+import { stepAutoSkipAt, stepDeadline } from "./state-machine";
 import type { ChaosContribution, ChaosMatch } from "@/types/chaos";
 
 export interface Choice {
@@ -60,7 +60,15 @@ export interface ChaosPlayerView {
   isDuo: boolean;
   /** How many chains the match has (one per player at the start). */
   chainCount: number;
-  step: { index: number; count: number; kind: StepKind; round: number; deadline: string } | null;
+  step: {
+    index: number;
+    count: number;
+    kind: StepKind;
+    round: number;
+    deadline: string;
+    /** When the server moves on without waiting any longer. */
+    autoSkipAt: string;
+  } | null;
   myJobs: ChaosJob[];
   /** Players who still owe work in this step (ids only, never what they're doing). */
   waitingOn: string[];
@@ -166,6 +174,7 @@ export function playerView(input: {
       kind: def.kind,
       round: def.round,
       deadline: stepDeadline(plan, def.index, new Date(match.phaseStartedAt)).toISOString(),
+      autoSkipAt: stepAutoSkipAt(plan, def.index, new Date(match.phaseStartedAt)).toISOString(),
     };
     const jobs = plan.assignments.filter((a) => a.step === match.step);
     waitingOn = [
