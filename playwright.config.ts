@@ -39,7 +39,8 @@ export default defineConfig({
       PAYMENT_PROVIDER: "fake",
       RATE_LIMITS: "off",
       ADMIN_TOKEN: E2E_ADMIN_TOKEN,
-      CHAIN_REACTIONS: "on",
+      // E2E_CHAIN_REACTIONS=off runs the suite the way production runs today.
+      CHAIN_REACTIONS: process.env.E2E_CHAIN_REACTIONS ?? "on",
     },
     reuseExistingServer: !process.env.CI,
     timeout: 300_000, // includes the build on CI

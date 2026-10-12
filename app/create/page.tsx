@@ -52,7 +52,7 @@ async function CreateContent({ searchParams }: { searchParams: PageProps<"/creat
         <p className="text-muted-foreground text-lg">
           {chaos
             ? "Mutation Machine: draw a thing, someone secretly mutates it, everyone works out what happened."
-            : "You&apos;ll get a link to share once it&apos;s ready."}
+            : "You'll get a link to share once it's ready."}
         </p>
       </div>
       <CreateRoomForm mode={mode} experience={chaos ? "chain_reactions" : "quick_party"} />

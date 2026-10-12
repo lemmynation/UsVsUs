@@ -205,8 +205,12 @@ export function createChaosService({ store, content, now, random, onRoomChanged 
 
     /** After someone leaves, the people left may all be done: don't make them wait. */
     async afterRosterChange(roomId: string): Promise<boolean> {
-      const [room, match] = await Promise.all([store.getRoomById(roomId), store.getLatestChainMatch(roomId)]);
-      if (!room || room.status !== "IN_GAME" || !match || match.phase !== "STEP_OPEN") return false;
+      // Room first: Quick Party rooms never touch the chaos tables (which a database
+      // without migration 10 doesn't have).
+      const room = await store.getRoomById(roomId);
+      if (!room || room.experience !== "chain_reactions" || room.status !== "IN_GAME") return false;
+      const match = await store.getLatestChainMatch(roomId);
+      if (!match || match.phase !== "STEP_OPEN") return false;
       const moved = await move(match, "auto", await store.listPlayers(roomId));
       if (moved.ok) await onRoomChanged?.(roomId);
       return moved.ok;
