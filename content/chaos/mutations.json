@@ -1,0 +1,276 @@
+{
+  "contentVersion": 1,
+  "mutations": [
+    {
+      "id": "mut-angry",
+      "label": "Angry",
+      "drawHint": "Give it an angry face: frowning eyebrows, gritted teeth, steam puffs.",
+      "family": "emotion"
+    },
+    {
+      "id": "mut-in-love",
+      "label": "In love",
+      "drawHint": "Give it heart eyes and float little hearts around it.",
+      "family": "emotion"
+    },
+    {
+      "id": "mut-terrified",
+      "label": "Terrified",
+      "drawHint": "Give it a scared face, shaking lines and a sweat drop.",
+      "family": "emotion"
+    },
+    {
+      "id": "mut-sleepy",
+      "label": "Sleepy",
+      "drawHint": "Close its eyes and add a few floating Zzz.",
+      "family": "emotion"
+    },
+    {
+      "id": "mut-crying",
+      "label": "Crying",
+      "drawHint": "Give it a sad face with big tears and a puddle.",
+      "family": "emotion"
+    },
+    {
+      "id": "mut-laughing",
+      "label": "Laughing",
+      "drawHint": "Give it a huge open-mouth laugh with laugh lines around it.",
+      "family": "emotion"
+    },
+    {
+      "id": "mut-gigantic",
+      "label": "Gigantic",
+      "drawHint": "Make it enormous: draw a tiny person or house next to it.",
+      "family": "size"
+    },
+    {
+      "id": "mut-tiny",
+      "label": "Tiny",
+      "drawHint": "Make it tiny: draw a giant hand or shoe next to it.",
+      "family": "size"
+    },
+    {
+      "id": "mut-stretched",
+      "label": "Stretched",
+      "drawHint": "Stretch it really long and thin, like taffy.",
+      "family": "size"
+    },
+    {
+      "id": "mut-squashed",
+      "label": "Squashed",
+      "drawHint": "Squash it flat with something heavy pressing down on top.",
+      "family": "size"
+    },
+    {
+      "id": "mut-has-legs",
+      "label": "Has legs",
+      "drawHint": "Give it legs and feet so it can walk.",
+      "family": "body",
+      "incompatibleWith": ["animal"]
+    },
+    {
+      "id": "mut-has-wings",
+      "label": "Has wings",
+      "drawHint": "Give it a pair of wings.",
+      "family": "body",
+      "incompatibleWith": ["animal"]
+    },
+    {
+      "id": "mut-has-a-tail",
+      "label": "Has a tail",
+      "drawHint": "Give it a long curly tail.",
+      "family": "body",
+      "incompatibleWith": ["animal"]
+    },
+    {
+      "id": "mut-has-arms",
+      "label": "Has arms",
+      "drawHint": "Give it two arms with hands, waving.",
+      "family": "body",
+      "incompatibleWith": ["animal"]
+    },
+    {
+      "id": "mut-has-many-eyes",
+      "label": "Has many eyes",
+      "drawHint": "Cover it with lots of eyes.",
+      "family": "body"
+    },
+    {
+      "id": "mut-has-a-mustache",
+      "label": "Has a mustache",
+      "drawHint": "Give it a big fancy mustache.",
+      "family": "body"
+    },
+    {
+      "id": "mut-on-wheels",
+      "label": "On wheels",
+      "drawHint": "Put it on wheels.",
+      "family": "motion",
+      "incompatibleWith": ["vehicle"]
+    },
+    {
+      "id": "mut-flying",
+      "label": "Flying",
+      "drawHint": "Make it fly: add a jet flame or propeller and speed lines.",
+      "family": "motion",
+      "incompatibleWith": ["vehicle"]
+    },
+    {
+      "id": "mut-spinning",
+      "label": "Spinning",
+      "drawHint": "Make it spin really fast with swirl lines.",
+      "family": "motion"
+    },
+    {
+      "id": "mut-exploding",
+      "label": "Exploding",
+      "drawHint": "Make it burst apart with a big BOOM shape and flying pieces.",
+      "family": "motion"
+    },
+    {
+      "id": "mut-melting",
+      "label": "Melting",
+      "drawHint": "Make it melt into drips and a puddle.",
+      "family": "motion"
+    },
+    {
+      "id": "mut-bouncing",
+      "label": "Bouncing",
+      "drawHint": "Make it bounce: draw its bounce path with motion arcs.",
+      "family": "motion"
+    },
+    {
+      "id": "mut-on-fire",
+      "label": "On fire",
+      "drawHint": "Set it on fire with big flames on top.",
+      "family": "element"
+    },
+    {
+      "id": "mut-frozen",
+      "label": "Frozen",
+      "drawHint": "Freeze it inside an ice block with icicles.",
+      "family": "element"
+    },
+    {
+      "id": "mut-electric",
+      "label": "Electric",
+      "drawHint": "Add lightning bolts and sparks all around it.",
+      "family": "element"
+    },
+    {
+      "id": "mut-underwater",
+      "label": "Underwater",
+      "drawHint": "Put it underwater with bubbles, waves and a fish.",
+      "family": "element"
+    },
+    {
+      "id": "mut-covered-in-plants",
+      "label": "Covered in plants",
+      "drawHint": "Cover it with leaves, vines and flowers.",
+      "family": "element"
+    },
+    {
+      "id": "mut-rainy",
+      "label": "Rainy",
+      "drawHint": "Put a little rain cloud above it, raining only on it.",
+      "family": "element"
+    },
+    {
+      "id": "mut-royalty",
+      "label": "Royalty",
+      "drawHint": "Give it a crown, a royal cape and a scepter.",
+      "family": "style"
+    },
+    {
+      "id": "mut-pirate",
+      "label": "Pirate",
+      "drawHint": "Give it an eye patch, pirate hat and a hook.",
+      "family": "style"
+    },
+    {
+      "id": "mut-astronaut",
+      "label": "Astronaut",
+      "drawHint": "Put it in a space helmet with stars around.",
+      "family": "style"
+    },
+    {
+      "id": "mut-wizard",
+      "label": "Wizard",
+      "drawHint": "Give it a pointy wizard hat, wand and magic sparkles.",
+      "family": "style"
+    },
+    {
+      "id": "mut-cowboy",
+      "label": "Cowboy",
+      "drawHint": "Give it a cowboy hat and a lasso.",
+      "family": "style"
+    },
+    {
+      "id": "mut-superhero",
+      "label": "Superhero",
+      "drawHint": "Give it a cape and a big letter on its chest.",
+      "family": "style"
+    },
+    {
+      "id": "mut-robot",
+      "label": "Robot",
+      "drawHint": "Turn it robotic: bolts, antenna and a control panel.",
+      "family": "style",
+      "incompatibleWith": ["tech"]
+    },
+    {
+      "id": "mut-cloned",
+      "label": "Cloned",
+      "drawHint": "Draw two more copies of it next to the original.",
+      "family": "quantity"
+    },
+    {
+      "id": "mut-split-in-half",
+      "label": "Split in half",
+      "drawHint": "Cut it in half with a gap and a zigzag break line.",
+      "family": "quantity"
+    },
+    {
+      "id": "mut-stacked",
+      "label": "Stacked",
+      "drawHint": "Stack it into a tall tower of itself.",
+      "family": "quantity"
+    },
+    {
+      "id": "mut-in-a-cage",
+      "label": "In a cage",
+      "drawHint": "Lock it inside a cage with bars.",
+      "family": "quantity"
+    },
+    {
+      "id": "mut-upside-down",
+      "label": "Upside down",
+      "drawHint": "Flip it upside down, with arrows showing it flipped.",
+      "family": "quantity"
+    },
+    {
+      "id": "mut-at-the-beach",
+      "label": "At the beach",
+      "drawHint": "Put it on a beach with sand, a palm tree and the sun.",
+      "family": "place"
+    },
+    {
+      "id": "mut-on-the-moon",
+      "label": "On the moon",
+      "drawHint": "Put it on the moon with craters and Earth in the sky.",
+      "family": "place"
+    },
+    {
+      "id": "mut-in-a-birthday-party",
+      "label": "In a birthday party",
+      "drawHint": "Add party hats, balloons and a cake next to it.",
+      "family": "place"
+    },
+    {
+      "id": "mut-in-a-haunted-house",
+      "label": "In a haunted house",
+      "drawHint": "Add ghosts, cobwebs and a full moon behind it.",
+      "family": "place"
+    }
+  ]
+}

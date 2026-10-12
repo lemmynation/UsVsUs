@@ -1,13 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import type { GameScreenProps } from "@/components/game/types";
+import type { GameAction } from "@/components/game/types";
+import type { RoomView } from "@/types/room";
 
 /**
  * One-tap Rematch (engagement phase): the host takes the whole group back to this
  * room's lobby, no new invites. Everyone else sees who they're waiting on.
  */
-export function RematchPanel({ view, act, pending }: GameScreenProps) {
+export function RematchPanel({ view, act, pending }: { view: RoomView; act: GameAction; pending: string | null }) {
   const host = view.players.find((p) => p.isHost);
   if (view.me.isHost) {
     return (

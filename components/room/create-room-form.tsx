@@ -9,9 +9,11 @@ import { ApiError, apiFetch } from "@/lib/client-api";
 import { MODE_META } from "@/lib/modes";
 import { NICKNAME_MAX, ROOM_NAME_MAX } from "@/lib/rooms/rules";
 import { takeTypedValue } from "@/lib/typed-before-hydration";
-import type { Mode } from "@/types/room";
+import type { Experience, Mode } from "@/types/room";
 
-export function CreateRoomForm({ mode }: { mode: Mode }) {
+export function CreateRoomForm({ mode, experience = "quick_party" }: { mode: Mode; experience?: Experience }) {
+  const label =
+    experience === "chain_reactions" ? (mode === "circle" ? "Circle Chaos" : "Duo Chaos") : MODE_META[mode].label;
   const router = useRouter();
   const [nickname, setNickname] = useState("");
   const [roomName, setRoomName] = useState("");
@@ -34,7 +36,7 @@ export function CreateRoomForm({ mode }: { mode: Mode }) {
     try {
       const { roomId } = await apiFetch<{ roomId: string }>("/api/rooms", {
         method: "POST",
-        body: { mode, nickname, roomName: roomName || null },
+        body: { mode, nickname, roomName: roomName || null, experience },
       });
       router.push(`/room/${roomId}`);
     } catch (err) {
@@ -83,7 +85,7 @@ export function CreateRoomForm({ mode }: { mode: Mode }) {
         </p>
       )}
       <Button type="submit" size="lg" disabled={pending || nickname.trim().length === 0}>
-        {pending ? "Creating…" : `Create ${MODE_META[mode].label} room`}
+        {pending ? "Creating…" : `Create ${label} room`}
       </Button>
     </form>
   );

@@ -32,6 +32,16 @@ export const ROOM_ERRORS: Record<string, { status: number; message: string }> = 
   checkout_failed: { status: 502, message: "We couldn't open the payment page. Please try again." },
   premium_disabled: { status: 404, message: "Premium packs aren't available right now." },
   rate_limited: { status: 429, message: "Slow down a little — try again in a moment." },
+  // Chain Reactions
+  wrong_experience: { status: 409, message: "This room plays a different game." },
+  too_many_players: { status: 409, message: "This game is for up to 10 players." },
+  no_match: { status: 409, message: "There's no game running right now — catching you up." },
+  step_closed: { status: 409, message: "That step just closed — catching you up." },
+  not_assigned: { status: 403, message: "That's someone else's job this round." },
+  invalid_artifact: { status: 400, message: "That drawing couldn't be saved. Try again." },
+  artifact_too_large: { status: 413, message: "That drawing is too big. Try fewer scribbles." },
+  not_ready: { status: 409, message: "Still waiting for players — you can skip once the timer runs out." },
+  feature_off: { status: 404, message: "That game isn't available yet." },
 };
 
 export function errorMessage(code: string): string {

@@ -83,3 +83,12 @@ export function getPaymentEnv(): PaymentEnv {
   }
   return paymentCached;
 }
+
+/**
+ * UsVsUs 4.2 Chain Reactions (Mutation Machine) is behind a feature flag: on only
+ * where CHAIN_REACTIONS=on (development and tests) until the owner approves it for
+ * production after playtests (docs/usvsus-4/13-decisions.md, decision D).
+ */
+export function chainReactionsEnabled(): boolean {
+  return process.env.CHAIN_REACTIONS === "on";
+}

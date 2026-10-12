@@ -10,6 +10,11 @@ export const SERVER_EVENTS = [
   "purchase_failed",
   "rematch_started",
   "reaction_sent",
+  // Chain Reactions (UsVsUs 4.2)
+  "chaos_match_started",
+  "contribution_submitted",
+  "chaos_step_skipped",
+  "chaos_match_completed",
   // Technical health (design doc §14)
   "join_failed",
   "api_timing",

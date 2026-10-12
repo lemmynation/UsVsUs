@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { Wordmark } from "@/components/brand/wordmark";
 import { ConnectionBanner } from "@/components/game/connection-banner";
+import { ChaosScreen } from "@/components/chaos/chaos-screen";
 import { GameScreen } from "@/components/game/game-screen";
 import { FloatingReactions, ReactionsContext } from "@/components/game/reactions";
 import { CheckoutReturn } from "@/components/premium/checkout-return";
@@ -72,7 +73,11 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
       // nothing went wrong from the player's point of view — just catch up quietly.
       const alreadyDone =
         err instanceof ApiError &&
-        (err.code === "stale_state" || err.code === "not_open" || (key === "start" && err.code === "not_in_lobby"));
+        (err.code === "stale_state" ||
+          err.code === "not_open" ||
+          err.code === "step_closed" ||
+          err.code === "no_match" ||
+          (key === "start" && err.code === "not_in_lobby"));
       if (alreadyDone) {
         await refresh();
         return false;
@@ -114,7 +119,12 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
   }
 
   const game = view.game;
-  const inGame = game !== null && (room.status === "IN_GAME" || room.status === "WRAPPED");
+  const chain = room.experience === "chain_reactions";
+  const chaos = view.chaos;
+  const playing = room.status === "IN_GAME" || room.status === "WRAPPED";
+  const inGame = !chain && game !== null && playing;
+  const inChaos = chain && chaos !== null && playing;
+  const label = chain ? (room.mode === "circle" ? "Circle Chaos" : "Duo Chaos") : meta.label;
 
   return (
     <div className={cn(meta.className, "flex flex-1 flex-col gap-6")}>
@@ -122,11 +132,28 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
       <header className="flex items-center justify-between gap-3">
         <Wordmark />
         <span className="bg-mode-gradient rounded-full px-3 py-1 text-sm font-semibold text-[oklch(0.18_0.04_300)]">
-          {meta.emoji} {meta.label}
+          {chain ? "⚡" : meta.emoji} {label}
         </span>
       </header>
 
-      {inGame ? (
+      {inChaos ? (
+        <>
+          <ReactionsContext.Provider value={sendReaction}>
+            <ChaosScreen view={{ ...view, chaos }} act={act} pending={pending} refresh={refresh} />
+          </ReactionsContext.Provider>
+          <FloatingReactions items={floating} />
+          {actionError && (
+            <p role="alert" className="text-destructive text-base">
+              {actionError}
+            </p>
+          )}
+          {chaos.phase !== "RECAP" && (
+            <Button variant="ghost" onClick={leave} disabled={pending !== null}>
+              Leave game
+            </Button>
+          )}
+        </>
+      ) : inGame ? (
         <>
           <ReactionsContext.Provider value={sendReaction}>
             <GameScreen view={{ ...view, game }} act={act} pending={pending} />
@@ -148,9 +175,20 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
       ) : (
         <>
           <div>
-            <p className="text-muted-foreground text-base">{room.name ? "Lobby" : `${meta.label} lobby`}</p>
+            <p className="text-muted-foreground text-base">{room.name ? "Lobby" : `${label} lobby`}</p>
             <h1 className="font-heading text-4xl font-extrabold break-words">{room.name ?? "Waiting room"}</h1>
-            {game?.phase === "FINISHED" && (
+            {chain && (
+              <p className="mt-2 text-lg">
+                <strong>Mutation Machine:</strong> draw a thing. Someone secretly mutates it. Everyone else works out
+                what it was and what happened to it.
+              </p>
+            )}
+            {chain && chaos?.phase === "RECAP" && (
+              <p role="status" className="mt-2 text-base">
+                🔁 <span className="font-semibold">Rematch!</span> New things to draw, new mutations.
+              </p>
+            )}
+            {!chain && game?.phase === "FINISHED" && (
               <p role="status" className="mt-2 text-base">
                 🔁 <span className="font-semibold">Rematch!</span> Same crew, fresh questions. Anyone who left can
                 rejoin with the code.
@@ -205,7 +243,7 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
             </ul>
           </section>
 
-          {me.isHost && premium.enabled && (
+          {!chain && me.isHost && premium.enabled && (
             <>
               <CheckoutReturn roomId={room.id} pendingCheckout={premium.pendingCheckout} onUnlocked={onUnlocked} />
               <PackPicker
@@ -216,7 +254,7 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
               />
             </>
           )}
-          {!me.isHost && unlockedPacks.length > 0 && (
+          {!chain && !me.isHost && unlockedPacks.length > 0 && (
             <p className="border-mode-gradient rounded-2xl p-4 text-center text-lg">
               {unlockedPacks.map((p) => `${p.emoji} ${p.name}`).join(" · ")} unlocked for this room
             </p>
@@ -233,11 +271,21 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
               <>
                 <Button
                   size="lg"
-                  onClick={() => act("start", `/api/rooms/${room.id}/start`, { packSlug: chosenPack?.slug ?? null })}
+                  onClick={() =>
+                    chain
+                      ? act("start", `/api/rooms/${room.id}/chaos/start`, {})
+                      : act("start", `/api/rooms/${room.id}/start`, { packSlug: chosenPack?.slug ?? null })
+                  }
                   disabled={missing > 0 || pending !== null}
                   aria-describedby="start-hint"
                 >
-                  {pending === "start" ? "Starting…" : chosenPack ? `Start ${chosenPack.name}` : "Start game"}
+                  {pending === "start"
+                    ? "Starting…"
+                    : chain
+                      ? "Start Mutation Machine"
+                      : chosenPack
+                        ? `Start ${chosenPack.name}`
+                        : "Start game"}
                 </Button>
                 <p id="start-hint" className="text-muted-foreground text-center text-base" aria-live="polite">
                   {missing > 0

@@ -10,8 +10,11 @@ import type {
   ScoreEntry,
   WrappedReport,
 } from "@/types/game";
+import type { MatchPlan } from "@/lib/chaos/plan";
+import type { ChaosPosition } from "@/lib/chaos/state-machine";
+import type { ChaosContribution, ChaosMatch, ChaosScoreEntry, ContributionPayload } from "@/types/chaos";
 import type { Payment, PaymentProviderName } from "@/types/premium";
-import type { Mode, Player, Room } from "@/types/room";
+import type { Experience, Mode, Player, Room } from "@/types/room";
 
 export interface AnalyticsEvent {
   anonymousSessionId: string | null;
@@ -59,6 +62,8 @@ export interface RoomStore {
   createRoom(input: {
     joinCode: string;
     mode: Mode;
+    /** Defaults to Quick Party. */
+    experience?: Experience;
     name: string | null;
     expiresAt: string;
     now: string;
@@ -90,7 +95,13 @@ export interface RoomStore {
     now: string;
     /** Premium pack: the room's entitlement is re-checked atomically with the start. */
     packSlug?: string;
-  }): Promise<{ session: GameSession; rounds: GameRound[] } | "not_in_lobby" | "not_enough_players" | "pack_locked">;
+  }): Promise<
+    | { session: GameSession; rounds: GameRound[] }
+    | "not_in_lobby"
+    | "wrong_experience"
+    | "not_enough_players"
+    | "pack_locked"
+  >;
 
   /** The room's most recent game session, if any. */
   getLatestGame(roomId: string): Promise<{ session: GameSession; rounds: GameRound[] } | null>;
@@ -205,6 +216,54 @@ export interface RoomStore {
 
   /** Feedback since `sinceIso`, newest first, at most `limit`. */
   listFeedback(sinceIso: string, limit: number): Promise<FeedbackEntry[]>;
+
+  // --- Chain Reactions (UsVsUs 4.2) ---
+
+  /**
+   * LOBBY → IN_GAME and the match with its frozen plan, atomically, under the room lock.
+   * Re-checks status, experience and player count.
+   */
+  startChainMatch(input: {
+    roomId: string;
+    minPlayers: number;
+    gameId: string;
+    plan: MatchPlan;
+    now: string;
+  }): Promise<ChaosMatch | "not_in_lobby" | "wrong_experience" | "not_enough_players">;
+
+  /** The room's most recent match, if any. */
+  getLatestChainMatch(roomId: string): Promise<ChaosMatch | null>;
+
+  /**
+   * Stores (or replaces, until the step closes) a contribution. Must hold off a
+   * concurrent advance so nothing lands after a step closes. Same idempotency key
+   * again = a retry ("duplicate"). The assignment is re-checked against the plan.
+   */
+  submitContribution(input: {
+    matchId: string;
+    step: number;
+    chain: number;
+    playerId: string;
+    payload: ContributionPayload;
+    bytes: number;
+    idempotencyKey: string;
+    now: string;
+  }): Promise<"ok" | "duplicate" | "not_open" | "not_assigned">;
+
+  listContributions(matchId: string): Promise<ChaosContribution[]>;
+
+  /** Compare-and-swap on stateVersion. Reaching RECAP also moves the room to WRAPPED. */
+  advanceChainMatch(input: {
+    matchId: string;
+    expectedVersion: number;
+    next: ChaosPosition;
+    now: string;
+  }): Promise<ChaosMatch | "stale">;
+
+  /** Locks in points; idempotent per (player, step, chain, reason). Players who left are skipped. */
+  recordChainScores(matchId: string, entries: ChaosScoreEntry[]): Promise<void>;
+
+  listChainScores(matchId: string): Promise<ChaosScoreEntry[]>;
 
   // --- Premium (Phase 5) ---
 

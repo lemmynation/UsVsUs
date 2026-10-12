@@ -1,3 +1,4 @@
+import type { ChaosPlayerView } from "@/lib/chaos/projections";
 import type { GameView } from "./game";
 import type { PremiumView } from "./premium";
 
@@ -9,10 +10,14 @@ export type RoomStatus = (typeof ROOM_STATUSES)[number];
 
 export type PlayerStatus = "active" | "kicked";
 
+export type Experience = "quick_party" | "chain_reactions";
+
 export interface Room {
   id: string;
   joinCode: string;
   mode: Mode;
+  /** Quick Party (the quiz games) or Chain Reactions (Mutation Machine). */
+  experience: Experience;
   name: string | null;
   hostPlayerId: string | null;
   status: RoomStatus;
@@ -38,6 +43,7 @@ export interface RoomView {
     id: string;
     joinCode: string;
     mode: Mode;
+    experience: Experience;
     name: string | null;
     status: RoomStatus;
     expiresAt: string;
@@ -55,6 +61,8 @@ export interface RoomView {
   game: GameView | null;
   /** Premium packs for this room's mode and what's unlocked. */
   premium: PremiumView;
+  /** Chain Reactions rooms: this player's view of the current match (null before one starts). */
+  chaos: ChaosPlayerView | null;
 }
 
 /** Public info shown on the join screen before someone is a member. */

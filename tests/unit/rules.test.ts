@@ -27,6 +27,7 @@ function room(overrides: Partial<Room> = {}): Room {
     id: "room-1",
     joinCode: "ABC234",
     mode: "couple",
+    experience: "quick_party",
     name: null,
     hostPlayerId: "p1",
     status: "LOBBY",

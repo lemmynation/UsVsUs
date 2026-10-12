@@ -6,6 +6,7 @@ import { findPack } from "@/lib/premium/catalog";
 import type { Payment } from "@/types/premium";
 import type { Player, Room } from "@/types/room";
 import { nextHost } from "./rules";
+import type { ChaosContribution, ChaosMatch, ChaosScoreEntry } from "@/types/chaos";
 import type { AnalyticsEvent, CleanupCutoffs, FeedbackEntry, RoomStore } from "./store";
 
 /**
@@ -20,6 +21,10 @@ export class MemoryRoomStore implements RoomStore {
   private responses: GameResponse[] = [];
   private scores: Array<ScoreEntry & { sessionId: string }> = [];
   private wrapped = new Map<string, WrappedReport>();
+  private chaosMatches = new Map<string, ChaosMatch>();
+  /** `${matchId}:${step}:${chain}:${playerId}` → contribution + its idempotency key */
+  private chaosContributions = new Map<string, ChaosContribution & { idempotencyKey: string }>();
+  private chaosScores: Array<ChaosScoreEntry & { matchId: string }> = [];
   private payments = new Map<string, Payment>();
   /** roomId → pack slugs unlocked */
   private entitlements = new Map<string, Set<string>>();
@@ -46,6 +51,7 @@ export class MemoryRoomStore implements RoomStore {
       id: randomUUID(),
       joinCode: input.joinCode,
       mode: input.mode,
+      experience: input.experience ?? "quick_party",
       name: input.name,
       hostPlayerId: null,
       status: "LOBBY",
@@ -112,6 +118,7 @@ export class MemoryRoomStore implements RoomStore {
   async startGame(input: Parameters<RoomStore["startGame"]>[0]) {
     const room = this.rooms.get(input.roomId);
     if (!room || room.status !== "LOBBY") return "not_in_lobby" as const;
+    if (room.experience !== "quick_party") return "wrong_experience" as const;
     const active = [...this.players.values()].filter((p) => p.roomId === room.id && p.status === "active");
     if (active.length < input.minPlayers) return "not_enough_players" as const;
     // Mirrors the SQL: the entitlement is checked in the same step as the start.
@@ -248,6 +255,111 @@ export class MemoryRoomStore implements RoomStore {
     return { ...s };
   }
 
+  async startChainMatch(input: Parameters<RoomStore["startChainMatch"]>[0]) {
+    const room = this.rooms.get(input.roomId);
+    if (!room || room.status !== "LOBBY") return "not_in_lobby" as const;
+    if (room.experience !== "chain_reactions") return "wrong_experience" as const;
+    const active = [...this.players.values()].filter((p) => p.roomId === room.id && p.status === "active");
+    if (active.length < input.minPlayers) return "not_enough_players" as const;
+    room.status = "IN_GAME";
+    const match: ChaosMatch = {
+      id: randomUUID(),
+      roomId: room.id,
+      gameId: input.gameId,
+      plan: structuredClone(input.plan),
+      phase: "STEP_OPEN",
+      step: 1,
+      revealChain: null,
+      stateVersion: 1,
+      phaseStartedAt: input.now,
+      startedAt: input.now,
+      endedAt: null,
+    };
+    this.chaosMatches.set(match.id, match);
+    return structuredClone(match);
+  }
+
+  async getLatestChainMatch(roomId: string) {
+    const latest = [...this.chaosMatches.values()]
+      .filter((m) => m.roomId === roomId)
+      .sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0];
+    return latest ? structuredClone(latest) : null;
+  }
+
+  async submitContribution(input: Parameters<RoomStore["submitContribution"]>[0]) {
+    const match = this.chaosMatches.get(input.matchId);
+    if (!match || match.phase !== "STEP_OPEN" || match.step !== input.step) return "not_open" as const;
+    const assigned = match.plan.assignments.some(
+      (a) => a.step === input.step && a.chain === input.chain && a.playerId === input.playerId,
+    );
+    if (!assigned) return "not_assigned" as const;
+    const key = `${input.matchId}:${input.step}:${input.chain}:${input.playerId}`;
+    const existing = this.chaosContributions.get(key);
+    if (existing?.idempotencyKey === input.idempotencyKey) return "duplicate" as const;
+    this.chaosContributions.set(key, {
+      matchId: input.matchId,
+      step: input.step,
+      chain: input.chain,
+      playerId: input.playerId,
+      payload: structuredClone(input.payload),
+      version: (existing?.version ?? 0) + 1,
+      submittedAt: input.now,
+      idempotencyKey: input.idempotencyKey,
+    });
+    return "ok" as const;
+  }
+
+  async listContributions(matchId: string) {
+    return [...this.chaosContributions.values()]
+      .filter((c) => c.matchId === matchId)
+      .map((c) => ({
+        matchId: c.matchId,
+        step: c.step,
+        chain: c.chain,
+        playerId: c.playerId,
+        payload: structuredClone(c.payload),
+        version: c.version,
+        submittedAt: c.submittedAt,
+      }));
+  }
+
+  async advanceChainMatch(input: Parameters<RoomStore["advanceChainMatch"]>[0]) {
+    const match = this.chaosMatches.get(input.matchId);
+    if (!match || match.stateVersion !== input.expectedVersion) return "stale" as const;
+    Object.assign(match, {
+      phase: input.next.phase,
+      step: input.next.step,
+      revealChain: input.next.revealChain,
+      stateVersion: match.stateVersion + 1,
+      phaseStartedAt: input.now,
+      endedAt: input.next.phase === "RECAP" ? input.now : match.endedAt,
+    });
+    const room = this.rooms.get(match.roomId);
+    if (input.next.phase === "RECAP" && room?.status === "IN_GAME") room.status = "WRAPPED";
+    return structuredClone(match);
+  }
+
+  async recordChainScores(matchId: string, entries: ChaosScoreEntry[]) {
+    for (const entry of entries) {
+      if (!this.players.has(entry.playerId)) continue;
+      const exists = this.chaosScores.some(
+        (e) =>
+          e.matchId === matchId &&
+          e.playerId === entry.playerId &&
+          e.step === entry.step &&
+          e.chain === entry.chain &&
+          e.reason === entry.reason,
+      );
+      if (!exists) this.chaosScores.push({ ...entry, matchId });
+    }
+  }
+
+  async listChainScores(matchId: string) {
+    return this.chaosScores
+      .filter((e) => e.matchId === matchId)
+      .map((e) => ({ playerId: e.playerId, step: e.step, chain: e.chain, reason: e.reason, points: e.points }));
+  }
+
   async reopenRoom(input: { roomId: string; expiresAt: string }) {
     const room = this.rooms.get(input.roomId);
     if (!room || room.status !== "WRAPPED") return "not_wrapped" as const;
@@ -311,6 +423,8 @@ export class MemoryRoomStore implements RoomStore {
     // Mirrors ON DELETE CASCADE.
     this.responses = this.responses.filter((r) => r.playerId !== playerId);
     this.scores = this.scores.filter((e) => e.playerId !== playerId);
+    for (const [k, c] of this.chaosContributions) if (c.playerId === playerId) this.chaosContributions.delete(k);
+    this.chaosScores = this.chaosScores.filter((e) => e.playerId !== playerId);
     if (!room || !player.isHost) return;
 
     const successor = nextHost(roomPlayers, playerId);
@@ -459,6 +573,12 @@ export class MemoryRoomStore implements RoomStore {
     for (const [id, r] of this.rounds) if (goneSessions.has(r.sessionId)) this.rounds.delete(id);
     this.responses = this.responses.filter((r) => !goneSessions.has(r.sessionId));
     this.scores = this.scores.filter((s) => !goneSessions.has(s.sessionId));
+    const goneMatches = new Set(
+      [...this.chaosMatches.values()].filter((m) => goneRooms.has(m.roomId)).map((m) => m.id),
+    );
+    for (const id of goneMatches) this.chaosMatches.delete(id);
+    for (const [k, c] of this.chaosContributions) if (goneMatches.has(c.matchId)) this.chaosContributions.delete(k);
+    this.chaosScores = this.chaosScores.filter((e) => !goneMatches.has(e.matchId));
     // Paid records are kept for accounting, unlinked from the room; unpaid intents go.
     for (const [id, p] of this.payments) {
       if (!p.roomId || !goneRooms.has(p.roomId)) continue;
