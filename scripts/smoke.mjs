@@ -69,7 +69,30 @@ if (room) {
   check("guest sees the game", after.game?.phase === "ROUND_INTRO", after.game?.phase);
   const outsider = await phone()(`/api/rooms/${room.roomId}`);
   check("strangers can't read the room", outsider.status === 403 || outsider.status === 404, String(outsider.status));
+  // Leaving mid-game runs the roster-change paths of every game type (Chain Reactions included).
+  const left = await guest(`/api/rooms/${room.roomId}/leave`, { method: "POST", body: "{}" });
+  check("guest leaves mid-game", left.status === 200, String(left.status));
+  const hostAfter = await host(`/api/rooms/${room.roomId}`);
+  check("host's room still loads after that", hostAfter.status === 200, String(hostAfter.status));
 }
+
+// Chain Reactions (Mutation Machine) is behind CHAIN_REACTIONS=on. Report which it is.
+const chaos = await phone()("/api/rooms", {
+  method: "POST",
+  body: JSON.stringify({ mode: "circle", nickname: "Smoke", experience: "chain_reactions" }),
+});
+const chaosOn = chaos.status === 201;
+check(
+  `Mutation Machine is ${chaosOn ? "ON" : "off"} (CHAIN_REACTIONS)`,
+  chaosOn || chaos.status === 404,
+  chaosOn ? "created a chaos room" : String(chaos.status),
+);
+const homeHtml = html.includes("Mutation Machine");
+check(
+  "landing page matches the flag",
+  homeHtml === chaosOn,
+  homeHtml ? "shows Mutation Machine" : "no Mutation Machine",
+);
 
 const cron = await visitor("/api/admin/cleanup");
 check("cleanup job refuses requests without the secret", cron.status === 401, String(cron.status));

@@ -37,7 +37,8 @@ node scripts/smoke.mjs https://us-vs-us-chi.vercel.app
 ```
 
 It checks pages, security headers and link previews, then plays the start of a game with two simulated
-phones. Each run leaves one room called "Smoke" in the dashboard; it expires on its own.
+phones, has a guest leave mid-game, and reports whether Mutation Machine (`CHAIN_REACTIONS`) is on. Each run
+leaves one room called "Smoke" in the dashboard (two while Mutation Machine is on); they expire on their own.
 
 For bigger releases, run the **full beta test**: the browser test suite against the live site (premium and
 admin login are left out), one phone at a time, about 5 minutes:
