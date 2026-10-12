@@ -1,5 +1,8 @@
 # 13 — Owner decisions (decision gate)
 
+> **Approved 12 Oct 2026:** A (rework), B (deduction scoring), C (one parallel chain per player) and D (feature
+> flag, development only) as recommended. Items 2–7 remain recommended defaults, to confirm before their sprints.
+
 Recommended defaults are marked ⭐. Sprint 1 needs only decisions **A–D**; the rest can be confirmed later,
 but are recorded so nothing is invented silently.
 

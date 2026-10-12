@@ -71,5 +71,5 @@ gate message. `npm run check`, the full Playwright suite on a production build, 
 - [x] Baseline checks (results in the gate report)
 - [x] Competitive originality audit
 - [x] Design documents 01–13
-- [ ] **Owner approves decisions (gate)** — no application code before this
+- [x] **Owner approves decisions (gate)**: A–D approved 12 Oct 2026
 - [ ] Sprint 1 implementation (small tested commits, no deploy / production schema without separate approval)
