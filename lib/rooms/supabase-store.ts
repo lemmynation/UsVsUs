@@ -225,6 +225,8 @@ const QUESTION_CACHE_MS = 5 * 60_000;
 let questionCache: { at: number; questions: Question[] } | undefined;
 
 const ROOM_COLUMNS = "id, join_code, mode, name, host_player_id, status, selected_pack_id, created_at, expires_at";
+/** Needs migration 10, so only read while Chain Reactions is on (a database without it would fail). */
+const CHAOS_ROOM_COLUMNS = `${ROOM_COLUMNS}, experience`;
 const PLAYER_COLUMNS = "id, room_id, nickname, session_token_hash, is_host, status, joined_at, last_seen_at";
 
 function check(error: { message: string } | null, op: string) {
@@ -232,7 +234,14 @@ function check(error: { message: string } | null, op: string) {
 }
 
 export class SupabaseRoomStore implements RoomStore {
-  constructor(private db: SupabaseClient) {}
+  private roomColumns: string;
+
+  constructor(
+    private db: SupabaseClient,
+    options: { chainReactions?: boolean } = {},
+  ) {
+    this.roomColumns = options.chainReactions ? CHAOS_ROOM_COLUMNS : ROOM_COLUMNS;
+  }
 
   private async packSlugOf(packId: string | null): Promise<string | null> {
     if (!packId) return null;
@@ -263,15 +272,19 @@ export class SupabaseRoomStore implements RoomStore {
   }
 
   async getRoomById(id: string) {
-    const { data, error } = await this.db.from("rooms").select(ROOM_COLUMNS).eq("id", id).maybeSingle();
+    const { data, error } = await this.db.from("rooms").select(this.roomColumns).eq("id", id).maybeSingle<RoomRow>();
     check(error, "getRoomById");
-    return data ? toRoom(data as RoomRow) : null;
+    return data ? toRoom(data) : null;
   }
 
   async getRoomByCode(joinCode: string) {
-    const { data, error } = await this.db.from("rooms").select(ROOM_COLUMNS).eq("join_code", joinCode).maybeSingle();
+    const { data, error } = await this.db
+      .from("rooms")
+      .select(this.roomColumns)
+      .eq("join_code", joinCode)
+      .maybeSingle<RoomRow>();
     check(error, "getRoomByCode");
-    return data ? toRoom(data as RoomRow) : null;
+    return data ? toRoom(data) : null;
   }
 
   async listPlayers(roomId: string) {

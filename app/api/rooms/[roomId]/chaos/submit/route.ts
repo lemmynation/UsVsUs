@@ -1,3 +1,4 @@
+import { MAX_ARTIFACT_BYTES } from "@/lib/chaos/artifact";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { track } from "@/lib/analytics/server";
@@ -24,6 +25,9 @@ async function handlePOST(request: NextRequest, ctx: RouteContext<"/api/rooms/[r
   if (isRateLimited(request, "roomAction", sessionHash)) return apiError("rate_limited");
   const { roomId } = await ctx.params;
   if (!z.uuid().safeParse(roomId).success) return apiError("room_not_found");
+  // A drawing is at most 64 KB; refuse anything far bigger before parsing it.
+  if (Number(request.headers.get("content-length") ?? 0) > 2 * MAX_ARTIFACT_BYTES)
+    return apiError("artifact_too_large");
   const body = await parseBody(request, bodySchema);
   if (!body) return apiError("invalid_input");
   if (!sessionHash) return apiError("not_in_room");

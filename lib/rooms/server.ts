@@ -1,6 +1,6 @@
 import "server-only";
 import { randomInt } from "node:crypto";
-import { getServerEnv } from "@/lib/env";
+import { chainReactionsEnabled, getServerEnv } from "@/lib/env";
 import { CHAOS_CONTENT } from "@/lib/chaos/content";
 import { createChaosService, type ChaosService } from "@/lib/chaos/service";
 import { createGameService, type GameService } from "@/lib/game/service";
@@ -17,7 +17,7 @@ const globalForStore = globalThis as unknown as { __usVsUsMemoryStore?: MemoryRo
 
 export function getRoomStore(): RoomStore {
   if (getServerEnv().store === "supabase") {
-    return new SupabaseRoomStore(getSupabaseAdmin());
+    return new SupabaseRoomStore(getSupabaseAdmin(), { chainReactions: chainReactionsEnabled() });
   }
   globalForStore.__usVsUsMemoryStore ??= new MemoryRoomStore();
   return globalForStore.__usVsUsMemoryStore;

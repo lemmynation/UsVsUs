@@ -28,6 +28,10 @@ export function DrawingCanvas({
 }) {
   const svg = useRef<SVGSVGElement>(null);
   const drawing = useRef<Stroke | null>(null);
+  /** Only the first finger draws; a second finger or a palm is ignored until it lifts. */
+  const pointer = useRef<number | null>(null);
+  /** The finished strokes when the pen went down; moves can arrive before React re-renders. */
+  const finished = useRef<{ strokes: Stroke[]; points: number }>({ strokes: [], points: 0 });
   const [color, setColor] = useState(0);
   const [width, setWidth] = useState<1 | 2>(1);
   const points = strokes.reduce((n, s) => n + s.p.length / 2, 0);
@@ -43,24 +47,29 @@ export function DrawingCanvas({
   }
 
   function down(e: React.PointerEvent<SVGSVGElement>) {
-    if (full || (e.pointerType === "mouse" && e.button !== 0)) return;
+    if (full || pointer.current !== null || (e.pointerType === "mouse" && e.button !== 0)) return;
+    pointer.current = e.pointerId;
     e.currentTarget.setPointerCapture(e.pointerId);
     const [x, y] = toCanvas(e);
     drawing.current = { c: color, w: width, p: [x, y] };
+    finished.current = { strokes, points };
     onChange([...strokes, drawing.current]);
   }
 
   function move(e: React.PointerEvent<SVGSVGElement>) {
     const current = drawing.current;
-    if (!current) return;
+    if (!current || e.pointerId !== pointer.current) return;
     const [x, y] = toCanvas(e);
     const [lx, ly] = current.p.slice(-2);
-    if (Math.hypot(x - lx, y - ly) < MIN_STEP || points >= MAX_POINTS) return;
+    const base = finished.current;
+    if (Math.hypot(x - lx, y - ly) < MIN_STEP || base.points + current.p.length / 2 >= MAX_POINTS) return;
     current.p = [...current.p, x, y];
-    onChange([...strokes.slice(0, -1), { ...current }]);
+    onChange([...base.strokes, { ...current }]);
   }
 
-  function up() {
+  function up(e: React.PointerEvent<SVGSVGElement>) {
+    if (e.pointerId !== pointer.current) return;
+    pointer.current = null;
     drawing.current = null;
   }
 

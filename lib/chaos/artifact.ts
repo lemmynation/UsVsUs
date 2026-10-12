@@ -9,7 +9,8 @@ import { z } from "zod";
 /** Logical canvas size; phones scale it to fit. */
 export const CANVAS_SIZE = 600;
 export const MAX_STROKES = 300;
-export const MAX_POINTS = 8000;
+/** Chosen so the largest drawing the canvas allows always fits in MAX_ARTIFACT_BYTES (unit-tested). */
+export const MAX_POINTS = 7000;
 export const MAX_ARTIFACT_BYTES = 65536;
 export const MAX_TEXT = 80;
 /** Pen colours by index (ink, red, blue, green) — the palette is ours, not the client's. */

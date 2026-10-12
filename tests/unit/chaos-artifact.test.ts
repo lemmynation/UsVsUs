@@ -47,6 +47,19 @@ describe("artifact validation", () => {
     expect(r).toEqual({ ok: false, error: "artifact_too_large" });
   });
 
+  it("always fits the largest drawing the canvas allows (no 'too big' after drawing)", () => {
+    // Worst case: every stroke allowed, every point allowed, every coordinate 3 digits, thick and coloured.
+    const perStroke = Math.floor(MAX_POINTS / MAX_STROKES);
+    const extra = MAX_POINTS - perStroke * MAX_STROKES;
+    const strokes = Array.from({ length: MAX_STROKES }, (_, i) => ({
+      c: 3,
+      w: 2 as const,
+      p: Array.from({ length: (perStroke + (i < extra ? 1 : 0)) * 2 }, () => 600),
+    }));
+    const r = validateArtifact({ medium: "drawing", strokes });
+    expect(r.ok).toBe(true);
+  });
+
   it("builds SVG paths only from numbers", () => {
     expect(strokePath(line)).toBe("M10 10L100 120");
     expect(strokePath({ c: 0, w: 1 as const, p: [5, 6] })).toBe("M5 6l0.01 0");
