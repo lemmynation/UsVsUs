@@ -72,4 +72,25 @@ gate message. `npm run check`, the full Playwright suite on a production build, 
 - [x] Competitive originality audit
 - [x] Design documents 01–13
 - [x] **Owner approves decisions (gate)**: A–D approved 12 Oct 2026
-- [ ] Sprint 1 implementation (small tested commits, no deploy / production schema without separate approval)
+- [x] Sprint 1 implementation on `usvsus-4-sprint1` (small tested commits; no deploy or production schema)
+- [ ] Migration 10 on the **dev** database, then a live dev E2E run
+- [ ] Manual drawing check on a real iPhone and Android phone
+
+## Sprint 1 — what was built, and where it differs from docs 03–12
+
+Built behind `CHAIN_REACTIONS=on` (off unless set; on for E2E). Migration 10
+(`20261016000000_chain_reactions.sql`) is **not applied to any database yet**: dev first, production only with
+separate approval.
+
+Deviations found while building (the design docs describe the original intent):
+
+1. **No swap card yet.** The one-time "swap my mutation" card from [03](03-mini-game-rules.md) is deferred;
+   nothing in the data model blocks adding it.
+2. **Steps auto-advance as soon as every job is in**, not only at the timer. The host's "Skip waiting" still
+   appears once the timer runs out, for players who stall.
+3. **No separate `STEP_LOCKED` phase.** A step closes with the usual compare-and-swap on `state_version`;
+   points for that step are then scored from a fresh read (idempotent), so a late answer can't slip in and
+   nothing is scored twice. Phases are `STEP_OPEN → REVEAL → RECAP`.
+4. **Duo Chaos uses a Friends room** (2 players) and Circle Chaos a Circle room; the room's `experience`
+   column decides which game runs. Quick Party refuses to start in a chaos room and vice versa.
+5. **Analytics:** the new events are recorded; the `/admin/metrics` tiles for them are not built yet.

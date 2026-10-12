@@ -11,7 +11,7 @@ async function newPlayer(browser: Browser): Promise<Page> {
 
 async function hostRoom(page: Page, mode: "Couple" | "Friends" | "Circle", nickname: string): Promise<string> {
   await page.goto("/");
-  await page.getByRole("link", { name: new RegExp(`^.?\\s*${mode}`) }).click();
+  await page.getByRole("link", { name: new RegExp(`^.?\\s*${mode}(?! Chaos)`) }).click();
   await page.getByLabel("Your nickname").fill(nickname);
   await page.getByRole("button", { name: `Create ${mode} room` }).click();
   await expect(page).toHaveURL(/\/room\/[0-9a-f-]{36}$/);

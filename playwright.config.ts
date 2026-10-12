@@ -34,7 +34,13 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     // In-memory rooms so E2E needs no database. Supabase-specific behaviour is covered separately.
     // Every simulated phone shares one IP, so per-IP rate limits are off for the test server only.
-    env: { ROOM_STORE: "memory", PAYMENT_PROVIDER: "fake", RATE_LIMITS: "off", ADMIN_TOKEN: E2E_ADMIN_TOKEN },
+    env: {
+      ROOM_STORE: "memory",
+      PAYMENT_PROVIDER: "fake",
+      RATE_LIMITS: "off",
+      ADMIN_TOKEN: E2E_ADMIN_TOKEN,
+      CHAIN_REACTIONS: "on",
+    },
     reuseExistingServer: !process.env.CI,
     timeout: 300_000, // includes the build on CI
   },
