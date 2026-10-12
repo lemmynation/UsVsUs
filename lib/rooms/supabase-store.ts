@@ -13,14 +13,20 @@ import type {
   ScoreEntry,
   WrappedReport,
 } from "@/types/game";
+import type { MatchPlan } from "@/lib/chaos/plan";
+import type { ScoreReason } from "@/lib/chaos/scoring";
+import type { ChaosPhase } from "@/lib/chaos/state-machine";
+import type { ChaosMatch, ChaosScoreEntry, ContributionPayload } from "@/types/chaos";
 import type { Payment, PaymentProviderName, PaymentStatus } from "@/types/premium";
-import type { Mode, Player, PlayerStatus, Room, RoomStatus } from "@/types/room";
+import type { Experience, Mode, Player, PlayerStatus, Room, RoomStatus } from "@/types/room";
 import type { AnalyticsEvent, CleanupCutoffs, CleanupResult, FeedbackRating, RoomStore } from "./store";
 
 interface RoomRow {
   id: string;
   join_code: string;
   mode: Mode;
+  /** Missing on databases without migration 10: those rooms are all Quick Party. */
+  experience?: Experience;
   name: string | null;
   host_player_id: string | null;
   status: RoomStatus;
@@ -40,10 +46,49 @@ interface PlayerRow {
   last_seen_at: string;
 }
 
+interface ChaosMatchRow {
+  id: string;
+  room_id: string;
+  game_id: string;
+  plan: MatchPlan;
+  phase: ChaosPhase;
+  step: number;
+  reveal_chain: number | null;
+  state_version: number;
+  phase_started_at: string;
+  started_at: string;
+  ended_at: string | null;
+}
+
+interface ChaosContributionRow {
+  match_id: string;
+  step: number;
+  chain: number;
+  player_id: string;
+  payload: ContributionPayload;
+  version: number;
+  submitted_at: string;
+}
+
+const toChaosMatch = (r: ChaosMatchRow): ChaosMatch => ({
+  id: r.id,
+  roomId: r.room_id,
+  gameId: r.game_id,
+  plan: r.plan,
+  phase: r.phase,
+  step: r.step,
+  revealChain: r.reveal_chain,
+  stateVersion: r.state_version,
+  phaseStartedAt: r.phase_started_at,
+  startedAt: r.started_at,
+  endedAt: r.ended_at,
+});
+
 const toRoom = (r: RoomRow): Room => ({
   id: r.id,
   joinCode: r.join_code,
   mode: r.mode,
+  experience: r.experience ?? "quick_party",
   name: r.name,
   hostPlayerId: r.host_player_id,
   status: r.status,
@@ -208,6 +253,8 @@ export class SupabaseRoomStore implements RoomStore {
       p_now: input.now,
       p_nickname: input.host.nickname,
       p_session_token_hash: input.host.sessionTokenHash,
+      // Only sent for Chain Reactions, so Quick Party rooms work on databases without migration 10.
+      ...(input.experience === "chain_reactions" ? { p_experience: input.experience } : {}),
     });
     if (error?.code === "23505") return "join_code_taken" as const;
     check(error, "create_room");
@@ -663,6 +710,99 @@ export class SupabaseRoomStore implements RoomStore {
     check(error, "listFeedback");
     return (data as Array<{ mode: Mode; rating: FeedbackRating; comment: string | null; created_at: string }>).map(
       (r) => ({ mode: r.mode, rating: r.rating, comment: r.comment, createdAt: new Date(r.created_at).toISOString() }),
+    );
+  }
+  // --- Chain Reactions (UsVsUs 4.2) ---
+
+  async startChainMatch(input: Parameters<RoomStore["startChainMatch"]>[0]) {
+    const { data, error } = await this.db.rpc("start_chain_match", {
+      p_room_id: input.roomId,
+      p_min_players: input.minPlayers,
+      p_game_id: input.gameId,
+      p_plan: input.plan,
+      p_now: input.now,
+    });
+    check(error, "start_chain_match");
+    const result = data as {
+      error?: "not_in_lobby" | "wrong_experience" | "not_enough_players";
+      match?: ChaosMatchRow;
+    };
+    if (result.error) return result.error;
+    return toChaosMatch(result.match!);
+  }
+
+  async getLatestChainMatch(roomId: string) {
+    const { data, error } = await this.db
+      .from("chaos_matches")
+      .select("*")
+      .eq("room_id", roomId)
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    check(error, "getLatestChainMatch");
+    return data ? toChaosMatch(data as ChaosMatchRow) : null;
+  }
+
+  async submitContribution(input: Parameters<RoomStore["submitContribution"]>[0]) {
+    const { data, error } = await this.db.rpc("submit_contribution", {
+      p_match_id: input.matchId,
+      p_step: input.step,
+      p_chain: input.chain,
+      p_player_id: input.playerId,
+      p_kind: input.payload.kind,
+      p_payload: input.payload,
+      p_bytes: input.bytes,
+      p_key: input.idempotencyKey,
+      p_now: input.now,
+    });
+    check(error, "submit_contribution");
+    return data as "ok" | "duplicate" | "not_open" | "not_assigned";
+  }
+
+  async listContributions(matchId: string) {
+    const { data, error } = await this.db
+      .from("chaos_contributions")
+      .select("match_id, step, chain, player_id, payload, version, submitted_at")
+      .eq("match_id", matchId);
+    check(error, "listContributions");
+    return (data as ChaosContributionRow[]).map((r) => ({
+      matchId: r.match_id,
+      step: r.step,
+      chain: r.chain,
+      playerId: r.player_id,
+      payload: r.payload,
+      version: r.version,
+      submittedAt: r.submitted_at,
+    }));
+  }
+
+  async advanceChainMatch(input: Parameters<RoomStore["advanceChainMatch"]>[0]) {
+    const { data, error } = await this.db.rpc("advance_chain_match", {
+      p_match_id: input.matchId,
+      p_expected_version: input.expectedVersion,
+      p_phase: input.next.phase,
+      p_step: input.next.step,
+      p_reveal_chain: input.next.revealChain,
+      p_now: input.now,
+    });
+    check(error, "advance_chain_match");
+    return data ? toChaosMatch(data as ChaosMatchRow) : ("stale" as const);
+  }
+
+  async recordChainScores(matchId: string, entries: ChaosScoreEntry[]) {
+    if (entries.length === 0) return;
+    const { error } = await this.db.rpc("record_chain_scores", { p_match_id: matchId, p_entries: entries });
+    check(error, "record_chain_scores");
+  }
+
+  async listChainScores(matchId: string) {
+    const { data, error } = await this.db
+      .from("chaos_scores")
+      .select("player_id, step, chain, reason, points")
+      .eq("match_id", matchId);
+    check(error, "listChainScores");
+    return (data as Array<{ player_id: string; step: number; chain: number; reason: ScoreReason; points: number }>).map(
+      (r) => ({ playerId: r.player_id, step: r.step, chain: r.chain, reason: r.reason, points: r.points }),
     );
   }
 }

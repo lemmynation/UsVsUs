@@ -9,10 +9,14 @@ export type RoomStatus = (typeof ROOM_STATUSES)[number];
 
 export type PlayerStatus = "active" | "kicked";
 
+export type Experience = "quick_party" | "chain_reactions";
+
 export interface Room {
   id: string;
   joinCode: string;
   mode: Mode;
+  /** Quick Party (the quiz games) or Chain Reactions (Mutation Machine). */
+  experience: Experience;
   name: string | null;
   hostPlayerId: string | null;
   status: RoomStatus;
