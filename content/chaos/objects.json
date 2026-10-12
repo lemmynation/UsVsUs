@@ -1,0 +1,405 @@
+{
+  "contentVersion": 1,
+  "objects": [
+    {
+      "id": "obj-toaster",
+      "label": "Toaster",
+      "family": "kitchen"
+    },
+    {
+      "id": "obj-teapot",
+      "label": "Teapot",
+      "family": "kitchen"
+    },
+    {
+      "id": "obj-frying-pan",
+      "label": "Frying pan",
+      "family": "kitchen"
+    },
+    {
+      "id": "obj-coffee-mug",
+      "label": "Coffee mug",
+      "family": "kitchen"
+    },
+    {
+      "id": "obj-blender",
+      "label": "Blender",
+      "family": "kitchen"
+    },
+    {
+      "id": "obj-fork",
+      "label": "Fork",
+      "family": "kitchen"
+    },
+    {
+      "id": "obj-rolling-pin",
+      "label": "Rolling pin",
+      "family": "kitchen"
+    },
+    {
+      "id": "obj-kettle",
+      "label": "Kettle",
+      "family": "kitchen"
+    },
+    {
+      "id": "obj-cat",
+      "label": "Cat",
+      "family": "animal"
+    },
+    {
+      "id": "obj-rubber-duck",
+      "label": "Rubber duck",
+      "family": "animal"
+    },
+    {
+      "id": "obj-snail",
+      "label": "Snail",
+      "family": "animal"
+    },
+    {
+      "id": "obj-fish",
+      "label": "Fish",
+      "family": "animal"
+    },
+    {
+      "id": "obj-owl",
+      "label": "Owl",
+      "family": "animal"
+    },
+    {
+      "id": "obj-pig",
+      "label": "Pig",
+      "family": "animal"
+    },
+    {
+      "id": "obj-turtle",
+      "label": "Turtle",
+      "family": "animal"
+    },
+    {
+      "id": "obj-dog",
+      "label": "Dog",
+      "family": "animal"
+    },
+    {
+      "id": "obj-bicycle",
+      "label": "Bicycle",
+      "family": "vehicle"
+    },
+    {
+      "id": "obj-bus",
+      "label": "Bus",
+      "family": "vehicle"
+    },
+    {
+      "id": "obj-rocket",
+      "label": "Rocket",
+      "family": "vehicle"
+    },
+    {
+      "id": "obj-sailboat",
+      "label": "Sailboat",
+      "family": "vehicle"
+    },
+    {
+      "id": "obj-tricycle",
+      "label": "Tricycle",
+      "family": "vehicle"
+    },
+    {
+      "id": "obj-jeepney",
+      "label": "Jeepney",
+      "family": "vehicle"
+    },
+    {
+      "id": "obj-helicopter",
+      "label": "Helicopter",
+      "family": "vehicle"
+    },
+    {
+      "id": "obj-skateboard",
+      "label": "Skateboard",
+      "family": "vehicle"
+    },
+    {
+      "id": "obj-chair",
+      "label": "Chair",
+      "family": "furniture"
+    },
+    {
+      "id": "obj-lamp",
+      "label": "Lamp",
+      "family": "furniture"
+    },
+    {
+      "id": "obj-bed",
+      "label": "Bed",
+      "family": "furniture"
+    },
+    {
+      "id": "obj-bathtub",
+      "label": "Bathtub",
+      "family": "furniture"
+    },
+    {
+      "id": "obj-sofa",
+      "label": "Sofa",
+      "family": "furniture"
+    },
+    {
+      "id": "obj-clock",
+      "label": "Clock",
+      "family": "furniture"
+    },
+    {
+      "id": "obj-ladder",
+      "label": "Ladder",
+      "family": "furniture"
+    },
+    {
+      "id": "obj-mirror",
+      "label": "Mirror",
+      "family": "furniture"
+    },
+    {
+      "id": "obj-hammer",
+      "label": "Hammer",
+      "family": "tool"
+    },
+    {
+      "id": "obj-umbrella",
+      "label": "Umbrella",
+      "family": "tool"
+    },
+    {
+      "id": "obj-scissors",
+      "label": "Scissors",
+      "family": "tool"
+    },
+    {
+      "id": "obj-light-bulb",
+      "label": "Light bulb",
+      "family": "tool"
+    },
+    {
+      "id": "obj-key",
+      "label": "Key",
+      "family": "tool"
+    },
+    {
+      "id": "obj-toothbrush",
+      "label": "Toothbrush",
+      "family": "tool"
+    },
+    {
+      "id": "obj-broom",
+      "label": "Broom",
+      "family": "tool"
+    },
+    {
+      "id": "obj-paintbrush",
+      "label": "Paintbrush",
+      "family": "tool"
+    },
+    {
+      "id": "obj-sock",
+      "label": "Sock",
+      "family": "clothing"
+    },
+    {
+      "id": "obj-hat",
+      "label": "Hat",
+      "family": "clothing"
+    },
+    {
+      "id": "obj-sunglasses",
+      "label": "Sunglasses",
+      "family": "clothing"
+    },
+    {
+      "id": "obj-shoe",
+      "label": "Shoe",
+      "family": "clothing"
+    },
+    {
+      "id": "obj-t-shirt",
+      "label": "T-shirt",
+      "family": "clothing"
+    },
+    {
+      "id": "obj-backpack",
+      "label": "Backpack",
+      "family": "clothing"
+    },
+    {
+      "id": "obj-necktie",
+      "label": "Necktie",
+      "family": "clothing"
+    },
+    {
+      "id": "obj-glove",
+      "label": "Glove",
+      "family": "clothing"
+    },
+    {
+      "id": "obj-kite",
+      "label": "Kite",
+      "family": "toy"
+    },
+    {
+      "id": "obj-yo-yo",
+      "label": "Yo-yo",
+      "family": "toy"
+    },
+    {
+      "id": "obj-robot-toy",
+      "label": "Robot toy",
+      "family": "toy"
+    },
+    {
+      "id": "obj-teddy-bear",
+      "label": "Teddy bear",
+      "family": "toy"
+    },
+    {
+      "id": "obj-balloon",
+      "label": "Balloon",
+      "family": "toy"
+    },
+    {
+      "id": "obj-dice",
+      "label": "Dice",
+      "family": "toy"
+    },
+    {
+      "id": "obj-spinning-top",
+      "label": "Spinning top",
+      "family": "toy"
+    },
+    {
+      "id": "obj-slingshot",
+      "label": "Slingshot",
+      "family": "toy"
+    },
+    {
+      "id": "obj-tree",
+      "label": "Tree",
+      "family": "nature"
+    },
+    {
+      "id": "obj-cloud",
+      "label": "Cloud",
+      "family": "nature"
+    },
+    {
+      "id": "obj-mushroom",
+      "label": "Mushroom",
+      "family": "nature"
+    },
+    {
+      "id": "obj-cactus",
+      "label": "Cactus",
+      "family": "nature"
+    },
+    {
+      "id": "obj-flower",
+      "label": "Flower",
+      "family": "nature"
+    },
+    {
+      "id": "obj-volcano",
+      "label": "Volcano",
+      "family": "nature"
+    },
+    {
+      "id": "obj-moon",
+      "label": "Moon",
+      "family": "nature"
+    },
+    {
+      "id": "obj-mountain",
+      "label": "Mountain",
+      "family": "nature"
+    },
+    {
+      "id": "obj-pizza-slice",
+      "label": "Pizza slice",
+      "family": "food"
+    },
+    {
+      "id": "obj-ice-cream-cone",
+      "label": "Ice cream cone",
+      "family": "food"
+    },
+    {
+      "id": "obj-banana",
+      "label": "Banana",
+      "family": "food"
+    },
+    {
+      "id": "obj-burger",
+      "label": "Burger",
+      "family": "food"
+    },
+    {
+      "id": "obj-donut",
+      "label": "Donut",
+      "family": "food"
+    },
+    {
+      "id": "obj-watermelon",
+      "label": "Watermelon",
+      "family": "food"
+    },
+    {
+      "id": "obj-egg",
+      "label": "Egg",
+      "family": "food"
+    },
+    {
+      "id": "obj-pineapple",
+      "label": "Pineapple",
+      "family": "food"
+    },
+    {
+      "id": "obj-phone",
+      "label": "Phone",
+      "family": "tech"
+    },
+    {
+      "id": "obj-laptop",
+      "label": "Laptop",
+      "family": "tech"
+    },
+    {
+      "id": "obj-headphones",
+      "label": "Headphones",
+      "family": "tech"
+    },
+    {
+      "id": "obj-tv",
+      "label": "TV",
+      "family": "tech"
+    },
+    {
+      "id": "obj-camera",
+      "label": "Camera",
+      "family": "tech"
+    },
+    {
+      "id": "obj-game-controller",
+      "label": "Game controller",
+      "family": "tech"
+    },
+    {
+      "id": "obj-microphone",
+      "label": "Microphone",
+      "family": "tech"
+    },
+    {
+      "id": "obj-washing-machine",
+      "label": "Washing machine",
+      "family": "tech"
+    }
+  ]
+}
