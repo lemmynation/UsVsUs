@@ -2,7 +2,9 @@ import Link from "next/link";
 import { Wordmark } from "@/components/brand/wordmark";
 import { PageShell } from "@/components/layout/page-shell";
 import { TrackOnMount } from "@/components/analytics/track-on-mount";
+import { ChaosEntry } from "@/components/chaos/chaos-entry";
 import { ModePicker } from "@/components/room/mode-card";
+import { chainReactionsEnabled } from "@/lib/env";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +26,8 @@ export default function LandingPage() {
         </h2>
         <ModePicker />
       </section>
+
+      {chainReactionsEnabled() && <ChaosEntry />}
 
       <Link href="/join" className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "w-full")}>
         Join with code

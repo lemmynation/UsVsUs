@@ -58,6 +58,8 @@ export interface ChaosPlayerView {
   phase: ChaosMatch["phase"];
   stateVersion: number;
   isDuo: boolean;
+  /** How many chains the match has (one per player at the start). */
+  chainCount: number;
   step: { index: number; count: number; kind: StepKind; round: number; deadline: string } | null;
   myJobs: ChaosJob[];
   /** Players who still owe work in this step (ids only, never what they're doing). */
@@ -229,6 +231,7 @@ export function playerView(input: {
     phase: match.phase,
     stateVersion: match.stateVersion,
     isDuo: plan.playerOrder.length === 2,
+    chainCount: plan.chains.length,
     step,
     myJobs,
     waitingOn,
