@@ -1,7 +1,8 @@
 import type { GameService } from "@/lib/game/service";
 import { claimOwnedPacksSafely } from "@/lib/premium/owned";
 import type { PremiumView } from "@/types/premium";
-import type { Mode, Player, Room, RoomPreview, RoomView } from "@/types/room";
+import type { Experience, Mode, Player, Room, RoomPreview, RoomView } from "@/types/room";
+import type { ChaosPlayerView } from "@/lib/chaos/projections";
 import { loadMembership as loadMembershipFrom, type MembershipError } from "./membership";
 import {
   activePlayers,
@@ -30,6 +31,11 @@ export interface RoomServiceDeps {
   game?: GameService;
   /** Premium layer: which packs exist for the room and which are unlocked. */
   premium?: { view(room: Room): Promise<PremiumView> };
+  /** Chain Reactions layer: the player's match view, and moving on when someone leaves. */
+  chaos?: {
+    viewFor(room: Room, players: Player[], me: Player): Promise<ChaosPlayerView | null>;
+    afterRosterChange(roomId: string): Promise<boolean>;
+  };
 }
 
 const NO_PREMIUM: PremiumView = { enabled: false, packs: [], pendingCheckout: false };
@@ -62,7 +68,7 @@ function toPreview(room: Room, players: Player[]): RoomPreview {
   };
 }
 
-export function createRoomService({ store, now, randomInt, game, premium }: RoomServiceDeps) {
+export function createRoomService({ store, now, randomInt, game, premium, chaos }: RoomServiceDeps) {
   const loadMembership = (roomId: string, sessionHash: string | null) => loadMembershipFrom(store, roomId, sessionHash);
 
   return {
@@ -71,6 +77,7 @@ export function createRoomService({ store, now, randomInt, game, premium }: Room
       nickname: string;
       roomName?: string | null;
       sessionHash: string;
+      experience?: Experience;
     }): Promise<Result<{ room: Room; host: Player }, CreateRoomError>> {
       const nickname = sanitizeNickname(input.nickname);
       if (!nickname.ok) return nickname;
@@ -86,6 +93,7 @@ export function createRoomService({ store, now, randomInt, game, premium }: Room
           expiresAt: computeExpiresAt(at),
           now: at.toISOString(),
           host: { nickname: nickname.value, sessionTokenHash: input.sessionHash },
+          experience: input.experience,
         });
         if (created !== "join_code_taken") {
           // Packs follow your phone: whatever the host bought before is unlocked here too.
@@ -172,6 +180,7 @@ export function createRoomService({ store, now, randomInt, game, premium }: Room
           id: room.id,
           joinCode: room.joinCode,
           mode: room.mode,
+          experience: room.experience,
           name: room.name,
           status: effectiveStatus(room, at),
           expiresAt: room.expiresAt,
@@ -185,6 +194,7 @@ export function createRoomService({ store, now, randomInt, game, premium }: Room
         game: game ? await game.viewFor(room, players, me) : null,
         // Packs are only chosen in the lobby; skip the lookups on every in-game refresh.
         premium: premium && room.status === "LOBBY" ? await premium.view(room) : NO_PREMIUM,
+        chaos: chaos ? await chaos.viewFor(room, players, me) : null,
       });
     },
 
@@ -202,6 +212,7 @@ export function createRoomService({ store, now, randomInt, game, premium }: Room
       if (!check.ok) return check;
       await store.kickPlayer(targetPlayerId);
       await game?.afterRosterChange(room.id);
+      await chaos?.afterRosterChange(room.id);
       return ok(null);
     },
 
@@ -216,6 +227,7 @@ export function createRoomService({ store, now, randomInt, game, premium }: Room
         if (newHost) await claimOwnedPacksSafely(store, roomId, newHost.sessionTokenHash, now().toISOString());
       }
       await game?.afterRosterChange(roomId);
+      await chaos?.afterRosterChange(roomId);
       return ok(null);
     },
   };

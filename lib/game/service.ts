@@ -57,7 +57,8 @@ export interface GameServiceDeps {
   onRoomChanged?: (roomId: string) => Promise<void>;
 }
 
-export type StartGameError = MembershipError | StartError | "no_questions" | "pack_locked" | "pack_not_found";
+export type StartGameError =
+  MembershipError | StartError | "no_questions" | "pack_locked" | "pack_not_found" | "wrong_experience";
 export type AnswerError = MembershipError | "not_open" | "invalid_answer";
 export type GameAdvanceError = MembershipError | AdvanceError | "not_open";
 export type WrappedError = MembershipError | "game_not_finished";
@@ -254,6 +255,8 @@ export function createGameService({ store, now, random, onRoomChanged }: GameSer
 
       const check = checkCanStart(room, players, me, now());
       if (!check.ok) return check;
+      // Chain Reactions rooms start through their own service.
+      if (room.experience !== "quick_party") return fail("wrong_experience");
 
       const pack = options.packSlug ? findPack(options.packSlug) : undefined;
       if (options.packSlug && (!pack || !pack.modes.includes(room.mode))) return fail("pack_not_found");
