@@ -73,13 +73,13 @@ gate message. `npm run check`, the full Playwright suite on a production build, 
 - [x] Design documents 01–13
 - [x] **Owner approves decisions (gate)**: A–D approved 12 Oct 2026
 - [x] Sprint 1 implementation on `usvsus-4-sprint1` (small tested commits; no deploy or production schema)
-- [ ] Migration 10 on the **dev** database, then a live dev E2E run
+- [x] Migration 10 on the **dev** database (12 Oct 2026), then a live dev E2E run (42/42)
 - [ ] Manual drawing check on a real iPhone and Android phone
 
 ## Sprint 1 — what was built, and where it differs from docs 03–12
 
 Built behind `CHAIN_REACTIONS=on` (off unless set; on for E2E). Migration 10
-(`20261016000000_chain_reactions.sql`) is **not applied to any database yet**: dev first, production only with
+(`20261016000000_chain_reactions.sql`) is applied to the **dev** database only (12 Oct 2026); production only with
 separate approval.
 
 Deviations found while building (the design docs describe the original intent):
