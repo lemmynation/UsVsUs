@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CHAOS_CONTENT } from "@/lib/chaos/content";
 import type { ChaosJob, ChaosPlayerView } from "@/lib/chaos/projections";
-import { createChaosService, type ChaosService } from "@/lib/chaos/service";
+import { createChaosService } from "@/lib/chaos/service";
 import { MemoryRoomStore } from "@/lib/rooms/memory-store";
 import type { Experience } from "@/types/room";
 
