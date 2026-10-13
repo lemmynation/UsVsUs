@@ -104,6 +104,13 @@ Do not introduce a new dependency unless it materially simplifies the implementa
   lead-change callouts come from `lib/game/moments.ts`, the series score from `lib/game/series.ts` (both pure,
   built only from locked-in scores and frozen Wrapped reports). JS effects (drumroll, confetti, buzz) check
   `useReducedMotion`; CSS animations are covered by the global reduced-motion rule.
+- **Party Screen (Sprint 2)** (`lib/party/`, `/party`, behind `PARTY_SCREEN=on` + `CHAIN_REACTIONS=on`): a TV
+  asks for a code (`POST /api/party`, httpOnly `uvu_display` cookie, only hashes stored); the host types it in the
+  Mutation Machine lobby (`POST /api/rooms/<id>/displays`, atomic `approve_party_display`: single use, 5 min,
+  max 2 TVs, rate-limited per phone and per room). The TV polls `GET /api/party/me` and listens to the room's
+  ping channel without joining presence. Its view comes only from `spectatorView` in `lib/chaos/projections.ts`:
+  public data, counts during steps, the current chain in the reveal. Leak tests in `tests/unit/party.test.ts`
+  and `tests/e2e/party.spec.ts`. Nothing in a match waits for the TV.
 - **Preserved pages**: with Cache Components, Next keeps visited pages alive (hidden `<Activity>`), so state
   like "Creating…" survives navigation. Reset in-progress flags in an effect cleanup (see
   `create-room-form.tsx`), and on `pageshow` for pages left via a full redirect (checkout).

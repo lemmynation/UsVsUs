@@ -7,7 +7,7 @@ import { LoadingCard } from "@/components/layout/loading-card";
 import { PageShell } from "@/components/layout/page-shell";
 import { Lobby } from "@/components/room/lobby";
 import { StatusCard } from "@/components/room/status-card";
-import { getPublicRealtimeConfig } from "@/lib/env";
+import { getPublicRealtimeConfig, partyScreenEnabled } from "@/lib/env";
 import { errorMessage } from "@/lib/rooms/errors";
 import { getRoomService, getRoomStore } from "@/lib/rooms/server";
 import { readSessionHash } from "@/lib/session";
@@ -47,7 +47,7 @@ async function RoomContent({ params }: { params: PageProps<"/room/[roomId]">["pa
     return <NotFound />;
   }
 
-  return <Lobby initialView={result.value} realtime={getPublicRealtimeConfig()} />;
+  return <Lobby initialView={result.value} realtime={getPublicRealtimeConfig()} partyScreen={partyScreenEnabled()} />;
 }
 
 function NotFound() {

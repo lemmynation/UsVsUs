@@ -7,7 +7,7 @@ import type { ChainReveal, Layer } from "@/lib/chaos/projections";
 import type { ChaosScreenProps } from "./chaos-screen";
 import { LayersView } from "./layers-view";
 
-const TITLE_EMOJI: Record<string, string> = {
+export const TITLE_EMOJI: Record<string, string> = {
   "Sharp Eye": "🔎",
   "Clear Signal": "📡",
   "Chaos Agent": "🌪️",

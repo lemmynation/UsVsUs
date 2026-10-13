@@ -32,21 +32,24 @@ export function isRateLimited(request: Request, bucket: keyof typeof LIMITS, ses
 }
 
 /** Buckets worth counting across every server instance (abuse and cost), not just this one. */
-export type SharedBucket = "createRoom" | "joinRoom" | "checkout" | "adminLogin";
+export type SharedBucket =
+  "createRoom" | "joinRoom" | "checkout" | "adminLogin" | "createDisplay" | "pairDisplay" | "pairDisplayRoom";
 
 /**
  * Like `isRateLimited`, but counted in the database so the limit holds when the
  * host runs many copies of the server. Keyed per IP (+ session when given), stored
  * only as a hash. If the database can't be reached, falls back to this instance's
- * own count rather than blocking players.
+ * own count rather than blocking players. `by` counts something other than the
+ * caller instead (e.g. a room, whoever is knocking).
  */
 export async function isRateLimitedShared(
   request: Request,
   bucket: SharedBucket,
   sessionHash?: string | null,
+  { by }: { by?: string } = {},
 ): Promise<boolean> {
   if (disabledForTests) return false;
-  const who = sessionHash ? `${clientKey(request.headers)}:${sessionHash}` : clientKey(request.headers);
+  const who = by ?? (sessionHash ? `${clientKey(request.headers)}:${sessionHash}` : clientKey(request.headers));
   const { max, windowMs } = LIMITS[bucket];
   const key = createHash("sha256").update(`${bucket}|${who}`).digest("hex");
   try {

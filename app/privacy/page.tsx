@@ -43,6 +43,11 @@ export default function PrivacyPage() {
               version of it, never anything that identifies you.
             </li>
             <li>
+              <strong>A TV or laptop you connect as a Party Screen</strong> gets its own random cookie (hashed the same
+              way), which only lets it show what everyone in the room sees anyway. Unused TV codes are deleted after a
+              day; a connected TV is forgotten with its room.
+            </li>
+            <li>
               <strong>Which questions your browser has seen</strong>, so your group doesn&apos;t get repeats.
             </li>
             <li>

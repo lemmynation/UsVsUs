@@ -13,6 +13,7 @@ import type {
 import type { MatchPlan } from "@/lib/chaos/plan";
 import type { ChaosPosition } from "@/lib/chaos/state-machine";
 import type { ChaosContribution, ChaosMatch, ChaosScoreEntry, ContributionPayload } from "@/types/chaos";
+import type { PartyDisplay } from "@/types/party";
 import type { Payment, PaymentProviderName } from "@/types/premium";
 import type { Experience, Mode, Player, Room } from "@/types/room";
 
@@ -264,6 +265,38 @@ export interface RoomStore {
   recordChainScores(matchId: string, entries: ChaosScoreEntry[]): Promise<void>;
 
   listChainScores(matchId: string): Promise<ChaosScoreEntry[]>;
+
+  // --- Party Screen (UsVsUs 4.2 Sprint 2) ---
+
+  /** A TV asking to be paired. "code_taken" = another TV is showing that code right now. */
+  createDisplay(input: {
+    pairingCodeHash: string;
+    tokenHash: string;
+    expiresAt: string;
+    now: string;
+  }): Promise<PartyDisplay | "code_taken">;
+
+  /**
+   * The host approves a TV's code, atomically: the code is single use and must not be
+   * expired, the room must be live and have fewer than `maxDisplays` TVs.
+   */
+  approveDisplay(input: {
+    roomId: string;
+    pairingCodeHash: string;
+    playerId: string;
+    maxDisplays: number;
+    now: string;
+  }): Promise<PartyDisplay | "invalid_code" | "too_many_displays" | "room_closed">;
+
+  getDisplayByToken(tokenHash: string): Promise<PartyDisplay | null>;
+
+  /** The room's approved TVs, oldest first. */
+  listRoomDisplays(roomId: string): Promise<PartyDisplay[]>;
+
+  /** Disconnects one of the room's TVs. False if it wasn't an approved TV of this room. */
+  revokeDisplay(roomId: string, displayId: string): Promise<boolean>;
+
+  touchDisplay(displayId: string, now: string): Promise<void>;
 
   // --- Premium (Phase 5) ---
 

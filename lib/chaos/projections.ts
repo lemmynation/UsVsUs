@@ -148,6 +148,36 @@ function reveal(
   };
 }
 
+function stepInfo(match: ChaosMatch): NonNullable<ChaosPlayerView["step"]> {
+  const { plan } = match;
+  const def = plan.steps.find((s) => s.index === match.step)!;
+  return {
+    index: def.index,
+    count: plan.steps.length,
+    kind: def.kind,
+    round: def.round,
+    deadline: stepDeadline(plan, def.index, new Date(match.phaseStartedAt)).toISOString(),
+    autoSkipAt: stepAutoSkipAt(plan, def.index, new Date(match.phaseStartedAt)).toISOString(),
+  };
+}
+
+/** Players still in the room who owe work in the open step. */
+function waitingOnIn(match: ChaosMatch, contributions: ChaosContribution[], activePlayerIds: Set<string>): string[] {
+  const jobs = match.plan.assignments.filter((a) => a.step === match.step && activePlayerIds.has(a.playerId));
+  return [...new Set(jobs.filter((a) => !find(contributions, a.step, a.chain, a.playerId)).map((a) => a.playerId))];
+}
+
+function recapOf(match: ChaosMatch, contributions: ChaosContribution[], scores: ScoreEntry[]) {
+  const { plan } = match;
+  const missing = missingWork(plan, contributions, plan.steps.length);
+  const answers = detectAnswers(contributions);
+  return {
+    points: totals(scores),
+    titles: titlesFor(plan, scores, answers, missing),
+    sync: plan.playerOrder.length === 2 ? duoSync(plan, answers, missing) : null,
+  };
+}
+
 export function playerView(input: {
   match: ChaosMatch;
   contributions: ChaosContribution[];
@@ -168,23 +198,9 @@ export function playerView(input: {
   let waitingOn: string[] = [];
   if (match.phase === "STEP_OPEN") {
     const def = plan.steps.find((s) => s.index === match.step)!;
-    step = {
-      index: def.index,
-      count: plan.steps.length,
-      kind: def.kind,
-      round: def.round,
-      deadline: stepDeadline(plan, def.index, new Date(match.phaseStartedAt)).toISOString(),
-      autoSkipAt: stepAutoSkipAt(plan, def.index, new Date(match.phaseStartedAt)).toISOString(),
-    };
-    const jobs = plan.assignments.filter((a) => a.step === match.step);
-    waitingOn = [
-      ...new Set(
-        jobs
-          .filter((a) => input.activePlayerIds.has(a.playerId) && !find(contributions, a.step, a.chain, a.playerId))
-          .map((a) => a.playerId),
-      ),
-    ];
-    for (const a of jobs.filter((j) => j.playerId === meId)) {
+    step = stepInfo(match);
+    waitingOn = waitingOnIn(match, contributions, input.activePlayerIds);
+    for (const a of plan.assignments.filter((j) => j.step === match.step && j.playerId === meId)) {
       const own = find(contributions, a.step, a.chain, meId);
       const chain = plan.chains[a.chain];
       if (def.kind === "create") {
@@ -224,17 +240,6 @@ export function playerView(input: {
     match.phase === "RECAP" ? plan.chains.length - 1 : match.phase === "REVEAL" ? (match.revealChain ?? -1) : -1;
   const reveals = Array.from({ length: revealUpTo + 1 }, (_, chain) => reveal(plan, contributions, content, chain));
 
-  let recap: ChaosPlayerView["recap"] = null;
-  if (match.phase === "RECAP") {
-    const missing = missingWork(plan, contributions, plan.steps.length);
-    const answers = detectAnswers(contributions);
-    recap = {
-      points: totals(input.scores),
-      titles: titlesFor(plan, input.scores, answers, missing),
-      sync: plan.playerOrder.length === 2 ? duoSync(plan, answers, missing) : null,
-    };
-  }
-
   return {
     matchId: match.id,
     phase: match.phase,
@@ -246,6 +251,62 @@ export function playerView(input: {
     waitingOn,
     reveals,
     revealChain: match.phase === "REVEAL" ? match.revealChain : null,
-    recap,
+    recap: match.phase === "RECAP" ? recapOf(match, contributions, input.scores) : null,
+  };
+}
+
+/**
+ * The Party Screen's view (docs/usvsus-4/07): only what everyone in the room may see.
+ * During a step: the timer and how many players are done, never what anyone was given
+ * or made. In the reveal: just the chain on screen now. Then the recap.
+ */
+export interface ChaosSpectatorView {
+  matchId: string;
+  phase: ChaosMatch["phase"];
+  stateVersion: number;
+  isDuo: boolean;
+  chainCount: number;
+  step: ChaosPlayerView["step"];
+  /** Players done with this step, out of the players who have work in it (counts only). */
+  progress: { done: number; total: number } | null;
+  /** The chain being revealed (REVEAL only). */
+  reveal: ChainReveal | null;
+  recap: ChaosPlayerView["recap"];
+}
+
+export function spectatorView(input: {
+  match: ChaosMatch;
+  contributions: ChaosContribution[];
+  scores: ScoreEntry[];
+  activePlayerIds: Set<string>;
+  content: ChaosContent;
+}): ChaosSpectatorView {
+  const { match, contributions, content } = input;
+  const { plan } = match;
+  let progress: ChaosSpectatorView["progress"] = null;
+  if (match.phase === "STEP_OPEN") {
+    const working = new Set(
+      plan.assignments
+        .filter((a) => a.step === match.step && input.activePlayerIds.has(a.playerId))
+        .map((a) => a.playerId),
+    );
+    progress = {
+      done: working.size - waitingOnIn(match, contributions, input.activePlayerIds).length,
+      total: working.size,
+    };
+  }
+  return {
+    matchId: match.id,
+    phase: match.phase,
+    stateVersion: match.stateVersion,
+    isDuo: plan.playerOrder.length === 2,
+    chainCount: plan.chains.length,
+    step: match.phase === "STEP_OPEN" ? stepInfo(match) : null,
+    progress,
+    reveal:
+      match.phase === "REVEAL" && match.revealChain !== null
+        ? reveal(plan, contributions, content, match.revealChain)
+        : null,
+    recap: match.phase === "RECAP" ? recapOf(match, contributions, input.scores) : null,
   };
 }

@@ -45,7 +45,7 @@ const everySecond = (tick: () => void) => {
  * hydrates: the server's clock reading would never match the phone's, and React would
  * throw the server HTML away.
  */
-function useSecondsLeft(deadline: string | undefined): number | null {
+export function useSecondsLeft(deadline: string | undefined): number | null {
   const now = useSyncExternalStore(
     everySecond,
     () => Math.floor(Date.now() / 1000),

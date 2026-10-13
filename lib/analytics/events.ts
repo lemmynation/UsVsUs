@@ -15,6 +15,10 @@ export const SERVER_EVENTS = [
   "contribution_submitted",
   "chaos_step_skipped",
   "chaos_match_completed",
+  // Party Screen (UsVsUs 4.2 Sprint 2)
+  "party_screen_pair_requested",
+  "party_screen_pair_approved",
+  "party_screen_disconnected",
   // Technical health (design doc §14)
   "join_failed",
   "api_timing",
