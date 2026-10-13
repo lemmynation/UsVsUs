@@ -96,7 +96,8 @@ Do not introduce a new dependency unless it materially simplifies the implementa
   Abuse-prone routes use `isRateLimitedShared` (counted in Postgres via `rate_limit_hit`, keyed by a hash,
   falls back to the local count); chatty routes keep the in-memory `isRateLimited`. A payment settings error
   turns premium off (logged) instead of failing requests. Live at https://us-vs-us-chi.vercel.app; deploy and
-  release steps in `docs/launch.md`. Migrations must be applied to BOTH Supabase projects (dev + production).
+  release steps in `docs/launch.md`. "UsVsUs Production" is the only Supabase project (the old dev project
+  is paused), so local dev and E2E use in-memory rooms. Apply migrations to production.
   Production settings are in the git-ignored `.env.vercel-production`; scripts read it with `--env-file`.
 - **Engagement** (rematch, reveal moments, reactions): Rematch moves WRAPPED → LOBBY in the same room via the
   atomic `reopenRoom` (`reopen_room` in SQL), so pack unlocks and question history carry over. Streak and
