@@ -75,7 +75,13 @@ async function doJobs(page: Page, style: Style, marker: string, step: number) {
       await page.getByRole("button", { name: "Submit" }).click();
     }
     // Wait for the phone to move on (next job, or "Done!") before looking again.
-    await expect.poll(async () => (await done.isVisible()) || (await heading.textContent()) !== before).toBe(true);
+    // (The reveal has no h1: a heading that's gone counts as moved on, rather than waiting for one.)
+    await expect
+      .poll(
+        async () =>
+          (await done.isVisible()) || (await heading.textContent({ timeout: 500 }).catch(() => null)) !== before,
+      )
+      .toBe(true);
   }
   await expect(done).toBeVisible();
 }
