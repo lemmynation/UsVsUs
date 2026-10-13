@@ -75,7 +75,7 @@ gate message. `npm run check`, the full Playwright suite on a production build, 
 - [x] Sprint 1 implementation on `usvsus-4-sprint1` (small tested commits; no deploy or production schema)
 - [x] Migration 10 on the **dev** database (12 Oct 2026), then a live dev E2E run (42/42)
 - [x] Migration 11 (quiz start guard) on the **dev** database (12 Oct 2026)
-- [ ] Migrations 10 and 11 on **production** (needs separate approval; apply 10 before 11)
+- [x] Migrations 10 and 11 on **production** (approved and applied 13 Oct 2026)
 - [ ] Manual drawing check on a real iPhone and Android phone
 
 ## Sprint 1 — what was built, and where it differs from docs 03–12

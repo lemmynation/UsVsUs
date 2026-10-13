@@ -33,6 +33,11 @@ export default function PrivacyPage() {
               players only see answers after each reveal.
             </li>
             <li>
+              <strong>Drawings and short descriptions</strong> you make in Mutation Machine, stored as lines (not
+              photos). Only the players you pass them to see them during the game; everyone in the room sees them at the
+              reveal.
+            </li>
+            <li>
               <strong>A random cookie</strong> that keeps you in your room if you refresh and lets this phone keep the
               packs it bought. It lasts about a year and renews while you play. We store only a scrambled (hashed)
               version of it, never anything that identifies you.
@@ -68,8 +73,8 @@ export default function PrivacyPage() {
         <Section title="How long we keep it">
           <ul className="list-disc space-y-2 pl-5">
             <li>
-              Rooms, nicknames, answers, scores and Wrapped recaps: deleted {RETENTION_DAYS.rooms} days after the room
-              expires. Rooms expire within a day of being made.
+              Rooms, nicknames, answers, drawings, scores and Wrapped recaps: deleted {RETENTION_DAYS.rooms} days after
+              the room expires. Rooms expire within a day of being made.
             </li>
             <li>Question history: {RETENTION_DAYS.questionHistory} days.</li>
             <li>
