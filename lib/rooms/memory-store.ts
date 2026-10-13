@@ -3,6 +3,7 @@ import type { QuestionHistory } from "@/lib/game/question-picker";
 import { BUNDLED_QUESTIONS } from "@/lib/game/questions";
 import type { GameResponse, GameRound, GameSession, Question, ScoreEntry, WrappedReport } from "@/types/game";
 import { findPack } from "@/lib/premium/catalog";
+import type { PartyDisplay } from "@/types/party";
 import type { Payment } from "@/types/premium";
 import type { Player, Room } from "@/types/room";
 import { nextHost } from "./rules";
@@ -40,6 +41,7 @@ export class MemoryRoomStore implements RoomStore {
     FeedbackEntry & { roomId: string | null; sessionId: string | null; playerId: string | null; updatedAt: string }
   >();
   private rateWindows = new Map<string, { count: number; resetAt: number }>();
+  private displays = new Map<string, PartyDisplay>();
 
   constructor(private readonly questions: Question[] = BUNDLED_QUESTIONS) {}
 
@@ -620,6 +622,12 @@ export class MemoryRoomStore implements RoomStore {
     }
     const nowMs = Date.now();
     for (const [key, w] of this.rateWindows) if (w.resetAt < nowMs) this.rateWindows.delete(key);
+    const dayAgo = new Date(nowMs - 24 * 60 * 60 * 1000).toISOString();
+    for (const [id, d] of this.displays) {
+      if ((d.roomId && goneRooms.has(d.roomId)) || (d.status !== "approved" && d.createdAt < dayAgo)) {
+        this.displays.delete(id);
+      }
+    }
     return { rooms: goneRooms.size, questionHistory: history, events: before - kept.length, paymentEvents, feedback };
   }
 
@@ -656,6 +664,72 @@ export class MemoryRoomStore implements RoomStore {
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .slice(0, limit)
       .map(({ mode, rating, comment, createdAt }) => ({ mode, rating, comment, createdAt }));
+  }
+
+  // --- Party Screen (UsVsUs 4.2 Sprint 2) ---
+
+  async createDisplay(input: Parameters<RoomStore["createDisplay"]>[0]) {
+    for (const d of this.displays.values()) {
+      if (d.status === "pending" && d.pairingCodeHash === input.pairingCodeHash) return "code_taken" as const;
+    }
+    const display: PartyDisplay = {
+      id: randomUUID(),
+      roomId: null,
+      pairingCodeHash: input.pairingCodeHash,
+      tokenHash: input.tokenHash,
+      status: "pending",
+      approvedByPlayerId: null,
+      createdAt: input.now,
+      expiresAt: input.expiresAt,
+      lastSeenAt: null,
+    };
+    this.displays.set(display.id, display);
+    return { ...display };
+  }
+
+  async approveDisplay(input: Parameters<RoomStore["approveDisplay"]>[0]) {
+    const room = this.rooms.get(input.roomId);
+    if (!room || !["LOBBY", "IN_GAME", "WRAPPED"].includes(room.status) || room.expiresAt <= input.now) {
+      return "room_closed" as const;
+    }
+    const display = [...this.displays.values()].find(
+      (d) => d.status === "pending" && d.pairingCodeHash === input.pairingCodeHash && d.expiresAt > input.now,
+    );
+    if (!display) return "invalid_code" as const;
+    const approved = [...this.displays.values()].filter((d) => d.roomId === input.roomId && d.status === "approved");
+    if (approved.length >= input.maxDisplays) return "too_many_displays" as const;
+    Object.assign(display, {
+      status: "approved",
+      roomId: input.roomId,
+      approvedByPlayerId: input.playerId,
+      expiresAt: room.expiresAt,
+      lastSeenAt: null,
+    });
+    return { ...display };
+  }
+
+  async getDisplayByToken(tokenHash: string) {
+    const display = [...this.displays.values()].find((d) => d.tokenHash === tokenHash);
+    return display ? { ...display } : null;
+  }
+
+  async listRoomDisplays(roomId: string) {
+    return [...this.displays.values()]
+      .filter((d) => d.roomId === roomId && d.status === "approved")
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      .map((d) => ({ ...d }));
+  }
+
+  async revokeDisplay(roomId: string, displayId: string) {
+    const display = this.displays.get(displayId);
+    if (!display || display.roomId !== roomId || display.status !== "approved") return false;
+    display.status = "revoked";
+    return true;
+  }
+
+  async touchDisplay(displayId: string, now: string) {
+    const display = this.displays.get(displayId);
+    if (display) display.lastSeenAt = now;
   }
 
   /** Test helper: force a room's expiry. */

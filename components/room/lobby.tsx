@@ -6,6 +6,7 @@ import { Wordmark } from "@/components/brand/wordmark";
 import { ConnectionBanner } from "@/components/game/connection-banner";
 import { ChaosScreen } from "@/components/chaos/chaos-screen";
 import { HowToPlay } from "@/components/home/game-card";
+import { ConnectTv } from "@/components/party/connect-tv";
 import { GameScreen } from "@/components/game/game-screen";
 import { FloatingReactions, ReactionsContext } from "@/components/game/reactions";
 import { CheckoutReturn } from "@/components/premium/checkout-return";
@@ -23,7 +24,16 @@ import { InvitePanel } from "./invite-panel";
 import { PlayerAvatar } from "./player-avatar";
 import { StatusCard } from "./status-card";
 
-export function Lobby({ initialView, realtime }: { initialView: RoomView; realtime: RealtimeConfig | null }) {
+export function Lobby({
+  initialView,
+  realtime,
+  partyScreen = false,
+}: {
+  initialView: RoomView;
+  realtime: RealtimeConfig | null;
+  /** Party Screen (TV) is switched on for this deployment. */
+  partyScreen?: boolean;
+}) {
   const router = useRouter();
   const { view, error, refresh, reconnecting, floating, sendReaction } = useRoom(initialView, realtime);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -252,6 +262,8 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
               ))}
             </ul>
           </section>
+
+          {chain && me.isHost && partyScreen && <ConnectTv roomId={room.id} />}
 
           {!chain && me.isHost && premium.enabled && (
             <>

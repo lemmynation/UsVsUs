@@ -28,7 +28,7 @@ const POLL_FAST_MS = 2_000;
 const POLL_SLOW_MS = 10_000;
 
 let browserClient: SupabaseClient | undefined;
-function getBrowserClient(config: RealtimeConfig) {
+export function getBrowserClient(config: RealtimeConfig) {
   browserClient ??= createClient(config.url, config.publishableKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });

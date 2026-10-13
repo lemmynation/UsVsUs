@@ -58,7 +58,10 @@ create table if not exists chaos_scores (
 - `advance_chain_match(match, expected_version, next jsonb, now)` — compare-and-swap.
 - `record_chain_scores(match, entries jsonb)` — insert … on conflict do nothing.
 
-## Migration 11 — Party Screen (Sprint 2)
+## Migration 12 — Party Screen (Sprint 2)
+
+(Built as `20261018000000_party_screen.sql`; number 11 went to `quiz_start_guard`. Adds
+`approve_party_display` and a unique index on pending codes.)
 
 ```sql
 create table if not exists party_displays (

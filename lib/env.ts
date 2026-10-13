@@ -92,3 +92,11 @@ export function getPaymentEnv(): PaymentEnv {
 export function chainReactionsEnabled(): boolean {
   return process.env.CHAIN_REACTIONS === "on";
 }
+
+/**
+ * UsVsUs 4.2 Sprint 2 Party Screen (a TV as spectator for Mutation Machine): on only where
+ * PARTY_SCREEN=on, and only together with Chain Reactions. Off in production until approved.
+ */
+export function partyScreenEnabled(): boolean {
+  return chainReactionsEnabled() && process.env.PARTY_SCREEN === "on";
+}

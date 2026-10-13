@@ -36,7 +36,7 @@ Realtime stays a payload-free ping; drawings and media are never sent over realt
 
 ```
 TV (laptop/TV browser)                Server                          Host phone
- 1. GET /party  ─────────────────────▶ create pending display
+ 1. POST /api/party ─────────────────▶ create pending display
                                        code = 6 chars (no 0/O/1/I), 5-min expiry,
                                        store sha256(code); set httpOnly
                                        spectator cookie (random token, hash stored)

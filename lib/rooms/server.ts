@@ -4,6 +4,7 @@ import { chainReactionsEnabled, getServerEnv } from "@/lib/env";
 import { CHAOS_CONTENT } from "@/lib/chaos/content";
 import { createChaosService, type ChaosService } from "@/lib/chaos/service";
 import { createGameService, type GameService } from "@/lib/game/service";
+import { createPartyService, type PartyService } from "@/lib/party/service";
 import { getPremiumService } from "@/lib/premium/server";
 import { notifyRoomChanged } from "@/lib/realtime/server";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
@@ -40,6 +41,10 @@ export function getChaosService(): ChaosService {
     random: Math.random,
     onRoomChanged: notifyRoomChanged,
   });
+}
+
+export function getPartyService(): PartyService {
+  return createPartyService({ store: getRoomStore(), content: CHAOS_CONTENT, now: () => new Date(), randomInt });
 }
 
 export function getRoomService(): RoomService {

@@ -11,7 +11,10 @@ export class ApiError extends Error {
 }
 
 /** POST/GET JSON to our own API and turn error responses into ApiError with friendly copy. */
-export async function apiFetch<T>(path: string, init?: { method?: "GET" | "POST"; body?: unknown }): Promise<T> {
+export async function apiFetch<T>(
+  path: string,
+  init?: { method?: "GET" | "POST" | "DELETE"; body?: unknown },
+): Promise<T> {
   let res: Response;
   try {
     res = await fetch(path, {

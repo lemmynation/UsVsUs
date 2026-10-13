@@ -17,6 +17,7 @@ import type { MatchPlan } from "@/lib/chaos/plan";
 import type { ScoreReason } from "@/lib/chaos/scoring";
 import type { ChaosPhase } from "@/lib/chaos/state-machine";
 import type { ChaosMatch, ChaosScoreEntry, ContributionPayload } from "@/types/chaos";
+import type { DisplayStatus, PartyDisplay } from "@/types/party";
 import type { Payment, PaymentProviderName, PaymentStatus } from "@/types/premium";
 import type { Experience, Mode, Player, PlayerStatus, Room, RoomStatus } from "@/types/room";
 import type { AnalyticsEvent, CleanupCutoffs, CleanupResult, FeedbackRating, RoomStore } from "./store";
@@ -82,6 +83,32 @@ const toChaosMatch = (r: ChaosMatchRow): ChaosMatch => ({
   phaseStartedAt: r.phase_started_at,
   startedAt: r.started_at,
   endedAt: r.ended_at,
+});
+
+interface DisplayRow {
+  id: string;
+  room_id: string | null;
+  pairing_code_hash: string;
+  token_hash: string;
+  status: DisplayStatus;
+  approved_by_player_id: string | null;
+  created_at: string;
+  expires_at: string;
+  last_seen_at: string | null;
+}
+
+const iso = (t: string | null) => (t === null ? null : new Date(t).toISOString());
+
+const toDisplay = (r: DisplayRow): PartyDisplay => ({
+  id: r.id,
+  roomId: r.room_id,
+  pairingCodeHash: r.pairing_code_hash,
+  tokenHash: r.token_hash,
+  status: r.status,
+  approvedByPlayerId: r.approved_by_player_id,
+  createdAt: new Date(r.created_at).toISOString(),
+  expiresAt: new Date(r.expires_at).toISOString(),
+  lastSeenAt: iso(r.last_seen_at),
 });
 
 const toRoom = (r: RoomRow): Room => ({
@@ -725,6 +752,78 @@ export class SupabaseRoomStore implements RoomStore {
       (r) => ({ mode: r.mode, rating: r.rating, comment: r.comment, createdAt: new Date(r.created_at).toISOString() }),
     );
   }
+  // --- Party Screen (UsVsUs 4.2 Sprint 2) ---
+
+  async createDisplay(input: Parameters<RoomStore["createDisplay"]>[0]) {
+    const { data, error } = await this.db
+      .from("party_displays")
+      .insert({
+        pairing_code_hash: input.pairingCodeHash,
+        token_hash: input.tokenHash,
+        status: "pending",
+        created_at: input.now,
+        expires_at: input.expiresAt,
+      })
+      .select("*")
+      .single<DisplayRow>();
+    // The partial unique index: another TV is showing this code right now.
+    if (error?.code === "23505") return "code_taken" as const;
+    check(error, "createDisplay");
+    return toDisplay(data!);
+  }
+
+  async approveDisplay(input: Parameters<RoomStore["approveDisplay"]>[0]) {
+    const { data, error } = await this.db.rpc("approve_party_display", {
+      p_room_id: input.roomId,
+      p_code_hash: input.pairingCodeHash,
+      p_player_id: input.playerId,
+      p_max: input.maxDisplays,
+      p_now: input.now,
+    });
+    check(error, "approve_party_display");
+    const result = data as { error?: "invalid_code" | "too_many_displays" | "room_closed"; display?: DisplayRow };
+    if (result.error) return result.error;
+    return toDisplay(result.display!);
+  }
+
+  async getDisplayByToken(tokenHash: string) {
+    const { data, error } = await this.db
+      .from("party_displays")
+      .select("*")
+      .eq("token_hash", tokenHash)
+      .maybeSingle<DisplayRow>();
+    check(error, "getDisplayByToken");
+    return data ? toDisplay(data) : null;
+  }
+
+  async listRoomDisplays(roomId: string) {
+    const { data, error } = await this.db
+      .from("party_displays")
+      .select("*")
+      .eq("room_id", roomId)
+      .eq("status", "approved")
+      .order("created_at", { ascending: true });
+    check(error, "listRoomDisplays");
+    return (data as DisplayRow[]).map(toDisplay);
+  }
+
+  async revokeDisplay(roomId: string, displayId: string) {
+    const { data, error } = await this.db
+      .from("party_displays")
+      .update({ status: "revoked" })
+      .eq("id", displayId)
+      .eq("room_id", roomId)
+      .eq("status", "approved")
+      .select("id");
+    check(error, "revokeDisplay");
+    return (data ?? []).length > 0;
+  }
+
+  async touchDisplay(displayId: string, now: string) {
+    const { error } = await this.db.from("party_displays").update({ last_seen_at: now }).eq("id", displayId);
+    check(error, "touchDisplay");
+  }
+
   // --- Chain Reactions (UsVsUs 4.2) ---
 
   async startChainMatch(input: Parameters<RoomStore["startChainMatch"]>[0]) {

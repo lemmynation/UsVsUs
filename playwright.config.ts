@@ -41,6 +41,8 @@ export default defineConfig({
       ADMIN_TOKEN: E2E_ADMIN_TOKEN,
       // E2E_CHAIN_REACTIONS=off runs the suite the way production runs today.
       CHAIN_REACTIONS: process.env.E2E_CHAIN_REACTIONS ?? "on",
+      // Party Screen (TV) rides on Chain Reactions; E2E_PARTY_SCREEN=off hides it.
+      PARTY_SCREEN: process.env.E2E_PARTY_SCREEN ?? "on",
     },
     reuseExistingServer: !process.env.CI,
     timeout: 300_000, // includes the build on CI

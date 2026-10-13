@@ -124,6 +124,17 @@ Do **not** set `ROOM_STORE`, `PAYMENT_PROVIDER`, `RATE_LIMITS` or any `PAYMONGO_
 - Free Supabase projects pause after a week with no activity; the daily cleanup job keeps production awake.
   The development project can pause; resume it from the Supabase dashboard when needed.
 
+## Later: turning the Party Screen on 🧑
+
+The Party Screen (a TV or laptop showing a Mutation Machine game, UsVsUs 4.2 Sprint 2) is built behind
+`PARTY_SCREEN=on`, which only works together with `CHAIN_REACTIONS=on`.
+
+1. Run `supabase/migrations/20261018000000_party_screen.sql` in the production SQL Editor (migration 12:
+   the `party_displays` table, `approve_party_display`, and the cleanup job's extra statement).
+2. In Vercel, add `PARTY_SCREEN=on` (Production) and **redeploy**.
+3. Check it: open `/party` on a laptop, create a Mutation Machine room on a phone, Lobby → **Connect a TV**,
+   type the code. To turn it off again, remove the variable and redeploy (connected TVs just stop updating).
+
 ## Later: turning premium on 🧑
 
 1. Get the PayMongo account verified for live payments.

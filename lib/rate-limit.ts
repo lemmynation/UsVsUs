@@ -16,6 +16,11 @@ export const LIMITS = {
   checkout: { max: 10, windowMs: 10 * 60_000 },
   // Per player: enough for a burst of laughing, not enough to flood everyone's screen.
   reaction: { max: 12, windowMs: 10_000 },
+  // Party Screen: a TV asks for a fresh code every 5 minutes until someone pairs it.
+  createDisplay: { max: 20, windowMs: 10 * 60_000 },
+  // Typing a TV's code: per phone, and per room (docs/usvsus-4/07: 5 per 10 minutes).
+  pairDisplay: { max: 10, windowMs: 10 * 60_000 },
+  pairDisplayRoom: { max: 5, windowMs: 10 * 60_000 },
 } as const;
 
 /**

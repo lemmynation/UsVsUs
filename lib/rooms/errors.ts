@@ -42,6 +42,13 @@ export const ROOM_ERRORS: Record<string, { status: number; message: string }> = 
   artifact_too_large: { status: 413, message: "That drawing is too big. Try fewer scribbles." },
   not_ready: { status: 409, message: "Still waiting for players — you can skip once the timer runs out." },
   feature_off: { status: 404, message: "That game isn't available yet." },
+  // Party Screen
+  invalid_pairing_code: {
+    status: 404,
+    message: "That TV code didn't work. Check the code on the TV (it changes every 5 minutes).",
+  },
+  too_many_displays: { status: 409, message: "This room already has 2 TVs. Disconnect one first." },
+  display_not_found: { status: 404, message: "That TV isn't connected anymore." },
 };
 
 export function errorMessage(code: string): string {
