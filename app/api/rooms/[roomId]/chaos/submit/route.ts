@@ -44,7 +44,11 @@ async function handlePOST(request: NextRequest, ctx: RouteContext<"/api/rooms/[r
           : "drawing";
     await Promise.all([
       notifyRoomChanged(roomId),
-      track("contribution_submitted", { sessionHash, roomId, properties: { step: body.step, medium } }),
+      track("contribution_submitted", {
+        sessionHash,
+        roomId,
+        properties: { step: body.step, medium, secondsTaken: result.value.secondsTaken },
+      }),
     ]);
   }
   return NextResponse.json({ ok: true });

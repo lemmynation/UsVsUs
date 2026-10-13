@@ -139,7 +139,7 @@ export function createChaosService({ store, content, now, random, onRoomChanged 
       roomId: string,
       sessionHash: string,
       input: { step: number; chain: number; idempotencyKey: string; artifact?: unknown; answer?: ChaosAnswer },
-    ): Promise<Result<{ duplicate: boolean; advanced: boolean }, ChaosSubmitError>> {
+    ): Promise<Result<{ duplicate: boolean; advanced: boolean; secondsTaken: number }, ChaosSubmitError>> {
       const loaded = await loadMatch(roomId, sessionHash);
       if (!loaded.ok) return loaded;
       const { match, me, players } = loaded.value;
@@ -184,8 +184,10 @@ export function createChaosService({ store, content, now, random, onRoomChanged 
       if (stored === "not_open") return fail("step_closed");
       if (stored === "not_assigned") return fail("not_assigned");
       // Everyone in? Move on now (a racing request may get there first; that's fine).
+      // Seconds since the step opened, for the idle-time metric (never the work itself).
+      const secondsTaken = Math.max(0, Math.round((now().getTime() - Date.parse(match.phaseStartedAt)) / 1000));
       const moved = stored === "ok" ? await move(match, "auto", players) : null;
-      return ok({ duplicate: stored === "duplicate", advanced: !!moved?.ok });
+      return ok({ duplicate: stored === "duplicate", advanced: !!moved?.ok, secondsTaken });
     },
 
     /** Host actions: skip waiting (after the timer), next chain in the reveal, or straight to the recap. */

@@ -21,6 +21,7 @@ test("the metrics page needs the admin token, then shows the numbers", async ({ 
   await page.getByRole("button", { name: "Log in" }).click();
   await expect(page.getByRole("heading", { name: "Decision metrics" })).toBeVisible();
   await expect(page.getByText("Created a room")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Mutation Machine" })).toBeVisible();
   await expectAccessible(page);
 
   await page.getByRole("link", { name: "Last 30 days" }).click();

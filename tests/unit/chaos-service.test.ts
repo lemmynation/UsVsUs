@@ -136,6 +136,21 @@ describe("Chain Reactions service: full matches", () => {
 });
 
 describe("Chain Reactions service: rules", () => {
+  it("reports how long the step had been open when a job comes in", async () => {
+    const s = await setup(3);
+    await s.service.start(s.roomId, "s0");
+    s.tick(42_400);
+    const v = await view(s, s.players[1].id);
+    const job = v.myJobs[0];
+    const r = await s.service.submit(s.roomId, "s1", {
+      step: 1,
+      chain: job.chain,
+      idempotencyKey: "k-seconds-1",
+      artifact: drawingFor(job.chain, 1),
+    });
+    expect(r).toMatchObject({ ok: true, value: { duplicate: false, secondsTaken: 42 } });
+  });
+
   it("only lets the host start, only in a Chain Reactions room", async () => {
     const s = await setup(3);
     expect(await s.service.start(s.roomId, "s1")).toEqual({ ok: false, error: "not_host" });

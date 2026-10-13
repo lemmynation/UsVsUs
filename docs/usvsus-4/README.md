@@ -99,4 +99,7 @@ Deviations found while building (the design docs describe the original intent):
 4. **Duo Chaos uses a Friends room** (2 players) and Circle Chaos a Circle room; the room's `experience`
    column decides which game runs. Quick Party refuses to start in a chaos room and vice versa; migration 11 makes
    the database refuse a quiz start in a chaos room too, even with the flag off.
-5. **Analytics:** the new events are recorded; the `/admin/metrics` tiles for them are not built yet.
+5. **Analytics:** the new events are recorded, and `/admin/metrics` has a Mutation Machine section (Sprint 3):
+   completion, match length, time to first action, player wait (median/p90, from `secondsTaken` on
+   `contribution_submitted`), skipped waits, drawing share, rematch rate and TV pairing. There is no
+   `chaos_step_started` event: step timing comes from `secondsTaken`. Prompt repetition isn't measured yet.
