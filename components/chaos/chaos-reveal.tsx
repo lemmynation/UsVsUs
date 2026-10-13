@@ -1,19 +1,16 @@
 "use client";
 
+import { useEffect } from "react";
 import { ReactionBar } from "@/components/game/reactions";
 import { Button } from "@/components/ui/button";
+import { FeedbackCard } from "@/components/wrapped/feedback-card";
 import { RematchPanel } from "@/components/wrapped/rematch-panel";
+import { ShareActions } from "@/components/wrapped/share-actions";
 import type { ChainReveal, Layer } from "@/lib/chaos/projections";
+import { chaosHeadline, TITLE_EMOJI, type MutationMoment } from "@/lib/chaos/wrapped";
+import { trackClient } from "@/lib/client-api";
 import type { ChaosScreenProps } from "./chaos-screen";
 import { LayersView } from "./layers-view";
-
-export const TITLE_EMOJI: Record<string, string> = {
-  "Sharp Eye": "🔎",
-  "Clear Signal": "📡",
-  "Chaos Agent": "🌪️",
-  "Mind Meld": "🧠",
-  Wildcard: "🃏",
-};
 
 /** One chain's lineage, step by step: what it was, what each mutation did, who spotted it. */
 export function ChaosReveal({ view, act, pending }: ChaosScreenProps) {
@@ -113,44 +110,75 @@ function Lineage({ reveal, nameOf, meId }: { reveal: ChainReveal; nameOf: (id: s
   );
 }
 
-/** End of the match: everyone's (positive) title, points or the duo's sync, rematch. */
+/** End of the match: the frozen Group Wrapped — titles, points or the duo's sync, best moments, share, rematch. */
 export function ChaosRecap({ view, act, pending }: ChaosScreenProps) {
-  const { chaos, me, players } = view;
-  const recap = chaos.recap;
-  if (!recap) return null;
+  const { chaos, me, room } = view;
+  const report = chaos.wrapped;
+  useEffect(
+    () => trackClient("wrapped_viewed", { mode: room.mode, game: "mutation_machine" }, room.id),
+    [room.id, room.mode],
+  );
+  if (!report) return <p className="text-muted-foreground text-center text-lg">Wrapping up your results…</p>;
   const nameOf = (id: string) =>
-    id === me.playerId ? "You" : (players.find((p) => p.id === id)?.nickname ?? "Someone who left");
-  const ranked = Object.keys(recap.titles).sort((a, b) => (recap.points[b] ?? 0) - (recap.points[a] ?? 0));
-  const team = Object.values(recap.points).reduce((a, b) => a + b, 0);
+    id === me.playerId ? "You" : (report.players.find((p) => p.id === id)?.nickname ?? "Someone who left");
 
   return (
     <>
       <header className="flex flex-col gap-1 text-center">
         <p className="text-muted-foreground text-base font-semibold tracking-widest uppercase">Mutation Machine</p>
         <h1 className="font-heading text-4xl font-extrabold">🏁 That&apos;s the chaos!</h1>
-        {chaos.isDuo && recap.sync !== null && (
+        {(report.sync !== null || report.spotRate !== null) && (
           <p className="text-lg">
-            Team score <strong>{team}</strong> · you were <strong>{Math.round(recap.sync * 100)}% in sync</strong>
+            {report.isDuo && (
+              <>
+                Team score <strong>{report.teamScore}</strong> ·{" "}
+              </>
+            )}
+            <strong>{chaosHeadline(report)}</strong>
           </p>
         )}
       </header>
       <ul className="flex flex-col gap-2" aria-label="Titles">
-        {ranked.map((id) => (
-          <li key={id} className="bg-card flex items-center justify-between gap-3 rounded-2xl p-4">
-            <span className="flex flex-col">
-              <span className="text-lg font-bold">{nameOf(id)}</span>
+        {report.players.map((p) => (
+          <li key={p.id} className="bg-card flex items-center justify-between gap-3 rounded-2xl p-4">
+            <span className="flex min-w-0 flex-col">
+              <span className="text-lg font-bold break-words">{nameOf(p.id)}</span>
               <span className="text-muted-foreground text-base">
-                {TITLE_EMOJI[recap.titles[id]]} {recap.titles[id]}
+                {TITLE_EMOJI[p.title]} {p.title}
               </span>
             </span>
-            {!chaos.isDuo && (
-              <span className="font-heading text-2xl font-extrabold tabular-nums">{recap.points[id] ?? 0}</span>
-            )}
+            {!report.isDuo && <span className="font-heading text-2xl font-extrabold tabular-nums">{p.points}</span>}
           </li>
         ))}
       </ul>
+      {report.sneakiest && <MomentCard title="🌪️ Sneakiest mutation" moment={report.sneakiest} nameOf={nameOf} />}
+      {report.clearest && <MomentCard title="🔎 Clearest mutation" moment={report.clearest} nameOf={nameOf} />}
       <ReactionBar />
       <RematchPanel view={view} act={act} pending={pending} />
+      <ShareActions roomId={room.id} mode={room.mode} game="chaos" />
+      <FeedbackCard roomId={room.id} />
     </>
+  );
+}
+
+function MomentCard({
+  title,
+  moment,
+  nameOf,
+}: {
+  title: string;
+  moment: MutationMoment;
+  nameOf: (id: string) => string;
+}) {
+  return (
+    <section className="border-mode-gradient flex flex-col gap-1 rounded-3xl p-4">
+      <h2 className="text-muted-foreground text-base font-semibold">{title}</h2>
+      <p className="text-xl font-bold break-words">
+        {moment.object} + <span className="text-mode-gradient">{moment.label}</span>
+      </p>
+      <p className="text-base">
+        by {nameOf(moment.mutatorId)} · {moment.spotted} of {moment.guesses} spotted it
+      </p>
+    </section>
   );
 }

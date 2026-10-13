@@ -151,8 +151,14 @@ describe("error text sanitizing", () => {
 });
 
 describe("feedback summary", () => {
-  const entry = (rating: 1 | 2 | 3 | 4, comment: string | null, at: string) => ({
+  const entry = (
+    rating: 1 | 2 | 3 | 4,
+    comment: string | null,
+    at: string,
+    game: "mind_match" | "mutation_machine" = "mind_match",
+  ) => ({
     mode: "couple" as const,
+    game,
     rating,
     comment,
     createdAt: at,
@@ -169,6 +175,19 @@ describe("feedback summary", () => {
       { rating: 1, count: 0 },
     ]);
     expect(s.recentComments.map((c) => c.comment)).toEqual(["Too long", "So fun"]);
+  });
+
+  it("averages each game separately", () => {
+    const s = summarizeFeedback([
+      entry(4, null, day(2)),
+      entry(2, null, day(2)),
+      entry(3, "Loved the reveal", day(3), "mutation_machine"),
+    ]);
+    expect(s.byGame).toEqual([
+      { game: "mind_match", count: 2, average: 3 },
+      { game: "mutation_machine", count: 1, average: 3 },
+    ]);
+    expect(s.recentComments[0]).toMatchObject({ game: "mutation_machine" });
   });
 
   it("has no average before anyone rates", () => {
@@ -208,6 +227,7 @@ describe("Mutation Machine metrics", () => {
     ev("chaos_step_skipped", at(2, 10, 5), { roomId: "A" }),
     ev("chaos_match_completed", at(2, 10, 10), { roomId: "A" }),
     ev("rematch_started", at(2, 10, 11), { roomId: "A" }),
+    ev("wrapped_shared", at(2, 10, 10, 30), { roomId: "A" }),
     ev("chaos_match_started", at(2, 10, 11), { roomId: "A" }),
     // Step 1 again in the rematch: a separate step, so its first action counts on its own.
     submitted("A", at(2, 10, 11, 10), 1, 10),
@@ -242,6 +262,7 @@ describe("Mutation Machine metrics", () => {
   it("splits drawings from text, and counts rematches and TV pairing", () => {
     expect(m.drawingShare).toEqual({ numerator: 4, denominator: 5, value: 0.8 });
     expect(m.rematchRate).toEqual({ numerator: 1, denominator: 2, value: 0.5 });
+    expect(m.shareRate).toEqual({ numerator: 1, denominator: 2, value: 0.5 });
     expect(m.tvPairing).toEqual({ numerator: 2, denominator: 3, value: 2 / 3 });
   });
 

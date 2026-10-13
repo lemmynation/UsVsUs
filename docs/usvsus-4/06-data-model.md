@@ -77,6 +77,19 @@ create table if not exists party_displays (
 );
 ```
 
+## Migration 13 — Group Wrapped and feedback (Sprint 3)
+
+(Built as `20261019000000_chaos_wrapped.sql`.)
+
+- `chaos_matches.wrapped jsonb` — the match's frozen Group Wrapped (`lib/chaos/wrapped.ts`): nicknames,
+  points, titles, sync/spot rate and the sneakiest/clearest mutation as the reveal showed them. Never
+  drawings or who answered what. `save_chaos_wrapped(match, report)` keeps the first save.
+- `feedback.game` (`mind_match` / `mutation_machine`, kept when links are cleared at cleanup) and
+  `feedback.chaos_match_id` with `unique (chaos_match_id, player_id)`: one rating per player per match.
+
+Without this migration the app still works: the report is built fresh on each read (logged), only
+Mutation Machine feedback fails to save.
+
 ## Later (Sprints 4–7), sketched only
 
 `cosmetic_catalog` (data file + table), `cosmetic_inventory`, `equipped_cosmetics`, `reward_ledger`

@@ -74,6 +74,9 @@ Do not introduce a new dependency unless it materially simplifies the implementa
   locked-in scores plus what reveals already showed; Circle reports carry badge winners and counts, never
   who voted for whom. The share card (`components/wrapped/share-card.tsx`, `next/og`) uses nicknames only,
   members-only route. Satori needs `display: flex` on multi-child elements and sRGB colors (no oklch).
+  Mutation Machine has its own Group Wrapped (`lib/chaos/wrapped.ts`), frozen on `chaos_matches.wrapped` when
+  the match reaches the recap; the recap (phone and TV), share card and feedback read it. Same rules: locked-in
+  points and what the reveals showed, never drawings or who answered what.
 - **Premium** (`lib/premium/`): a pack unlocks only through `verifyAndGrant`, which asks the provider
   directly (paid, amount, currency, our payment id) and then calls the atomic `grant_entitlement` (once per
   room per pack; a second paid payment is marked `duplicate` for refund). Webhooks, the host's return from

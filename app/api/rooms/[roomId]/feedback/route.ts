@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { apiError, isRateLimited, parseBody } from "@/lib/api";
 import { FEEDBACK_COMMENT_MAX } from "@/lib/rooms/rules";
-import { getGameService } from "@/lib/rooms/server";
+import { getChaosService, getGameService, getRoomStore } from "@/lib/rooms/server";
 import { readSessionHash } from "@/lib/session";
 
 const bodySchema = z.object({
@@ -24,7 +24,11 @@ export async function POST(request: NextRequest, ctx: RouteContext<"/api/rooms/[
   if (!body) return apiError("invalid_input");
   if (!sessionHash) return apiError("not_in_room");
 
-  const result = await getGameService().submitFeedback(roomId, sessionHash, body);
+  const room = await getRoomStore().getRoomById(roomId);
+  const result =
+    room?.experience === "chain_reactions"
+      ? await getChaosService().submitFeedback(roomId, sessionHash, body)
+      : await getGameService().submitFeedback(roomId, sessionHash, body);
   if (!result.ok) return apiError(result.error);
   return NextResponse.json({ ok: true });
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { trackClient } from "@/lib/client-api";
+import { createHref, type GameKey } from "@/lib/games";
 import { cn } from "@/lib/utils";
 import type { Mode } from "@/types/room";
 
@@ -22,7 +23,7 @@ function browserCanShareFiles(): boolean {
  * Share the 1080×1920 card through the phone's share sheet when it can take
  * files; otherwise (most desktops) save it. "New room" starts over elsewhere (Rematch keeps the group).
  */
-export function ShareActions({ roomId, mode }: { roomId: string; mode: Mode }) {
+export function ShareActions({ roomId, mode, game = "quiz" }: { roomId: string; mode: Mode; game?: GameKey }) {
   const imageUrl = `/api/rooms/${roomId}/wrapped/image`;
   // The server render can't know what the browser supports, so it starts as "save only".
   const canShareFiles = useSyncExternalStore(noSubscribe, browserCanShareFiles, () => false);
@@ -81,8 +82,8 @@ export function ShareActions({ roomId, mode }: { roomId: string; mode: Mode }) {
         </p>
       )}
       <Link
-        href={`/create?mode=${mode}`}
-        onClick={() => trackClient("play_again_clicked", { mode }, roomId)}
+        href={createHref(game, mode)}
+        onClick={() => trackClient("play_again_clicked", { mode, game }, roomId)}
         className={cn(buttonVariants({ size: "lg", variant: "outline" }), "w-full")}
       >
         New room

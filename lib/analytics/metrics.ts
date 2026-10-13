@@ -40,6 +40,8 @@ export interface Metrics {
     /** Drawings among the drawn or written contributions. */
     drawingShare: Rate;
     rematchRate: Rate;
+    /** Finished rooms that shared their Group Wrapped. */
+    shareRate: Rate;
     tvPairing: Rate;
   };
   health: {
@@ -135,12 +137,21 @@ function chaosMetrics(inWindow: AnalyticsEvent[]): Metrics["chaos"] {
   return {
     matchesStarted: starts.length,
     completion: rate(completions.length, starts.length),
-    medianMinutes: minutes.length ? percentile([...minutes].sort((a, b) => a - b), 50) : null,
+    medianMinutes: minutes.length
+      ? percentile(
+          [...minutes].sort((a, b) => a - b),
+          50,
+        )
+      : null,
     firstAction: spread([...firstByStep.values()]),
     playerWait: spread(waits),
     skipsPerMatch: starts.length ? named("chaos_step_skipped").length / starts.length : null,
     drawingShare: rate(drawings, drawings + texts),
     rematchRate: rate(rematched.size, finishedRooms.size),
+    shareRate: rate(
+      new Set(named("wrapped_shared").flatMap((e) => (e.roomId && finishedRooms.has(e.roomId) ? [e.roomId] : []))).size,
+      finishedRooms.size,
+    ),
     tvPairing: rate(named("party_screen_pair_approved").length, named("party_screen_pair_requested").length),
   };
 }
@@ -160,7 +171,8 @@ export function computeMetrics(events: AnalyticsEvent[], window: { from: Date; n
   const created = roomsWith("room_created");
   const started = roomsWith("game_started");
   const completed = roomsWith("game_completed");
-  const shared = roomsWith("wrapped_shared");
+  // Mind Match rooms only: Mutation Machine shares are counted in its own section.
+  const shared = new Set([...roomsWith("wrapped_shared")].filter((id) => completed.has(id)));
   const viewedPremium = roomsWith("premium_pack_viewed");
   const paid = roomsWith("purchase_succeeded");
   const joins = named("player_joined").length;
@@ -295,7 +307,15 @@ export interface FeedbackSummary {
   average: number | null;
   /** Counts for ratings 4, 3, 2, 1 (best first). */
   byRating: Array<{ rating: FeedbackRating; count: number }>;
-  recentComments: Array<{ rating: FeedbackRating; mode: string; comment: string; createdAt: string }>;
+  /** Count and average per game, for games with at least one rating. */
+  byGame: Array<{ game: FeedbackEntry["game"]; count: number; average: number }>;
+  recentComments: Array<{
+    rating: FeedbackRating;
+    mode: string;
+    game: FeedbackEntry["game"];
+    comment: string;
+    createdAt: string;
+  }>;
 }
 
 /** Beta feedback for the dashboard: rating spread, average and the latest comments. */
@@ -306,10 +326,16 @@ export function summarizeFeedback(entries: FeedbackEntry[], maxComments = 20): F
     count: entries.length,
     average: entries.length ? total / entries.length : null,
     byRating: ratings.map((rating) => ({ rating, count: entries.filter((e) => e.rating === rating).length })),
+    byGame: (["mind_match", "mutation_machine"] as const).flatMap((game) => {
+      const list = entries.filter((e) => e.game === game);
+      return list.length
+        ? [{ game, count: list.length, average: list.reduce((n, e) => n + e.rating, 0) / list.length }]
+        : [];
+    }),
     recentComments: entries
       .filter((e): e is FeedbackEntry & { comment: string } => !!e.comment)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .slice(0, maxComments)
-      .map(({ rating, mode, comment, createdAt }) => ({ rating, mode, comment, createdAt })),
+      .map(({ rating, mode, game, comment, createdAt }) => ({ rating, mode, game, comment, createdAt })),
   };
 }

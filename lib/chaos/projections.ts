@@ -7,8 +7,9 @@
 import type { Artifact } from "./artifact";
 import type { ChaosContent } from "./content";
 import { choiceKey, type MatchPlan, type StepKind } from "./plan";
-import { duoSync, titlesFor, totals, type DetectAnswer, type Missing, type ScoreEntry, type Title } from "./scoring";
+import type { DetectAnswer, Missing, Title } from "./scoring";
 import { stepAutoSkipAt, stepDeadline } from "./state-machine";
+import type { ChaosWrappedReport } from "./wrapped";
 import type { ChaosContribution, ChaosMatch } from "@/types/chaos";
 
 export interface Choice {
@@ -77,6 +78,8 @@ export interface ChaosPlayerView {
   /** Index of the chain the reveal is on (REVEAL only). */
   revealChain: number | null;
   recap: { points: Record<string, number>; titles: Record<string, Title>; sync: number | null } | null;
+  /** The frozen Group Wrapped (RECAP only). */
+  wrapped: ChaosWrappedReport | null;
 }
 
 const at = (plan: MatchPlan, step: number, chain: number) =>
@@ -167,21 +170,21 @@ function waitingOnIn(match: ChaosMatch, contributions: ChaosContribution[], acti
   return [...new Set(jobs.filter((a) => !find(contributions, a.step, a.chain, a.playerId)).map((a) => a.playerId))];
 }
 
-function recapOf(match: ChaosMatch, contributions: ChaosContribution[], scores: ScoreEntry[]) {
-  const { plan } = match;
-  const missing = missingWork(plan, contributions, plan.steps.length);
-  const answers = detectAnswers(contributions);
+/** Points and titles as frozen in the Group Wrapped, so the recap never changes after it's shown. */
+function recapOf(wrapped: ChaosWrappedReport | null): ChaosPlayerView["recap"] {
+  if (!wrapped) return null;
   return {
-    points: totals(scores),
-    titles: titlesFor(plan, scores, answers, missing),
-    sync: plan.playerOrder.length === 2 ? duoSync(plan, answers, missing) : null,
+    points: Object.fromEntries(wrapped.players.map((p) => [p.id, p.points])),
+    titles: Object.fromEntries(wrapped.players.map((p) => [p.id, p.title])),
+    sync: wrapped.sync,
   };
 }
 
 export function playerView(input: {
   match: ChaosMatch;
   contributions: ChaosContribution[];
-  scores: ScoreEntry[];
+  /** The match's Group Wrapped, in the recap. */
+  wrapped: ChaosWrappedReport | null;
   activePlayerIds: Set<string>;
   meId: string;
   content: ChaosContent;
@@ -251,7 +254,8 @@ export function playerView(input: {
     waitingOn,
     reveals,
     revealChain: match.phase === "REVEAL" ? match.revealChain : null,
-    recap: match.phase === "RECAP" ? recapOf(match, contributions, input.scores) : null,
+    recap: match.phase === "RECAP" ? recapOf(input.wrapped) : null,
+    wrapped: match.phase === "RECAP" ? input.wrapped : null,
   };
 }
 
@@ -277,7 +281,7 @@ export interface ChaosSpectatorView {
 export function spectatorView(input: {
   match: ChaosMatch;
   contributions: ChaosContribution[];
-  scores: ScoreEntry[];
+  wrapped: ChaosWrappedReport | null;
   activePlayerIds: Set<string>;
   content: ChaosContent;
 }): ChaosSpectatorView {
@@ -307,6 +311,6 @@ export function spectatorView(input: {
       match.phase === "REVEAL" && match.revealChain !== null
         ? reveal(plan, contributions, content, match.revealChain)
         : null,
-    recap: match.phase === "RECAP" ? recapOf(match, contributions, input.scores) : null,
+    recap: match.phase === "RECAP" ? recapOf(input.wrapped) : null,
   };
 }

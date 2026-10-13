@@ -11,6 +11,7 @@ import type {
   WrappedReport,
 } from "@/types/game";
 import type { MatchPlan } from "@/lib/chaos/plan";
+import type { ChaosWrappedReport } from "@/lib/chaos/wrapped";
 import type { ChaosPosition } from "@/lib/chaos/state-machine";
 import type { ChaosContribution, ChaosMatch, ChaosScoreEntry, ContributionPayload } from "@/types/chaos";
 import type { PartyDisplay } from "@/types/party";
@@ -30,6 +31,7 @@ export type FeedbackRating = 1 | 2 | 3 | 4;
 
 export interface FeedbackEntry {
   mode: Mode;
+  game: "mind_match" | "mutation_machine";
   rating: FeedbackRating;
   comment: string | null;
   createdAt: string;
@@ -204,10 +206,12 @@ export interface RoomStore {
   /**
    * One rating per player per game; sending again replaces the rating. A null comment
    * keeps any comment already saved (a rating tap can land after the comment).
+   * Exactly one of `sessionId` (Mind Match) and `chaosMatchId` (Mutation Machine) is set.
    */
   saveFeedback(input: {
     roomId: string;
-    sessionId: string;
+    sessionId: string | null;
+    chaosMatchId?: string | null;
     playerId: string;
     mode: Mode;
     rating: FeedbackRating;
@@ -265,6 +269,9 @@ export interface RoomStore {
   recordChainScores(matchId: string, entries: ChaosScoreEntry[]): Promise<void>;
 
   listChainScores(matchId: string): Promise<ChaosScoreEntry[]>;
+
+  /** Saves the match's Group Wrapped once; a second (racing) save keeps the first. Returns the stored one. */
+  saveChaosWrapped(matchId: string, report: ChaosWrappedReport): Promise<ChaosWrappedReport>;
 
   // --- Party Screen (UsVsUs 4.2 Sprint 2) ---
 

@@ -120,6 +120,12 @@ export function MetricsView({ metrics }: { metrics: Metrics }) {
             detail={ofTotal(chaos.rematchRate)}
           />
           <Stat
+            label="Share rate"
+            hint="Finished rooms that shared their Wrapped"
+            value={pct(chaos.shareRate)}
+            detail={ofTotal(chaos.shareRate)}
+          />
+          <Stat
             label="TV pairing"
             hint="TV codes shown that a host approved"
             value={pct(chaos.tvPairing)}
@@ -286,6 +292,8 @@ function Stat({
   );
 }
 
+const GAME_LABELS = { mind_match: "Mind Match", mutation_machine: "Mutation Machine" } as const;
+
 const RATING_LABELS: Record<number, string> = {
   4: "😍 Loved it",
   3: "🙂 Liked it",
@@ -306,6 +314,11 @@ export function FeedbackView({ feedback }: { feedback: FeedbackSummary }) {
             <span className="font-heading text-2xl font-extrabold tabular-nums">{feedback.average!.toFixed(1)}</span>
             <span className="text-muted-foreground"> / 4 average from {feedback.count} ratings</span>
           </p>
+          {feedback.byGame.length > 1 && (
+            <p className="text-muted-foreground text-sm">
+              {feedback.byGame.map((g) => `${GAME_LABELS[g.game]} ${g.average.toFixed(1)} (${g.count})`).join(" · ")}
+            </p>
+          )}
           <ul className="flex flex-col gap-2">
             {feedback.byRating.map((r) => (
               <li key={r.rating} className="flex flex-col gap-1">
@@ -325,7 +338,7 @@ export function FeedbackView({ feedback }: { feedback: FeedbackSummary }) {
                 <li key={`${c.createdAt}|${c.comment}`} className="bg-card rounded-xl p-3 text-sm">
                   <div className="text-muted-foreground flex justify-between gap-3 text-xs">
                     <span>
-                      {RATING_LABELS[c.rating]} · {c.mode}
+                      {RATING_LABELS[c.rating]} · {GAME_LABELS[c.game]} · {c.mode}
                     </span>
                     <span>{when(c.createdAt)}</span>
                   </div>

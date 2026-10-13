@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { CHAOS_CONTENT } from "@/lib/chaos/content";
 import type { ChaosJob, ChaosPlayerView } from "@/lib/chaos/projections";
 import { createChaosService } from "@/lib/chaos/service";
@@ -132,6 +132,79 @@ describe("Chain Reactions service: full matches", () => {
     expect(total).toBe(step3 * (2 + 1) + (n === 2 ? 0 : step3 * (1 + 1)) + step5 * (2 + 1));
     if (n === 2) expect(recap.sync).toBe(1);
     expect((await s.store.getRoomById(s.roomId))!.status).toBe("WRAPPED");
+  });
+});
+
+describe("Chain Reactions service: Group Wrapped", () => {
+  async function playToRecap(n: number) {
+    const s = await setup(n);
+    await s.service.start(s.roomId, "s0");
+    for (let step = 1; step <= 5; step++) await playStep(s, (playerId) => playerId !== s.players[2]?.id);
+    await finishReveal(s);
+    return s;
+  }
+
+  it("freezes the report as the match reaches the recap", async () => {
+    const s = await playToRecap(4);
+    const match = (await s.store.getLatestChainMatch(s.roomId))!;
+    expect(match.wrapped).not.toBeNull();
+    expect(match.wrapped!.players.map((p) => p.nickname).sort()).toEqual(["Ana", "Ben", "Cy", "Lem"]);
+    const v = await view(s, s.players[1].id);
+    expect(v.wrapped).toEqual(match.wrapped);
+    // The recap's points and titles are the frozen ones.
+    for (const p of match.wrapped!.players) {
+      expect(v.recap!.points[p.id]).toBe(p.points);
+      expect(v.recap!.titles[p.id]).toBe(p.title);
+    }
+  });
+
+  it("reads the same after a player leaves", async () => {
+    const s = await playToRecap(4);
+    const before = await s.service.getWrapped(s.roomId, "s1");
+    await s.store.removePlayer(s.players[3].id);
+    const after = await s.service.getWrapped(s.roomId, "s1");
+    expect(before.ok && after.ok).toBe(true);
+    expect(after).toEqual(before);
+  });
+
+  it("still shows the recap on a database without migration 13 (report can't be saved)", async () => {
+    const s = await setup(3);
+    s.store.saveChaosWrapped = () => Promise.reject(new Error("function save_chaos_wrapped does not exist"));
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    await s.service.start(s.roomId, "s0");
+    for (let step = 1; step <= 5; step++) await playStep(s);
+    await finishReveal(s);
+    const v = await view(s, s.players[1].id);
+    expect(v.wrapped?.players).toHaveLength(3);
+    expect(Object.keys(v.recap!.titles)).toHaveLength(3);
+    expect(errors).toHaveBeenCalled();
+    errors.mockRestore();
+  });
+
+  it("isn't there before the recap, nor for non-members", async () => {
+    const s = await setup(3);
+    await s.service.start(s.roomId, "s0");
+    expect(await s.service.getWrapped(s.roomId, "s1")).toEqual({ ok: false, error: "game_not_finished" });
+    expect((await view(s, s.players[1].id)).wrapped).toBeNull();
+    expect((await s.service.getWrapped(s.roomId, "nobody")).ok).toBe(false);
+  });
+
+  it("takes one rating per player per match, only once the match is over", async () => {
+    const s = await setup(3);
+    await s.service.start(s.roomId, "s0");
+    expect(await s.service.submitFeedback(s.roomId, "s1", { rating: 4 })).toEqual({
+      ok: false,
+      error: "game_not_finished",
+    });
+    for (let step = 1; step <= 5; step++) await playStep(s);
+    await finishReveal(s);
+    expect(await s.service.submitFeedback(s.roomId, "s1", { rating: 4, comment: "  So fun  " })).toEqual({
+      ok: true,
+      value: null,
+    });
+    await s.service.submitFeedback(s.roomId, "s1", { rating: 3 });
+    const all = await s.store.listFeedback("2000-01-01T00:00:00Z", 10);
+    expect(all).toEqual([expect.objectContaining({ game: "mutation_machine", rating: 3, comment: "So fun" })]);
   });
 });
 

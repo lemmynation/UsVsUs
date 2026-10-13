@@ -2,7 +2,7 @@
 
 import { Maximize } from "lucide-react";
 import { useSyncExternalStore } from "react";
-import { TITLE_EMOJI } from "@/components/chaos/chaos-reveal";
+import { TITLE_EMOJI } from "@/lib/chaos/wrapped";
 import { useSecondsLeft } from "@/components/chaos/chaos-screen";
 import { LayersView } from "@/components/chaos/layers-view";
 import { FloatingReactions } from "@/components/game/reactions";

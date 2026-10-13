@@ -36,7 +36,7 @@ describe("feedback retention", () => {
     const result = await store.cleanupExpiredData(retentionCutoffs(new Date(NOW)));
     expect(result.feedback).toBe(1);
     expect(await store.listFeedback("2000-01-01T00:00:00Z", 10)).toEqual([
-      { mode: "friends", rating: 4, comment: "fun", createdAt: "2026-10-29T00:00:00.000Z" },
+      { mode: "friends", game: "mind_match", rating: 4, comment: "fun", createdAt: "2026-10-29T00:00:00.000Z" },
     ]);
   });
 });

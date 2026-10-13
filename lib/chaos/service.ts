@@ -4,8 +4,8 @@
  * points are locked in (idempotently) as it closes. No Next.js or Supabase here.
  */
 import { loadMembership, type MembershipError } from "@/lib/rooms/membership";
-import { activePlayers, type Result } from "@/lib/rooms/rules";
-import type { RoomStore } from "@/lib/rooms/store";
+import { activePlayers, sanitizeFeedbackComment, type Result } from "@/lib/rooms/rules";
+import type { FeedbackRating, RoomStore } from "@/lib/rooms/store";
 import type { ChaosAnswer, ChaosContribution, ChaosMatch, ContributionPayload } from "@/types/chaos";
 import type { Player, Room } from "@/types/room";
 import { validateArtifact, type ArtifactError } from "./artifact";
@@ -13,6 +13,7 @@ import type { ChaosContent } from "./content";
 import { choiceKey, GAME_ID, MAX_PLAYERS, MIN_PLAYERS, planMatch, type Vibe } from "./plan";
 import { detectAnswers, missingWork, playerView, type ChaosPlayerView } from "./projections";
 import { scoreDetectStep } from "./scoring";
+import { buildChaosWrapped, type ChaosWrappedReport } from "./wrapped";
 import {
   decideAdvance,
   jobKey,
@@ -37,8 +38,45 @@ export type ChaosSubmitError =
   MembershipError | ArtifactError | "no_match" | "step_closed" | "not_assigned" | "invalid_answer";
 export type ChaosMoveError = MembershipError | ChaosAdvanceError | "not_host" | "no_match" | "stale_state";
 
+export type ChaosWrappedError = MembershipError | "no_match" | "game_not_finished";
+
 const ok = <T>(value: T) => ({ ok: true, value }) as const;
 const fail = <E extends string>(error: E) => ({ ok: false, error }) as const;
+
+/**
+ * The finished match's Group Wrapped: the frozen one, or built now from the locked-in
+ * points and saved (first save wins, so racing requests agree). Built as the match
+ * reaches the recap; building here too covers an interrupted finish. On a database
+ * without migration 13 it can't be saved, so it's built fresh each time.
+ */
+export async function chaosWrappedFor(
+  deps: { store: RoomStore; content: ChaosContent },
+  match: ChaosMatch,
+  room: Room,
+  players: Player[],
+): Promise<ChaosWrappedReport> {
+  if (match.wrapped) return match.wrapped;
+  const { store, content } = deps;
+  const [contributions, scores] = await Promise.all([
+    store.listContributions(match.id),
+    store.listChainScores(match.id),
+  ]);
+  const report = buildChaosWrapped({
+    matchId: match.id,
+    roomName: room.name,
+    plan: match.plan,
+    contributions: contributions as ChaosContribution[],
+    scores,
+    players: activePlayers(players).map((p) => ({ id: p.id, nickname: p.nickname })),
+    content,
+  });
+  try {
+    return await store.saveChaosWrapped(match.id, report);
+  } catch (error) {
+    console.error("[chaos] couldn't save Group Wrapped", error);
+    return report;
+  }
+}
 
 export function createChaosService({ store, content, now, random, onRoomChanged }: ChaosServiceDeps) {
   const activeIds = (players: Player[]) => new Set(activePlayers(players).map((p) => p.id));
@@ -69,6 +107,10 @@ export function createChaosService({ store, content, now, random, onRoomChanged 
     // nothing can land unscored. Re-scoring earlier steps is a no-op, and repairs a
     // request that died between closing a step and scoring it.
     await lockInClosedSteps(moved);
+    if (moved.phase === "RECAP") {
+      const room = await store.getRoomById(moved.roomId);
+      if (room) moved.wrapped = await chaosWrappedFor({ store, content }, moved, room, players);
+    }
     return ok(moved);
   }
 
@@ -236,18 +278,55 @@ export function createChaosService({ store, content, now, random, onRoomChanged 
       if (room.experience !== "chain_reactions") return null;
       const match = await store.getLatestChainMatch(room.id);
       if (!match) return null;
-      const [contributions, scores] = await Promise.all([
+      const [contributions, wrapped] = await Promise.all([
         store.listContributions(match.id),
-        match.phase === "RECAP" ? store.listChainScores(match.id) : Promise.resolve([]),
+        match.phase === "RECAP" ? chaosWrappedFor({ store, content }, match, room, players) : Promise.resolve(null),
       ]);
       return playerView({
         match,
         contributions: contributions as ChaosContribution[],
-        scores,
+        wrapped,
         activePlayerIds: activeIds(players),
         meId: me.id,
         content,
       });
+    },
+
+    /** Members only: the finished match's Group Wrapped (for the share card). */
+    async getWrapped(roomId: string, sessionHash: string): Promise<Result<ChaosWrappedReport, ChaosWrappedError>> {
+      const membership = await loadMembership(store, roomId, sessionHash);
+      if (!membership.ok) return membership;
+      const { room, players } = membership.value;
+      if (room.experience !== "chain_reactions") return fail("no_match");
+      const match = await store.getLatestChainMatch(roomId);
+      if (!match) return fail("no_match");
+      if (match.phase !== "RECAP") return fail("game_not_finished");
+      return ok(await chaosWrappedFor({ store, content }, match, room, players));
+    },
+
+    /** A member rates the match they just finished. Sending again replaces it. */
+    async submitFeedback(
+      roomId: string,
+      sessionHash: string,
+      input: { rating: FeedbackRating; comment?: string | null },
+    ): Promise<Result<null, ChaosWrappedError>> {
+      const membership = await loadMembership(store, roomId, sessionHash);
+      if (!membership.ok) return membership;
+      const { room, me } = membership.value;
+      const match = room.experience === "chain_reactions" ? await store.getLatestChainMatch(roomId) : null;
+      if (!match) return fail("no_match");
+      if (match.phase !== "RECAP") return fail("game_not_finished");
+      await store.saveFeedback({
+        roomId,
+        sessionId: null,
+        chaosMatchId: match.id,
+        playerId: me.id,
+        mode: room.mode,
+        rating: input.rating,
+        comment: sanitizeFeedbackComment(input.comment),
+        now: now().toISOString(),
+      });
+      return ok(null);
     },
   };
 }

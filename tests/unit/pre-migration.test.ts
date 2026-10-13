@@ -20,6 +20,7 @@ const CHAOS_METHODS = new Set<keyof RoomStore>([
   "advanceChainMatch",
   "recordChainScores",
   "listChainScores",
+  "saveChaosWrapped",
 ]);
 
 function preMigrationStore(): RoomStore {
