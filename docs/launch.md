@@ -27,9 +27,9 @@ node --env-file=.env.vercel-production scripts/check-db.mjs
 ## Everyday: shipping a change
 
 1. Merge to `main` after CI is green. Vercel deploys `main` to production on its own.
-2. If the change has a new migration, run it in **both** Supabase projects (step 2 below), development
-   first.
-3. If questions changed, run `scripts/seed-questions.mjs` against both projects.
+2. If the change has a new migration, run it in the production Supabase project (step 2 below). The old
+   development project ("UsVsUs") is paused for good; production is the only database.
+3. If questions changed, run `scripts/seed-questions.mjs` against production.
 4. Check the live site:
 
 ```bash

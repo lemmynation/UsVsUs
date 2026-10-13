@@ -5,8 +5,10 @@ import { Suspense } from "react";
 import { Wordmark } from "@/components/brand/wordmark";
 import { LoadingCard } from "@/components/layout/loading-card";
 import { PageShell } from "@/components/layout/page-shell";
+import { HowToPlay } from "@/components/home/game-card";
 import { JoinRoomForm } from "@/components/room/join-room-form";
 import { StatusCard } from "@/components/room/status-card";
+import { audienceFor, gameForExperience } from "@/lib/games";
 import { MODE_META } from "@/lib/modes";
 import { errorMessage } from "@/lib/rooms/errors";
 import { getRoomService } from "@/lib/rooms/server";
@@ -55,11 +57,21 @@ async function JoinContent({ params }: { params: PageProps<"/join/[code]">["para
 
   if (info.kind === "unavailable") {
     const copy = UNAVAILABLE_COPY[info.error] ?? { emoji: "🤔", title: "Can't join" };
-    return <StatusCard emoji={copy.emoji} title={copy.title} message={errorMessage(info.error)} />;
+    return (
+      <StatusCard
+        emoji={copy.emoji}
+        title={copy.title}
+        message={errorMessage(info.error)}
+        action={{ href: "/join", label: "Try another code" }}
+        secondary={{ href: "/", label: "Start your own game" }}
+      />
+    );
   }
 
   const { preview } = info;
   const meta = MODE_META[preview.mode];
+  const game = gameForExperience(preview.experience);
+  const audience = audienceFor(game.key, preview.mode);
   return (
     <div className={cn(meta.className, "flex flex-col gap-6")}>
       <section className="border-mode-gradient flex flex-col gap-1 rounded-3xl p-5">
@@ -72,13 +84,20 @@ async function JoinContent({ params }: { params: PageProps<"/join/[code]">["para
             <>You&apos;re invited to</>
           )}
         </p>
-        <h1 className="font-heading text-3xl font-extrabold break-words">{preview.name ?? `${meta.label} game`}</h1>
+        <h1 className="font-heading text-3xl font-extrabold break-words">
+          {preview.name ?? `${game.emoji} ${game.name}`}
+        </h1>
         <p className="text-muted-foreground text-base">
-          {meta.emoji} {meta.label} · {preview.playerCount}/{preview.maxPlayers} players · code{" "}
+          {preview.name ? `${game.emoji} ${game.name} · ` : ""}
+          {audience.label} · {preview.playerCount}/{preview.maxPlayers} players · code{" "}
           <span className="text-foreground font-mono font-semibold">{preview.joinCode}</span>
+        </p>
+        <p className="mt-2 text-base">
+          {game.pitch} About {game.duration}.
         </p>
       </section>
       <JoinRoomForm code={preview.joinCode} />
+      <HowToPlay game={game} />
     </div>
   );
 }

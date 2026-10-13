@@ -8,11 +8,14 @@ export function StatusCard({
   title,
   message,
   action = { href: "/", label: "Start your own game" },
+  secondary,
 }: {
   emoji: string;
   title: string;
   message: string;
   action?: { href: string; label: string };
+  /** A second way out, e.g. "Start your own game" under "Try another code". */
+  secondary?: { href: string; label: string };
 }) {
   return (
     <section role="status" className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
@@ -24,6 +27,11 @@ export function StatusCard({
       <Link href={action.href} className={cn(buttonVariants({ size: "lg" }), "mt-2 w-full")}>
         {action.label}
       </Link>
+      {secondary && (
+        <Link href={secondary.href} className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "w-full")}>
+          {secondary.label}
+        </Link>
+      )}
     </section>
   );
 }

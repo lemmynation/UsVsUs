@@ -54,7 +54,13 @@ function NotFound() {
   return (
     <>
       <Wordmark />
-      <StatusCard emoji="🔍" title="Room not found" message={errorMessage("room_not_found")} />
+      <StatusCard
+        emoji="🔍"
+        title="Room not found"
+        message={errorMessage("room_not_found")}
+        action={{ href: "/join", label: "Try another code" }}
+        secondary={{ href: "/", label: "Start your own game" }}
+      />
     </>
   );
 }

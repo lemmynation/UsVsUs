@@ -38,6 +38,54 @@ export async function startGame(browser: Browser, mode: "Couple" | "Circle", gue
 
 export const options = (page: Page, group = "Answers") => page.getByRole("group", { name: group }).getByRole("button");
 
+/** Answers whatever is open with the first option, including This or That's second "guess" tap. */
+export async function answerFirst(page: Page) {
+  // The last player to answer skips "Locked in" and lands straight on the reveal.
+  const done = page.getByText(/Locked in!/).or(page.getByRole("list", { name: /^(Answers|Votes)$/ }));
+  await options(page).first().click();
+  await expect(page.getByText(/Now guess/).or(done)).toBeVisible();
+  if (await page.getByText(/Now guess/).isVisible()) await options(page, "Your guess").first().click();
+  await expect(done).toBeVisible();
+}
+
+/**
+ * Plays a quiz from wherever it is to Wrapped: everyone answers with the first option and
+ * `host` taps whatever moves the game on. Works after a host hand-over too.
+ */
+export async function playToEnd(host: Page, players: Page[]) {
+  // The Wrapped screen's subtitle ("Circle night · Wrapped"); headings can't be used, a
+  // question like "Who's most likely to win…" would match them.
+  const wrapped = host.getByText(/· Wrapped$/);
+  const hostButton = host.getByRole("button", {
+    name: /^(Start round|Next question|End round|Next round|Finish game)$/,
+  });
+  for (let i = 0; i < 80; i++) {
+    await expect(wrapped.or(hostButton).or(options(host).first())).toBeVisible();
+    if (await wrapped.isVisible()) return;
+    if (await options(host).first().isVisible()) {
+      // Everyone answers once; the reveal can take a moment to reach the host's phone.
+      if (await host.getByText(/Locked in!/).isHidden()) for (const p of players) await answerFirst(p);
+      await expect(host.getByText(/Locked in!/)).toBeHidden();
+      await expect(options(host).first()).toBeHidden();
+      continue;
+    }
+    // Between screens nothing may match yet: look again.
+    // The screen can also move on between seeing the button and tapping it (e.g. to a
+    // question, which has no host button): never wait on a button that's gone.
+    const label = await hostButton.textContent({ timeout: 1_000 }).catch(() => null);
+    if (
+      !label ||
+      !(await hostButton.click({ timeout: 2_000 }).then(
+        () => true,
+        () => false,
+      ))
+    )
+      continue;
+    await expect(host.getByRole("button", { name: label })).toBeHidden();
+  }
+  throw new Error("game didn't finish");
+}
+
 /** Phone layout guard: no sideways scrolling and no tap target under 44px. */
 export async function expectPhoneFriendly(page: Page) {
   const layout = await page.evaluate(() => ({

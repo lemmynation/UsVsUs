@@ -5,6 +5,7 @@ import { useCallback, useRef, useState } from "react";
 import { Wordmark } from "@/components/brand/wordmark";
 import { ConnectionBanner } from "@/components/game/connection-banner";
 import { ChaosScreen } from "@/components/chaos/chaos-screen";
+import { HowToPlay } from "@/components/home/game-card";
 import { GameScreen } from "@/components/game/game-screen";
 import { FloatingReactions, ReactionsContext } from "@/components/game/reactions";
 import { CheckoutReturn } from "@/components/premium/checkout-return";
@@ -15,6 +16,7 @@ import { ApiError, apiFetch } from "@/lib/client-api";
 import { MODE_META } from "@/lib/modes";
 import { seriesHeadline } from "@/lib/game/series";
 import { errorMessage } from "@/lib/rooms/errors";
+import { audienceFor, gameForExperience } from "@/lib/games";
 import { cn } from "@/lib/utils";
 import type { RoomView } from "@/types/room";
 import { InvitePanel } from "./invite-panel";
@@ -82,6 +84,13 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
         await refresh();
         return false;
       }
+      // The choices changed under the player (e.g. a vote for someone who just left):
+      // show the fresh choices and say why, instead of a confusing "not an option".
+      if (key === "answer" && err instanceof ApiError && err.code === "invalid_answer") {
+        await refresh();
+        setActionError("The choices just changed (someone left). Please pick again.");
+        return false;
+      }
       setActionError(err instanceof ApiError ? err.message : errorMessage("unknown"));
       return false;
     } finally {
@@ -124,7 +133,8 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
   const playing = room.status === "IN_GAME" || room.status === "WRAPPED";
   const inGame = !chain && game !== null && playing;
   const inChaos = chain && chaos !== null && playing;
-  const label = chain ? (room.mode === "circle" ? "Circle Chaos" : "Duo Chaos") : meta.label;
+  const gameMeta = gameForExperience(room.experience);
+  const label = audienceFor(gameMeta.key, room.mode).label;
 
   return (
     <div className={cn(meta.className, "flex flex-1 flex-col gap-6")}>
@@ -177,12 +187,12 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
           <div>
             <p className="text-muted-foreground text-base">{room.name ? "Lobby" : `${label} lobby`}</p>
             <h1 className="font-heading text-4xl font-extrabold break-words">{room.name ?? "Waiting room"}</h1>
-            {chain && (
-              <p className="mt-2 text-lg">
-                <strong>Mutation Machine:</strong> draw a thing. Someone secretly mutates it. Everyone else works out
-                what it was and what happened to it.
-              </p>
-            )}
+            <p className="mt-2 text-lg">
+              <strong>
+                {gameMeta.emoji} {gameMeta.name}:
+              </strong>{" "}
+              {gameMeta.pitch} About {gameMeta.duration}.
+            </p>
             {chain && chaos?.phase === "RECAP" && (
               <p role="status" className="mt-2 text-base">
                 🔁 <span className="font-semibold">Rematch!</span> New things to draw, new mutations.
@@ -259,6 +269,9 @@ export function Lobby({ initialView, realtime }: { initialView: RoomView; realti
               {unlockedPacks.map((p) => `${p.emoji} ${p.name}`).join(" · ")} unlocked for this room
             </p>
           )}
+
+          {/* People who came in by link never saw the home page: explain the game here too. */}
+          <HowToPlay game={gameMeta} />
 
           {actionError && (
             <p role="alert" className="text-destructive text-base">

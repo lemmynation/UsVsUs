@@ -8,6 +8,7 @@ test.afterEach(closeExtraPhones);
 async function chaosRoom(browser: Browser, kind: "Duo" | "Circle", guests: string[]) {
   const host = await newPlayer(browser);
   await host.goto("/");
+  await host.getByRole("link", { name: "Play Mutation Machine" }).click();
   await host.getByRole("link", { name: new RegExp(`${kind} Chaos`) }).click();
   await host.getByLabel("Your nickname").fill("Lem");
   await host.getByRole("button", { name: `Create ${kind} Chaos room` }).click();
@@ -48,13 +49,13 @@ type Style = "draw" | "describe";
 /** Does whatever this phone is asked to do until it's done with the step (or the reveal starts). */
 async function doJobs(page: Page, style: Style, marker: string, step: number) {
   // Phones refresh on their own schedule: wait until this one has reached the step.
-  await expect(page.getByText(`Step ${step} of 5`).or(page.getByText(/the reveal/))).toBeVisible();
-  const done = page.getByRole("heading", { name: "Done!" }).or(page.getByText(/the reveal/));
+  await expect(page.getByText(`Step ${step} of 5`).or(page.getByText(/Chain \d+ · the reveal/))).toBeVisible();
+  const done = page.getByRole("heading", { name: "Done!" }).or(page.getByText(/Chain \d+ · the reveal/));
   for (let i = 0; i < 4; i++) {
     // Finishing a step can move everyone straight on: stop at the step boundary.
     if (!(await page.getByText(`Step ${step} of 5`).isVisible())) return;
     const create = page.getByRole("heading", { name: /^Draw this:/ });
-    const mutate = page.getByRole("heading", { name: "Mutate this machine" });
+    const mutate = page.getByRole("heading", { name: "Secretly mutate this" });
     const detect = page.getByRole("heading", { name: /^🔎 Detect/ });
     await expect(create.or(mutate).or(detect).or(done)).toBeVisible();
     if (await done.isVisible()) return;
@@ -74,14 +75,22 @@ async function doJobs(page: Page, style: Style, marker: string, step: number) {
       await page.getByRole("button", { name: "Submit" }).click();
     }
     // Wait for the phone to move on (next job, or "Done!") before looking again.
-    await expect.poll(async () => (await done.isVisible()) || (await heading.textContent()) !== before).toBe(true);
+    // (The reveal has no h1: a heading that's gone counts as moved on, rather than waiting for one.)
+    await expect
+      .poll(
+        async () =>
+          (await done.isVisible()) || (await heading.textContent({ timeout: 500 }).catch(() => null)) !== before,
+      )
+      .toBe(true);
   }
   await expect(done).toBeVisible();
 }
 
 async function playAllSteps(phones: Page[], style: (i: number) => Style, marker: (i: number) => string) {
   for (let step = 1; step <= 5; step++) {
-    await expect(phones[0].getByText(`Step ${step} of 5`).or(phones[0].getByText(/the reveal/))).toBeVisible();
+    await expect(
+      phones[0].getByText(`Step ${step} of 5`).or(phones[0].getByText(/Chain \d+ · the reveal/)),
+    ).toBeVisible();
     for (const [i, p] of phones.entries()) await doJobs(p, style(i), marker(i), step);
   }
 }
@@ -173,7 +182,7 @@ test("Circle Chaos with 6: phones never receive other chains' work or answers be
   for (let step = 2; step <= 5; step++) {
     for (const p of phones) await doJobs(p, "describe", "x", step);
   }
-  await expect(host.getByText(/the reveal/)).toBeVisible();
+  await expect(host.getByText(/Chain \d+ · the reveal/)).toBeVisible();
   await revealToRecap(host, phones);
 });
 
@@ -187,4 +196,99 @@ test("a step moves on by itself after its overtime, even if the host never skips
   // 60 s timer, then "Time's up" with a countdown, then everyone is moved on.
   await expect(phones[1].getByText(/Time's up · moving on in \d+s/)).toBeVisible({ timeout: 75_000 });
   for (const p of phones) await expect(p.getByText("Step 2 of 5")).toBeVisible({ timeout: 40_000 });
+});
+
+// ── Validation: the paths real groups hit ─────────────────────────────────────
+
+test("refreshing mid-drawing keeps the unsent drawing; a submitted step stays submitted", async ({ browser }) => {
+  test.setTimeout(120_000);
+  const { host, phones } = await chaosRoom(browser, "Duo", ["Ana"]);
+  await host.getByRole("button", { name: "Start Mutation Machine" }).click();
+  await draw(host, /Your drawing/);
+  await host.reload();
+  // The half-done drawing is back, still unsent.
+  await expect(host.getByRole("button", { name: "↶ Undo" })).toBeEnabled();
+  await expect(host.getByRole("img", { name: "Your drawing" }).locator("path")).not.toHaveCount(0);
+  await host.getByRole("button", { name: "Submit" }).click();
+  await expect(host.getByRole("heading", { name: "Done!" })).toBeVisible();
+  await host.reload();
+  await expect(host.getByRole("heading", { name: "Done!" })).toBeVisible();
+  await expect(host.getByText(/Waiting for Ana/)).toBeVisible();
+  await doJobs(phones[1], "draw", "", 1);
+  for (const p of phones) await expect(p.getByText("Step 2 of 5")).toBeVisible();
+  // The next job starts with a clean canvas, not the old draft.
+  for (const p of phones) {
+    await expect(p.getByRole("heading", { name: "Secretly mutate this" })).toBeVisible();
+    await expect(p.getByRole("button", { name: "↶ Undo" })).toBeDisabled();
+  }
+});
+
+test("a phone that loses signal mid-step catches up and keeps playing", async ({ browser }) => {
+  test.setTimeout(120_000);
+  const { host, phones } = await chaosRoom(browser, "Circle", ["Ana", "Ben"]);
+  await host.getByRole("button", { name: "Start Mutation Machine" }).click();
+  const ben = phones[2];
+  await expect(ben.getByRole("heading", { name: /^Draw this:/ })).toBeVisible();
+  await ben.context().setOffline(true);
+  await expect(ben.getByText("Reconnecting… your answers are safe.")).toBeVisible();
+  for (const p of phones.slice(0, 2)) await doJobs(p, "describe", "x", 1);
+  await ben.context().setOffline(false);
+  await expect(ben.getByText("Reconnecting… your answers are safe.")).toBeHidden();
+  await expect(ben.getByText(/Step 1 of 5/)).toBeVisible();
+  await doJobs(ben, "describe", "x", 1);
+  for (const p of phones) await expect(p.getByText("Step 2 of 5")).toBeVisible();
+});
+
+test("the host leaving mid-match hands over, and the match still finishes", async ({ browser }) => {
+  test.setTimeout(240_000);
+  const { host, phones } = await chaosRoom(browser, "Circle", ["Ana", "Ben"]);
+  await host.getByRole("button", { name: "Start Mutation Machine" }).click();
+  for (const p of phones) await doJobs(p, "describe", "x", 1);
+  await expect(host.getByText("Step 2 of 5")).toBeVisible();
+
+  host.on("dialog", (d) => void d.accept());
+  await host.getByRole("button", { name: "Leave game" }).click();
+  await expect(host).toHaveURL(/\/$/);
+
+  // Nobody waits for the leaver; Ana (joined first) runs the reveal.
+  const [, ana, ben] = phones;
+  for (let step = 2; step <= 5; step++) for (const p of [ana, ben]) await doJobs(p, "describe", "x", step);
+  await expect(ana.getByText(/Chain \d+ · the reveal/)).toBeVisible();
+  await revealToRecap(ana, [ana, ben]);
+  // Everyone who played gets a title, the leaver too (they drew a chain).
+  const titles = ana.getByRole("list", { name: "Titles" }).getByRole("listitem");
+  await expect(titles).toHaveCount(3);
+  await expect(titles.filter({ hasText: "Someone who left" })).toHaveCount(1);
+});
+
+test("a double-tapped Submit sends once, with no error", async ({ browser }) => {
+  test.setTimeout(120_000);
+  const { host, phones } = await chaosRoom(browser, "Duo", ["Ana"]);
+  await host.getByRole("button", { name: "Start Mutation Machine" }).click();
+  await draw(host, /Your drawing/);
+  await host.getByRole("button", { name: "Submit" }).dblclick();
+  await expect(host.getByRole("heading", { name: "Done!" })).toBeVisible();
+  await expect(host.locator("p[role=alert]")).toHaveCount(0);
+  // A detect choice double-tapped and Lock in double-tapped also go through once.
+  await doJobs(phones[1], "draw", "", 1);
+  await expect(host.getByText("Step 2 of 5")).toBeVisible();
+});
+
+test("Circle Chaos rematch: same crew, new things to draw", async ({ browser }) => {
+  test.setTimeout(240_000);
+  const { host, phones } = await chaosRoom(browser, "Circle", ["Ana", "Ben"]);
+  await host.getByRole("button", { name: "Start Mutation Machine" }).click();
+  const firstObject = (await host.getByRole("heading", { name: /^Draw this:/ }).textContent())!;
+  await playAllSteps(
+    phones,
+    () => "describe",
+    () => "x",
+  );
+  await revealToRecap(host, phones);
+  await host.getByRole("button", { name: /Rematch with this crew/ }).click();
+  for (const p of phones) await expect(p.getByText(/New things to draw/)).toBeVisible();
+  await host.getByRole("button", { name: "Start Mutation Machine" }).click();
+  for (const p of phones) await expect(p.getByText("Step 1 of 5")).toBeVisible();
+  // The rematch avoids the last match's cards.
+  await expect(host.getByRole("heading", { name: /^Draw this:/ })).not.toHaveText(firstObject);
 });

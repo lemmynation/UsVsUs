@@ -11,9 +11,16 @@ import { NICKNAME_MAX, ROOM_NAME_MAX } from "@/lib/rooms/rules";
 import { takeTypedValue } from "@/lib/typed-before-hydration";
 import type { Experience, Mode } from "@/types/room";
 
-export function CreateRoomForm({ mode, experience = "quick_party" }: { mode: Mode; experience?: Experience }) {
-  const label =
-    experience === "chain_reactions" ? (mode === "circle" ? "Circle Chaos" : "Duo Chaos") : MODE_META[mode].label;
+export function CreateRoomForm({
+  mode,
+  experience = "quick_party",
+  label = MODE_META[mode].label,
+}: {
+  mode: Mode;
+  experience?: Experience;
+  /** What the button calls the room: "Couple", "Circle Chaos"… */
+  label?: string;
+}) {
   const router = useRouter();
   const [nickname, setNickname] = useState("");
   const [roomName, setRoomName] = useState("");

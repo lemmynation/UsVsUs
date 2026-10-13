@@ -9,7 +9,7 @@ test.afterEach(closeExtraPhones);
  */
 
 test("landing, create, join and privacy fit the phone @layout", async ({ page }) => {
-  for (const path of ["/", "/create?mode=circle", "/join", "/privacy"]) {
+  for (const path of ["/", "/create?game=chaos", "/create?mode=circle", "/join", "/join/QQQQQQ", "/privacy"]) {
     await page.goto(path);
     await expect(page.locator("main")).toBeVisible();
     await expectPhoneFriendly(page);

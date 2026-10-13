@@ -69,6 +69,8 @@ export interface RoomView {
 export interface RoomPreview {
   joinCode: string;
   mode: Mode;
+  /** Which game the room plays, so the invite can explain it. */
+  experience: Experience;
   name: string | null;
   /** Who's inviting: the current host's nickname (null if the room has no host right now). */
   hostNickname: string | null;

@@ -60,6 +60,10 @@ Do not introduce a new dependency unless it materially simplifies the implementa
   run `npm run db:seed-sql` and apply `supabase/seed-questions.sql`; a unit test fails if it's stale.
   Never delete a question — removing it from content deactivates it, so running games and history survive.
   `question-picker.ts` avoids repeats per group via `question_history` (keyed by session hash).
+- **Home & onboarding** (`lib/games.ts`): the home page is game-first (Mind Match = the quiz, Mutation
+  Machine = Chain Reactions), then "Who's playing?". Each game's pitch, duration, example and how-to steps
+  live there and are reused by the home cards, create page, invite page and lobby — keep them in step with the
+  real rules. Old `/create?mode=…` links still mean Mind Match.
 - **Game types** (`lib/game/engines.ts`, `scoring.ts`): round lineup per mode, Mind Reader subjects,
   answer validation, and the §7 points table — all pure and unit-tested. Points are locked in at each
   reveal via the idempotent `recordScores` (unique per player per question), after the reveal is saved
@@ -92,7 +96,8 @@ Do not introduce a new dependency unless it materially simplifies the implementa
   Abuse-prone routes use `isRateLimitedShared` (counted in Postgres via `rate_limit_hit`, keyed by a hash,
   falls back to the local count); chatty routes keep the in-memory `isRateLimited`. A payment settings error
   turns premium off (logged) instead of failing requests. Live at https://us-vs-us-chi.vercel.app; deploy and
-  release steps in `docs/launch.md`. Migrations must be applied to BOTH Supabase projects (dev + production).
+  release steps in `docs/launch.md`. "UsVsUs Production" is the only Supabase project (the old dev project
+  is paused), so local dev and E2E use in-memory rooms. Apply migrations to production.
   Production settings are in the git-ignored `.env.vercel-production`; scripts read it with `--env-file`.
 - **Engagement** (rematch, reveal moments, reactions): Rematch moves WRAPPED → LOBBY in the same room via the
   atomic `reopenRoom` (`reopen_room` in SQL), so pack unlocks and question history carry over. Streak and
