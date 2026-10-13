@@ -5,7 +5,15 @@ test.afterEach(closeExtraPhones);
 
 /** Design doc §16: every screen passes an automated WCAG A/AA scan. */
 
-for (const path of ["/", "/create?mode=couple", "/join", "/privacy"]) {
+for (const path of [
+  "/",
+  "/create?game=quiz",
+  "/create?game=chaos",
+  "/create?mode=couple",
+  "/join",
+  "/join/QQQQQQ",
+  "/privacy",
+]) {
   test(`${path} has no serious accessibility problems`, async ({ page }) => {
     await page.goto(path);
     await expect(page.locator("main")).toBeVisible();

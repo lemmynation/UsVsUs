@@ -2,9 +2,9 @@ import Link from "next/link";
 import { Wordmark } from "@/components/brand/wordmark";
 import { PageShell } from "@/components/layout/page-shell";
 import { TrackOnMount } from "@/components/analytics/track-on-mount";
-import { ChaosEntry } from "@/components/chaos/chaos-entry";
-import { ModePicker } from "@/components/room/mode-card";
+import { GameCard } from "@/components/home/game-card";
 import { chainReactionsEnabled } from "@/lib/env";
+import { GAMES } from "@/lib/games";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -20,18 +20,23 @@ export default function LandingPage() {
         </p>
       </section>
 
-      <section aria-labelledby="modes-heading" className="flex flex-col gap-4">
-        <h2 id="modes-heading" className="text-lg font-semibold">
-          Start a game
+      <section aria-labelledby="games-heading" className="flex flex-col gap-4">
+        <h2 id="games-heading" className="text-lg font-semibold">
+          Pick a game
         </h2>
-        <ModePicker />
+        <GameCard game={GAMES.quiz} />
+        {/* Mutation Machine only exists where its feature flag is on. */}
+        {chainReactionsEnabled() && <GameCard game={GAMES.chaos} />}
       </section>
 
-      {chainReactionsEnabled() && <ChaosEntry />}
-
-      <Link href="/join" className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "w-full")}>
-        Join with code
-      </Link>
+      <section aria-labelledby="join-heading" className="flex flex-col gap-3">
+        <h2 id="join-heading" className="text-lg font-semibold">
+          Got a code from a friend?
+        </h2>
+        <Link href="/join" className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "w-full")}>
+          Join with code
+        </Link>
+      </section>
 
       <footer className="text-muted-foreground mt-auto text-center text-sm">
         <Link href="/privacy" className="inline-flex min-h-11 items-center underline underline-offset-4">

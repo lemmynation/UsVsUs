@@ -29,7 +29,9 @@ export function WrappedHero({ report, meId }: { report: WrappedReport; meId: str
             {report.usScore}
             <span className="text-muted-foreground text-2xl">/100</span>
           </span>
-          <span className="text-muted-foreground text-sm">Points earned out of points possible — just for fun.</span>
+          <span className="text-muted-foreground max-w-56 text-sm text-balance">
+            Your team score: how well you two know each other, out of 100.
+          </span>
         </div>
       )}
       {report.endedEarly && (
@@ -44,7 +46,7 @@ export function WrappedHero({ report, meId }: { report: WrappedReport; meId: str
 export function WrappedStandings({ report, names }: { report: WrappedReport; names: Names }) {
   const winners = new Set(report.winnerIds ?? []);
   return (
-    <Section title="Game Score">
+    <Section title="Game Score" hint="Head to head: who read the other best.">
       <ol className="flex flex-col gap-2" aria-label="Final Game Score">
         {report.players.map((p) => (
           <li
@@ -185,13 +187,16 @@ export function WrappedHighlightCard({ highlight, names }: { highlight: WrappedH
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
   const id = `wrapped-${title.toLowerCase().replace(/[^a-z]+/g, "-")}`;
   return (
     <section aria-labelledby={id} className="flex flex-col gap-3">
-      <h2 id={id} className="text-lg font-semibold">
-        {title}
-      </h2>
+      <div className="flex flex-col">
+        <h2 id={id} className="text-lg font-semibold">
+          {title}
+        </h2>
+        {hint && <p className="text-muted-foreground text-base">{hint}</p>}
+      </div>
       {children}
     </section>
   );

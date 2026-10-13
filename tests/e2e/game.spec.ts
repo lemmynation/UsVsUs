@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import { closeExtraPhones, expectAccessible } from "./helpers";
+import { answerFirst, closeExtraPhones, expectAccessible } from "./helpers";
 
 test.afterEach(closeExtraPhones);
 
@@ -33,16 +33,6 @@ async function startGame(browser: Browser, mode: "Couple" | "Circle", guestNames
 }
 
 const options = (page: Page, group = "Answers") => page.getByRole("group", { name: group }).getByRole("button");
-
-/** Answers whatever is open with the first option, including This or That's second "guess" tap. */
-async function answerFirst(page: Page) {
-  // The last player to answer skips "Locked in" and lands straight on the reveal.
-  const done = page.getByText(/Locked in!/).or(page.getByRole("list", { name: /^(Answers|Votes)$/ }));
-  await options(page).first().click();
-  await expect(page.getByText(/Now guess/).or(done)).toBeVisible();
-  if (await page.getByText(/Now guess/).isVisible()) await options(page, "Your guess").first().click();
-  await expect(done).toBeVisible();
-}
 
 /** Phone layout guard: no sideways scrolling and no tap target under 44px. */
 async function expectPhoneFriendly(page: Page) {

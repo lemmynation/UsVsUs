@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { GameAction } from "@/components/game/types";
 import { Button } from "@/components/ui/button";
 import type { Stroke } from "@/lib/chaos/artifact";
@@ -35,13 +35,24 @@ export function ChaosScreen(props: ChaosScreenProps) {
   );
 }
 
-function useSecondsLeft(deadline: string | undefined) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  return deadline ? Math.max(0, Math.ceil((new Date(deadline).getTime() - now) / 1000)) : 0;
+const everySecond = (tick: () => void) => {
+  const t = setInterval(tick, 1000);
+  return () => clearInterval(t);
+};
+
+/**
+ * Seconds until `deadline`, ticking once a second. Null on the server and while the page
+ * hydrates: the server's clock reading would never match the phone's, and React would
+ * throw the server HTML away.
+ */
+function useSecondsLeft(deadline: string | undefined): number | null {
+  const now = useSyncExternalStore(
+    everySecond,
+    () => Math.floor(Date.now() / 1000),
+    () => null,
+  );
+  if (now === null) return null;
+  return deadline ? Math.max(0, Math.ceil(new Date(deadline).getTime() / 1000 - now)) : 0;
 }
 
 function StepHeader({ chaos, refresh }: { chaos: ChaosPlayerView; refresh?: () => void }) {
@@ -52,25 +63,28 @@ function StepHeader({ chaos, refresh }: { chaos: ChaosPlayerView; refresh?: () =
   const asked = useRef<string | null>(null);
   const autoSkipAt = chaos.step?.autoSkipAt;
   useEffect(() => {
-    if (!autoSkipAt || overtime > 0 || asked.current === autoSkipAt) return;
+    if (!autoSkipAt || overtime === null || overtime > 0 || asked.current === autoSkipAt) return;
     asked.current = autoSkipAt;
     refresh?.();
   }, [autoSkipAt, overtime, refresh]);
   if (!chaos.step) return null;
-  const mm = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
+  const mm = left === null ? "–:––" : `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
   return (
     <div className="flex flex-col gap-2">
       <p className="text-muted-foreground flex justify-between text-base font-semibold">
         <span>
           Step {chaos.step.index} of {chaos.step.count}
         </span>
-        {left > 0 ? (
-          <span aria-label={`${left} seconds left`} className={cn("tabular-nums", left <= 10 && "text-destructive")}>
+        {left === null || left > 0 ? (
+          <span
+            aria-label={left === null ? undefined : `${left} seconds left`}
+            className={cn("tabular-nums", left !== null && left <= 10 && "text-destructive")}
+          >
             ⏱ {mm}
           </span>
         ) : (
           <span className="text-destructive tabular-nums">
-            Time&apos;s up · moving on {overtime > 0 ? `in ${overtime}s` : "now"}
+            Time&apos;s up · moving on {overtime ? `in ${overtime}s` : "now"}
           </span>
         )}
       </p>
@@ -108,25 +122,114 @@ function JobScreen({ view, act, pending, refresh, job }: ChaosScreenProps & { jo
           onSubmit={(answer) => submit({ answer })}
         />
       ) : (
-        <MakeJob job={job} busy={pending !== null} onSubmit={(artifact) => submit({ artifact })} />
+        <MakeJob
+          job={job}
+          draftKey={`uvu-chaos-draft:${chaos.matchId}:${chaos.step!.index}:${job.chain}`}
+          busy={pending !== null}
+          onSubmit={async (artifact) => {
+            if (await submit({ artifact }))
+              clearDraft(`uvu-chaos-draft:${chaos.matchId}:${chaos.step!.index}:${job.chain}`);
+          }}
+        />
       )}
     </>
   );
 }
 
+interface Draft {
+  mode: "draw" | "text";
+  strokes: Stroke[];
+  text: string;
+}
+
+/** Drafts live in session storage, which can be missing or full: never let that break the game. */
+function readDraft(key: string): Draft | null {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<Draft>;
+    // Only our own shape; the server validates the drawing again on submit anyway.
+    if ((parsed.mode !== "draw" && parsed.mode !== "text") || !Array.isArray(parsed.strokes)) return null;
+    const strokes = (parsed.strokes as Stroke[]).filter(
+      (st) =>
+        !!st &&
+        Number.isInteger(st.c) &&
+        (st.w === 1 || st.w === 2) &&
+        Array.isArray(st.p) &&
+        st.p.every((n) => Number.isInteger(n)),
+    );
+    return { mode: parsed.mode, strokes, text: String(parsed.text ?? "").slice(0, 80) };
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(key: string, draft: Draft) {
+  try {
+    if (draft.strokes.length === 0 && draft.text === "") sessionStorage.removeItem(key);
+    else sessionStorage.setItem(key, JSON.stringify(draft));
+  } catch {
+    // Storage full or blocked: the drawing just won't survive a reload.
+  }
+}
+
+function clearDraft(key: string) {
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    // Nothing to do.
+  }
+}
+
 /** Create or mutate: draw it, or describe it instead. */
-function MakeJob({
-  job,
-  busy,
-  onSubmit,
-}: {
+const noSubscribe = () => () => {};
+
+function MakeJob(props: {
   job: Extract<ChaosJob, { kind: "create" | "mutate" }>;
+  /** Where this job's unsent work is kept on this phone (session storage). */
+  draftKey: string;
   busy: boolean;
   onSubmit: (artifact: unknown) => void;
 }) {
-  const [mode, setMode] = useState<"draw" | "text">("draw");
-  const [strokes, setStrokes] = useState<Stroke[]>([]);
-  const [text, setText] = useState("");
+  // A reload (or the phone dropping the tab) shouldn't throw away a half-done drawing.
+  // The server can't see this phone's storage, so the form remounts with the draft
+  // once we're in the browser.
+  const inBrowser = useSyncExternalStore(
+    noSubscribe,
+    () => true,
+    () => false,
+  );
+  return (
+    <MakeJobForm
+      key={inBrowser ? "browser" : "server"}
+      {...props}
+      initial={inBrowser ? readDraft(props.draftKey) : null}
+      persist={inBrowser}
+    />
+  );
+}
+
+function MakeJobForm({
+  job,
+  draftKey,
+  busy,
+  onSubmit,
+  initial,
+  persist,
+}: {
+  job: Extract<ChaosJob, { kind: "create" | "mutate" }>;
+  draftKey: string;
+  busy: boolean;
+  onSubmit: (artifact: unknown) => void;
+  initial: Draft | null;
+  persist: boolean;
+}) {
+  const [mode, setMode] = useState<"draw" | "text">(initial?.mode ?? "draw");
+  const [strokes, setStrokes] = useState<Stroke[]>(initial?.strokes ?? []);
+  const [text, setText] = useState(initial?.text ?? "");
+  useEffect(() => {
+    if (persist) saveDraft(draftKey, { mode, strokes, text });
+  }, [persist, draftKey, mode, strokes, text]);
   const ready = mode === "draw" ? strokes.length > 0 : text.trim().length > 0;
   const drawnBase = job.kind === "mutate" ? job.base.filter((l) => l.artifact?.medium === "drawing") : [];
   const otherBase = job.kind === "mutate" ? job.base.filter((l) => l.artifact?.medium !== "drawing") : [];
@@ -134,13 +237,18 @@ function MakeJob({
   return (
     <section aria-labelledby="job-heading" className="flex flex-col gap-4">
       {job.kind === "create" ? (
-        <h1 id="job-heading" className="font-heading text-3xl font-extrabold">
-          Draw this: <span className="text-mode-gradient">{job.object}</span>
-        </h1>
+        <>
+          <h1 id="job-heading" className="font-heading text-3xl font-extrabold">
+            Draw this: <span className="text-mode-gradient">{job.object}</span>
+          </h1>
+          <p className="text-muted-foreground -mt-2 text-base">
+            Only you can see it. Next, someone will secretly mutate your drawing.
+          </p>
+        </>
       ) : (
         <>
           <h1 id="job-heading" className="font-heading text-3xl font-extrabold">
-            Mutate this machine
+            Secretly mutate this
           </h1>
           <div className="border-mode-gradient rounded-2xl p-4" role="note">
             <p className="text-lg font-bold">🔒 Secret: {job.mutation.label}</p>
@@ -222,12 +330,21 @@ function DetectJob({
   const [mutationId, setMutationId] = useState<string | null>(null);
   const ready = !!mutationId && (!job.objectChoices || !!objectId);
   const question = round === 2 ? "What changed this time?" : duo ? "What did they do to it?" : "What happened to it?";
+  const instruction =
+    round === 2
+      ? "It's been secretly mutated again. Spot the newest change."
+      : job.objectChoices
+        ? "Someone drew a thing, then someone else secretly mutated it. Work out what it was and what changed."
+        : duo
+          ? "Your partner secretly mutated it. Spot what they did."
+          : "Someone secretly mutated it. Spot what they did.";
 
   return (
     <section aria-labelledby="detect-heading" className="flex flex-col gap-4">
       <h1 id="detect-heading" className="font-heading text-3xl font-extrabold">
         🔎 Detect{position ? ` · ${position}` : ""}
       </h1>
+      <p className="text-muted-foreground -mt-2 text-base">{instruction}</p>
       <LayersView layers={job.layers} label="The finished machine" />
       {job.objectChoices && (
         <ChoiceGroup label="What was it before?" choices={job.objectChoices} value={objectId} onChange={setObjectId} />
@@ -302,7 +419,7 @@ function Waiting({ view, act, pending, refresh }: ChaosScreenProps) {
       {me.isHost && names.length > 0 && (
         <Button
           variant="secondary"
-          disabled={left > 0 || pending !== null}
+          disabled={left === null || left > 0 || pending !== null}
           onClick={() =>
             act("skip", `/api/rooms/${room.id}/chaos/advance`, {
               stateVersion: chaos.stateVersion,
@@ -310,7 +427,7 @@ function Waiting({ view, act, pending, refresh }: ChaosScreenProps) {
             })
           }
         >
-          {left > 0 ? `Skip waiting in ${left}s` : "Skip waiting"}
+          {left === null ? "Skip waiting" : left > 0 ? `Skip waiting in ${left}s` : "Skip waiting"}
         </Button>
       )}
     </>

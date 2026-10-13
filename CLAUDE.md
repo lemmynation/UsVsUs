@@ -60,6 +60,10 @@ Do not introduce a new dependency unless it materially simplifies the implementa
   run `npm run db:seed-sql` and apply `supabase/seed-questions.sql`; a unit test fails if it's stale.
   Never delete a question — removing it from content deactivates it, so running games and history survive.
   `question-picker.ts` avoids repeats per group via `question_history` (keyed by session hash).
+- **Home & onboarding** (`lib/games.ts`): the home page is game-first (Mind Match = the quiz, Mutation
+  Machine = Chain Reactions), then "Who's playing?". Each game's pitch, duration, example and how-to steps
+  live there and are reused by the home cards, create page, invite page and lobby — keep them in step with the
+  real rules. Old `/create?mode=…` links still mean Mind Match.
 - **Game types** (`lib/game/engines.ts`, `scoring.ts`): round lineup per mode, Mind Reader subjects,
   answer validation, and the §7 points table — all pure and unit-tested. Points are locked in at each
   reveal via the idempotent `recordScores` (unique per player per question), after the reveal is saved
