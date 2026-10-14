@@ -151,8 +151,14 @@ describe("error text sanitizing", () => {
 });
 
 describe("feedback summary", () => {
-  const entry = (rating: 1 | 2 | 3 | 4, comment: string | null, at: string) => ({
+  const entry = (
+    rating: 1 | 2 | 3 | 4,
+    comment: string | null,
+    at: string,
+    game: "mind_match" | "mutation_machine" = "mind_match",
+  ) => ({
     mode: "couple" as const,
+    game,
     rating,
     comment,
     createdAt: at,
@@ -169,6 +175,19 @@ describe("feedback summary", () => {
       { rating: 1, count: 0 },
     ]);
     expect(s.recentComments.map((c) => c.comment)).toEqual(["Too long", "So fun"]);
+  });
+
+  it("averages each game separately", () => {
+    const s = summarizeFeedback([
+      entry(4, null, day(2)),
+      entry(2, null, day(2)),
+      entry(3, "Loved the reveal", day(3), "mutation_machine"),
+    ]);
+    expect(s.byGame).toEqual([
+      { game: "mind_match", count: 2, average: 3 },
+      { game: "mutation_machine", count: 1, average: 3 },
+    ]);
+    expect(s.recentComments[0]).toMatchObject({ game: "mutation_machine" });
   });
 
   it("has no average before anyone rates", () => {
@@ -191,5 +210,67 @@ describe("engagement metrics", () => {
     expect(m.decision.rematchRate).toEqual({ numerator: 1, denominator: 2, value: 0.5 });
     expect(m.decision.reactionsPerGame).toBe(3); // 9 reactions over 3 finished games
     expect(metrics([]).decision.reactionsPerGame).toBeNull();
+  });
+});
+
+describe("Mutation Machine metrics", () => {
+  const at = (d: number, h: number, m = 0, s = 0) => new Date(Date.UTC(2026, 9, d, h, m, s)).toISOString();
+  const submitted = (room: string, when: string, step: number, secondsTaken: number, medium = "drawing") =>
+    ev("contribution_submitted", when, { roomId: room, properties: { step, medium, secondsTaken } });
+  const m = metrics([
+    // Room A: one match (10 min), then a rematch that isn't finished yet.
+    ev("chaos_match_started", at(2, 10), { roomId: "A" }),
+    submitted("A", at(2, 10, 0, 20), 1, 20),
+    submitted("A", at(2, 10, 0, 50), 1, 50, "text"),
+    submitted("A", at(2, 10, 3, 5), 2, 5),
+    submitted("A", at(2, 10, 4), 3, 30, "answer"),
+    ev("chaos_step_skipped", at(2, 10, 5), { roomId: "A" }),
+    ev("chaos_match_completed", at(2, 10, 10), { roomId: "A" }),
+    ev("rematch_started", at(2, 10, 11), { roomId: "A" }),
+    ev("wrapped_shared", at(2, 10, 10, 30), { roomId: "A" }),
+    ev("chaos_match_started", at(2, 10, 11), { roomId: "A" }),
+    // Step 1 again in the rematch: a separate step, so its first action counts on its own.
+    submitted("A", at(2, 10, 11, 10), 1, 10),
+    // Room B: finished in 20 min, no rematch. An old event without secondsTaken is skipped.
+    ev("chaos_match_started", at(3, 10), { roomId: "B" }),
+    ev("contribution_submitted", at(3, 10, 1), { roomId: "B", properties: { step: 1, medium: "drawing" } }),
+    ev("chaos_match_completed", at(3, 10, 20), { roomId: "B" }),
+    // A rematch before the room ever finished doesn't count.
+    ev("rematch_started", at(3, 9), { roomId: "B" }),
+    // TV codes: three shown, two approved.
+    ev("party_screen_pair_requested", at(2, 9)),
+    ev("party_screen_pair_requested", at(2, 9)),
+    ev("party_screen_pair_requested", at(2, 9)),
+    ev("party_screen_pair_approved", at(2, 9), { roomId: "A" }),
+    ev("party_screen_pair_approved", at(2, 9), { roomId: "A" }),
+  ]).chaos;
+
+  it("counts matches, completion and the median match length", () => {
+    expect(m.matchesStarted).toBe(3);
+    expect(m.completion).toEqual({ numerator: 2, denominator: 3, value: 2 / 3 });
+    expect(m.medianMinutes).toBe(10); // nearest rank of [10, 20]
+    expect(m.skipsPerMatch).toBeCloseTo(1 / 3);
+  });
+
+  it("measures time to first action per step and every player's wait", () => {
+    // First actions: A step 1 = 20, A step 2 = 5, A step 3 = 30, A rematch step 1 = 10.
+    expect(m.firstAction).toEqual({ median: 10, p90: 30 });
+    // Waits: 20, 50, 5, 30, 10 (B's event has no seconds).
+    expect(m.playerWait).toEqual({ median: 20, p90: 50 });
+  });
+
+  it("splits drawings from text, and counts rematches and TV pairing", () => {
+    expect(m.drawingShare).toEqual({ numerator: 4, denominator: 5, value: 0.8 });
+    expect(m.rematchRate).toEqual({ numerator: 1, denominator: 2, value: 0.5 });
+    expect(m.shareRate).toEqual({ numerator: 1, denominator: 2, value: 0.5 });
+    expect(m.tvPairing).toEqual({ numerator: 2, denominator: 3, value: 2 / 3 });
+  });
+
+  it("is empty, not zero, before any match", () => {
+    const empty = metrics([]).chaos;
+    expect(empty.completion.value).toBeNull();
+    expect(empty.medianMinutes).toBeNull();
+    expect(empty.firstAction).toBeNull();
+    expect(empty.skipsPerMatch).toBeNull();
   });
 });

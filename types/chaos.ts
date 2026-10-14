@@ -1,4 +1,5 @@
 import type { Artifact } from "@/lib/chaos/artifact";
+import type { ChaosWrappedReport } from "@/lib/chaos/wrapped";
 import type { MatchPlan } from "@/lib/chaos/plan";
 import type { ScoreEntry } from "@/lib/chaos/scoring";
 import type { ChaosPhase } from "@/lib/chaos/state-machine";
@@ -16,6 +17,8 @@ export interface ChaosMatch {
   phaseStartedAt: string;
   startedAt: string;
   endedAt: string | null;
+  /** Frozen at the recap (null before, or on a database without migration 13). */
+  wrapped: ChaosWrappedReport | null;
 }
 
 export type ContributionPayload = { kind: "artifact"; artifact: Artifact } | { kind: "answer"; answer: ChaosAnswer };

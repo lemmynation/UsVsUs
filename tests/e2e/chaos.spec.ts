@@ -30,7 +30,7 @@ test("Duo Chaos: two phones draw, mutate, detect and see the reveal, then rematc
 
 test("Circle Chaos with 3: one player plays entirely by keyboard ('Describe instead')", async ({ browser }) => {
   test.setTimeout(240_000);
-  const { host, phones } = await chaosRoom(browser, "Circle", ["Ana", "Ben"]);
+  const { host, phones, roomId } = await chaosRoom(browser, "Circle", ["Ana", "Ben"]);
   await host.getByRole("button", { name: "Start Mutation Machine" }).click();
   await expect(phones[2].getByRole("heading", { name: /^Draw this:/ })).toBeVisible();
   await expectAccessible(phones[2]);
@@ -43,7 +43,17 @@ test("Circle Chaos with 3: one player plays entirely by keyboard ('Describe inst
   );
   await revealToRecap(host, phones);
   await expect(host.getByRole("list", { name: "Titles" }).getByRole("listitem")).toHaveCount(3);
-  await expectAccessible(host);
+  await expectAccessible(host); // the Group Wrapped, with share and feedback
+
+  // Group Wrapped: a share card for members, and a rating saved per player.
+  const card = await host.request.get(`/api/rooms/${roomId}/wrapped/image`);
+  expect(card.status()).toBe(200);
+  expect(card.headers()["content-type"]).toBe("image/png");
+  await expect(host.getByRole("link", { name: "Save image" })).toBeVisible();
+  await expect(host.getByRole("link", { name: "New room" })).toHaveAttribute("href", /game=chaos/);
+  const rate = phones[1].getByRole("group", { name: "How was the game?" });
+  await rate.getByRole("button", { name: /Loved it/ }).click();
+  await expect(rate.getByRole("button", { name: /Loved it/ })).toHaveAttribute("aria-pressed", "true");
 });
 
 test("Circle Chaos with 6: phones never receive other chains' work or answers before the reveal", async ({

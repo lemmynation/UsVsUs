@@ -13,15 +13,15 @@ import type { Mode } from "@/types/room";
 export const SHARE_CARD_SIZE = { width: 1080, height: 1920 } as const;
 
 /** sRGB versions of the app's mode accents (globals.css uses oklch, which Satori can't parse). */
-const MODE_COLORS: Record<Mode, [string, string]> = {
+export const MODE_COLORS: Record<Mode, [string, string]> = {
   couple: ["#ff6f9f", "#a65cf0"],
   friends: ["#58a6f2", "#7b5cf0"],
   circle: ["#f5a23d", "#a65cf0"],
 };
-const BG = "#1a1325";
-const CARD = "#271d36";
-const FG = "#f6f2fb";
-const MUTED = "#bbb1cc";
+export const BG = "#1a1325";
+export const CARD = "#271d36";
+export const FG = "#f6f2fb";
+export const MUTED = "#bbb1cc";
 
 const MAX_AWARD_ROWS = 5;
 /** Ties of more people than this read as "4-way tie" on the card. */
@@ -162,7 +162,7 @@ export function ShareCard({ report, site }: { report: WrappedReport; site: strin
   );
 }
 
-function Row({ left, right, highlight = false }: { left: string; right: string; highlight?: boolean }) {
+export function Row({ left, right, highlight = false }: { left: string; right: string; highlight?: boolean }) {
   return (
     <div
       style={{

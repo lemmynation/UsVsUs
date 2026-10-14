@@ -6,6 +6,7 @@
  */
 import type { ChaosContent } from "@/lib/chaos/content";
 import { spectatorView } from "@/lib/chaos/projections";
+import { chaosWrappedFor } from "@/lib/chaos/service";
 import { loadMembership, type MembershipError } from "@/lib/rooms/membership";
 import { activePlayers, effectiveStatus, isOnline, MODE_RULES, type Result } from "@/lib/rooms/rules";
 import type { RoomStore } from "@/lib/rooms/store";
@@ -58,14 +59,14 @@ export function createPartyService({ store, content, now, randomInt }: PartyServ
     if (status === "IN_GAME" || status === "WRAPPED") {
       const match = await store.getLatestChainMatch(room.id);
       if (match) {
-        const [contributions, scores] = await Promise.all([
+        const [contributions, wrapped] = await Promise.all([
           store.listContributions(match.id),
-          match.phase === "RECAP" ? store.listChainScores(match.id) : Promise.resolve([]),
+          match.phase === "RECAP" ? chaosWrappedFor({ store, content }, match, room, players) : Promise.resolve(null),
         ]);
         chaos = spectatorView({
           match,
           contributions: contributions as ChaosContribution[],
-          scores,
+          wrapped,
           activePlayerIds: new Set(active.map((p) => p.id)),
           content,
         });

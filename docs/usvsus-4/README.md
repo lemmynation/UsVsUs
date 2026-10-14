@@ -78,6 +78,17 @@ gate message. `npm run check`, the full Playwright suite on a production build, 
 - [x] Migrations 10 and 11 on **production** (approved and applied 13 Oct 2026)
 - [ ] Manual drawing check on a real iPhone and Android phone
 
+## Sprint 3 — so far
+
+Built ahead of the playtests (the second game waits for them):
+
+- **Metrics:** the Mutation Machine section on `/admin/metrics` (see deviation 5 below).
+- **Group Wrapped:** when a match reaches the recap, `chaosWrappedFor` (`lib/chaos/service.ts`) builds the
+  report from locked-in points and what the reveals showed, and freezes it on the match (migration 13). The
+  phone recap, the TV recap, the share card (`components/chaos/chaos-share-card.tsx`, same
+  `/api/rooms/<id>/wrapped/image` route) and the recap's feedback card all read it. Feedback is stored per
+  match with `game = mutation_machine`, and the dashboard averages each game separately.
+
 ## Sprint 1 — what was built, and where it differs from docs 03–12
 
 Built behind `CHAIN_REACTIONS=on` (off unless set; on for E2E). Migrations 10
@@ -99,4 +110,7 @@ Deviations found while building (the design docs describe the original intent):
 4. **Duo Chaos uses a Friends room** (2 players) and Circle Chaos a Circle room; the room's `experience`
    column decides which game runs. Quick Party refuses to start in a chaos room and vice versa; migration 11 makes
    the database refuse a quiz start in a chaos room too, even with the flag off.
-5. **Analytics:** the new events are recorded; the `/admin/metrics` tiles for them are not built yet.
+5. **Analytics:** the new events are recorded, and `/admin/metrics` has a Mutation Machine section (Sprint 3):
+   completion, match length, time to first action, player wait (median/p90, from `secondsTaken` on
+   `contribution_submitted`), skipped waits, drawing share, rematch rate and TV pairing. There is no
+   `chaos_step_started` event: step timing comes from `secondsTaken`. Prompt repetition isn't measured yet.

@@ -26,6 +26,24 @@ export interface Metrics {
     /** Live reactions sent per finished game. */
     reactionsPerGame: number | null;
   };
+  /** Mutation Machine (UsVsUs 4.2 doc 11): does a match finish, and does anyone sit idle? */
+  chaos: {
+    matchesStarted: number;
+    completion: Rate;
+    medianMinutes: number | null;
+    /** Seconds from a step opening to its first job coming in. */
+    firstAction: Spread | null;
+    /** Seconds from a step opening to each player's job coming in. */
+    playerWait: Spread | null;
+    /** Times the host skipped waiting, per started match. */
+    skipsPerMatch: number | null;
+    /** Drawings among the drawn or written contributions. */
+    drawingShare: Rate;
+    rematchRate: Rate;
+    /** Finished rooms that shared their Group Wrapped. */
+    shareRate: Rate;
+    tvPairing: Rate;
+  };
   health: {
     joinFailureRate: Rate;
     joinFailuresByReason: Array<{ reason: string; count: number }>;
@@ -44,6 +62,11 @@ export interface Metrics {
   };
 }
 
+export interface Spread {
+  median: number;
+  p90: number;
+}
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 const REPLAY_WINDOW_MS = 7 * DAY_MS;
 
@@ -58,6 +81,79 @@ export function percentile(sorted: number[], p: number): number {
   if (sorted.length === 0) return 0;
   const rank = Math.ceil((p / 100) * sorted.length);
   return sorted[Math.min(sorted.length, Math.max(1, rank)) - 1];
+}
+
+const spread = (values: number[]): Spread | null => {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  return { median: percentile(sorted, 50), p90: percentile(sorted, 90) };
+};
+
+/** Mutation Machine numbers. A room can hold several matches (rematches), so each event belongs to the
+ *  room's latest match started before it. */
+function chaosMetrics(inWindow: AnalyticsEvent[]): Metrics["chaos"] {
+  const named = (name: string) => inWindow.filter((e) => e.eventName === name);
+  const starts = named("chaos_match_started").filter((e) => e.roomId);
+  const startsByRoom = new Map<string, string[]>();
+  for (const e of starts) startsByRoom.set(e.roomId!, [...(startsByRoom.get(e.roomId!) ?? []), e.createdAt]);
+  for (const list of startsByRoom.values()) list.sort();
+  const matchStart = (e: AnalyticsEvent) =>
+    (startsByRoom.get(e.roomId ?? "") ?? []).filter((t) => t <= e.createdAt).at(-1);
+
+  const completions = named("chaos_match_completed");
+  const minutes = completions.flatMap((e) => {
+    const start = matchStart(e);
+    return start ? [(Date.parse(e.createdAt) - Date.parse(start)) / 60_000] : [];
+  });
+
+  const contributions = named("contribution_submitted");
+  const waits: number[] = [];
+  const firstByStep = new Map<string, number>();
+  for (const e of contributions) {
+    const seconds = Number(e.properties.secondsTaken);
+    const start = matchStart(e);
+    if (!Number.isFinite(seconds) || !start) continue; // recorded before secondsTaken existed
+    waits.push(seconds);
+    const key = `${e.roomId}|${start}|${String(e.properties.step)}`;
+    firstByStep.set(key, Math.min(firstByStep.get(key) ?? Infinity, seconds));
+  }
+
+  const drawings = contributions.filter((e) => e.properties.medium === "drawing").length;
+  const texts = contributions.filter((e) => e.properties.medium === "text").length;
+
+  const finishedRooms = new Map<string, string>();
+  for (const e of completions) {
+    if (!e.roomId) continue;
+    const prev = finishedRooms.get(e.roomId);
+    if (!prev || e.createdAt < prev) finishedRooms.set(e.roomId, e.createdAt);
+  }
+  const rematched = new Set(
+    named("rematch_started").flatMap((e) => {
+      const done = e.roomId ? finishedRooms.get(e.roomId) : undefined;
+      return done && e.createdAt >= done ? [e.roomId!] : [];
+    }),
+  );
+
+  return {
+    matchesStarted: starts.length,
+    completion: rate(completions.length, starts.length),
+    medianMinutes: minutes.length
+      ? percentile(
+          [...minutes].sort((a, b) => a - b),
+          50,
+        )
+      : null,
+    firstAction: spread([...firstByStep.values()]),
+    playerWait: spread(waits),
+    skipsPerMatch: starts.length ? named("chaos_step_skipped").length / starts.length : null,
+    drawingShare: rate(drawings, drawings + texts),
+    rematchRate: rate(rematched.size, finishedRooms.size),
+    shareRate: rate(
+      new Set(named("wrapped_shared").flatMap((e) => (e.roomId && finishedRooms.has(e.roomId) ? [e.roomId] : []))).size,
+      finishedRooms.size,
+    ),
+    tvPairing: rate(named("party_screen_pair_approved").length, named("party_screen_pair_requested").length),
+  };
 }
 
 export function computeMetrics(events: AnalyticsEvent[], window: { from: Date; now: Date }): Metrics {
@@ -75,7 +171,8 @@ export function computeMetrics(events: AnalyticsEvent[], window: { from: Date; n
   const created = roomsWith("room_created");
   const started = roomsWith("game_started");
   const completed = roomsWith("game_completed");
-  const shared = roomsWith("wrapped_shared");
+  // Mind Match rooms only: Mutation Machine shares are counted in its own section.
+  const shared = new Set([...roomsWith("wrapped_shared")].filter((id) => completed.has(id)));
   const viewedPremium = roomsWith("premium_pack_viewed");
   const paid = roomsWith("purchase_succeeded");
   const joins = named("player_joined").length;
@@ -180,6 +277,7 @@ export function computeMetrics(events: AnalyticsEvent[], window: { from: Date; n
       rematchRate: rate([...roomsWith("rematch_started")].filter((id) => completed.has(id)).length, completed.size),
       reactionsPerGame: completedGames > 0 ? named("reaction_sent").length / completedGames : null,
     },
+    chaos: chaosMetrics(inWindow),
     health: {
       joinFailureRate: rate(hardJoinFailures, hardJoinFailures + joins),
       joinFailuresByReason: [...byReason]
@@ -209,7 +307,15 @@ export interface FeedbackSummary {
   average: number | null;
   /** Counts for ratings 4, 3, 2, 1 (best first). */
   byRating: Array<{ rating: FeedbackRating; count: number }>;
-  recentComments: Array<{ rating: FeedbackRating; mode: string; comment: string; createdAt: string }>;
+  /** Count and average per game, for games with at least one rating. */
+  byGame: Array<{ game: FeedbackEntry["game"]; count: number; average: number }>;
+  recentComments: Array<{
+    rating: FeedbackRating;
+    mode: string;
+    game: FeedbackEntry["game"];
+    comment: string;
+    createdAt: string;
+  }>;
 }
 
 /** Beta feedback for the dashboard: rating spread, average and the latest comments. */
@@ -220,10 +326,16 @@ export function summarizeFeedback(entries: FeedbackEntry[], maxComments = 20): F
     count: entries.length,
     average: entries.length ? total / entries.length : null,
     byRating: ratings.map((rating) => ({ rating, count: entries.filter((e) => e.rating === rating).length })),
+    byGame: (["mind_match", "mutation_machine"] as const).flatMap((game) => {
+      const list = entries.filter((e) => e.game === game);
+      return list.length
+        ? [{ game, count: list.length, average: list.reduce((n, e) => n + e.rating, 0) / list.length }]
+        : [];
+    }),
     recentComments: entries
       .filter((e): e is FeedbackEntry & { comment: string } => !!e.comment)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .slice(0, maxComments)
-      .map(({ rating, mode, comment, createdAt }) => ({ rating, mode, comment, createdAt })),
+      .map(({ rating, mode, game, comment, createdAt }) => ({ rating, mode, game, comment, createdAt })),
   };
 }

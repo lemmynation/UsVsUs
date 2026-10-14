@@ -7,6 +7,7 @@ import type { PartyDisplay } from "@/types/party";
 import type { Payment } from "@/types/premium";
 import type { Player, Room } from "@/types/room";
 import { nextHost } from "./rules";
+import type { ChaosWrappedReport } from "@/lib/chaos/wrapped";
 import type { ChaosContribution, ChaosMatch, ChaosScoreEntry } from "@/types/chaos";
 import type { AnalyticsEvent, CleanupCutoffs, FeedbackEntry, RoomStore } from "./store";
 
@@ -38,7 +39,13 @@ export class MemoryRoomStore implements RoomStore {
   readonly events: AnalyticsEvent[] = [];
   private feedback = new Map<
     string,
-    FeedbackEntry & { roomId: string | null; sessionId: string | null; playerId: string | null; updatedAt: string }
+    FeedbackEntry & {
+      roomId: string | null;
+      sessionId: string | null;
+      chaosMatchId: string | null;
+      playerId: string | null;
+      updatedAt: string;
+    }
   >();
   private rateWindows = new Map<string, { count: number; resetAt: number }>();
   private displays = new Map<string, PartyDisplay>();
@@ -276,6 +283,7 @@ export class MemoryRoomStore implements RoomStore {
       phaseStartedAt: input.now,
       startedAt: input.now,
       endedAt: null,
+      wrapped: null,
     };
     this.chaosMatches.set(match.id, match);
     return structuredClone(match);
@@ -354,6 +362,13 @@ export class MemoryRoomStore implements RoomStore {
       );
       if (!exists) this.chaosScores.push({ ...entry, matchId });
     }
+  }
+
+  async saveChaosWrapped(matchId: string, report: ChaosWrappedReport) {
+    // Mirrors the SQL: the first report saved wins.
+    const match = this.chaosMatches.get(matchId);
+    if (match && !match.wrapped) match.wrapped = structuredClone(report);
+    return structuredClone(match?.wrapped ?? report);
   }
 
   async listChainScores(matchId: string) {
@@ -589,7 +604,8 @@ export class MemoryRoomStore implements RoomStore {
     }
     for (const e of this.events) if (e.roomId && goneRooms.has(e.roomId)) e.roomId = null;
     for (const f of this.feedback.values()) {
-      if (f.roomId && goneRooms.has(f.roomId)) Object.assign(f, { roomId: null, sessionId: null, playerId: null });
+      if (f.roomId && goneRooms.has(f.roomId))
+        Object.assign(f, { roomId: null, sessionId: null, chaosMatchId: null, playerId: null });
     }
 
     let history = 0;
@@ -643,11 +659,13 @@ export class MemoryRoomStore implements RoomStore {
   }
 
   async saveFeedback(input: Parameters<RoomStore["saveFeedback"]>[0]) {
-    const key = `${input.sessionId}:${input.playerId}`;
+    const key = `${input.sessionId ?? `chaos-${input.chaosMatchId}`}:${input.playerId}`;
     const existing = this.feedback.get(key);
     this.feedback.set(key, {
       roomId: input.roomId,
       sessionId: input.sessionId,
+      chaosMatchId: input.chaosMatchId ?? null,
+      game: input.chaosMatchId ? "mutation_machine" : "mind_match",
       playerId: input.playerId,
       mode: input.mode,
       rating: input.rating,
@@ -663,7 +681,7 @@ export class MemoryRoomStore implements RoomStore {
       .filter((f) => f.createdAt >= sinceIso)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .slice(0, limit)
-      .map(({ mode, rating, comment, createdAt }) => ({ mode, rating, comment, createdAt }));
+      .map(({ mode, game, rating, comment, createdAt }) => ({ mode, game, rating, comment, createdAt }));
   }
 
   // --- Party Screen (UsVsUs 4.2 Sprint 2) ---

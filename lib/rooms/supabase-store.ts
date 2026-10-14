@@ -16,11 +16,12 @@ import type {
 import type { MatchPlan } from "@/lib/chaos/plan";
 import type { ScoreReason } from "@/lib/chaos/scoring";
 import type { ChaosPhase } from "@/lib/chaos/state-machine";
+import type { ChaosWrappedReport } from "@/lib/chaos/wrapped";
 import type { ChaosMatch, ChaosScoreEntry, ContributionPayload } from "@/types/chaos";
 import type { DisplayStatus, PartyDisplay } from "@/types/party";
 import type { Payment, PaymentProviderName, PaymentStatus } from "@/types/premium";
 import type { Experience, Mode, Player, PlayerStatus, Room, RoomStatus } from "@/types/room";
-import type { AnalyticsEvent, CleanupCutoffs, CleanupResult, FeedbackRating, RoomStore } from "./store";
+import type { AnalyticsEvent, CleanupCutoffs, CleanupResult, FeedbackEntry, FeedbackRating, RoomStore } from "./store";
 
 interface RoomRow {
   id: string;
@@ -59,6 +60,8 @@ interface ChaosMatchRow {
   phase_started_at: string;
   started_at: string;
   ended_at: string | null;
+  /** Missing on a database without migration 13. */
+  wrapped?: ChaosWrappedReport | null;
 }
 
 interface ChaosContributionRow {
@@ -83,6 +86,7 @@ const toChaosMatch = (r: ChaosMatchRow): ChaosMatch => ({
   phaseStartedAt: r.phase_started_at,
   startedAt: r.started_at,
   endedAt: r.ended_at,
+  wrapped: r.wrapped ?? null,
 });
 
 interface DisplayRow {
@@ -727,6 +731,7 @@ export class SupabaseRoomStore implements RoomStore {
       {
         room_id: input.roomId,
         game_session_id: input.sessionId,
+        ...(input.chaosMatchId ? { chaos_match_id: input.chaosMatchId, game: "mutation_machine" } : {}),
         player_id: input.playerId,
         mode: input.mode,
         rating: input.rating,
@@ -735,7 +740,7 @@ export class SupabaseRoomStore implements RoomStore {
         ...(input.comment !== null ? { comment: input.comment } : {}),
         updated_at: input.now,
       },
-      { onConflict: "game_session_id,player_id" },
+      { onConflict: input.chaosMatchId ? "chaos_match_id,player_id" : "game_session_id,player_id" },
     );
     check(error, "saveFeedback");
   }
@@ -743,14 +748,20 @@ export class SupabaseRoomStore implements RoomStore {
   async listFeedback(sinceIso: string, limit: number) {
     const { data, error } = await this.db
       .from("feedback")
-      .select("mode, rating, comment, created_at")
+      // "*", not a column list: `game` only exists from migration 13.
+      .select("*")
       .gte("created_at", sinceIso)
       .order("created_at", { ascending: false })
       .limit(Math.min(limit, 1000));
     check(error, "listFeedback");
-    return (data as Array<{ mode: Mode; rating: FeedbackRating; comment: string | null; created_at: string }>).map(
-      (r) => ({ mode: r.mode, rating: r.rating, comment: r.comment, createdAt: new Date(r.created_at).toISOString() }),
-    );
+    type Row = { mode: Mode; rating: FeedbackRating; comment: string | null; created_at: string };
+    return (data as Array<Row & { game?: FeedbackEntry["game"] }>).map((r) => ({
+      mode: r.mode,
+      game: r.game ?? "mind_match",
+      rating: r.rating,
+      comment: r.comment,
+      createdAt: new Date(r.created_at).toISOString(),
+    }));
   }
   // --- Party Screen (UsVsUs 4.2 Sprint 2) ---
 
@@ -905,6 +916,12 @@ export class SupabaseRoomStore implements RoomStore {
     if (entries.length === 0) return;
     const { error } = await this.db.rpc("record_chain_scores", { p_match_id: matchId, p_entries: entries });
     check(error, "record_chain_scores");
+  }
+
+  async saveChaosWrapped(matchId: string, report: ChaosWrappedReport) {
+    const { data, error } = await this.db.rpc("save_chaos_wrapped", { p_match_id: matchId, p_report: report });
+    check(error, "save_chaos_wrapped");
+    return (data as ChaosWrappedReport | null) ?? report;
   }
 
   async listChainScores(matchId: string) {

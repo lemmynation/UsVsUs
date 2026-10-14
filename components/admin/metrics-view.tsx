@@ -1,8 +1,10 @@
-import type { FeedbackSummary, Metrics, Rate } from "@/lib/analytics/metrics";
+import type { FeedbackSummary, Metrics, Rate, Spread } from "@/lib/analytics/metrics";
 import { cn } from "@/lib/utils";
 
 const pct = (r: Rate) => (r.value === null ? "—" : `${Math.round(r.value * 100)}%`);
 const ofTotal = (r: Rate) => (r.denominator === 0 ? "no data yet" : `${r.numerator} of ${r.denominator}`);
+const seconds = (s: Spread | null) => (s === null ? "—" : `${Math.round(s.median)}s`);
+const p90 = (s: Spread | null) => (s === null ? "no data yet" : `p90 ${Math.round(s.p90)}s`);
 const when = (iso: string) =>
   new Date(iso).toLocaleString("en-PH", {
     timeZone: "Asia/Manila", // the server runs in UTC
@@ -14,7 +16,7 @@ const when = (iso: string) =>
 
 /** The §14 dashboard: decision metrics, funnel, technical health, recent errors. */
 export function MetricsView({ metrics }: { metrics: Metrics }) {
-  const { decision, funnel, health } = metrics;
+  const { decision, funnel, health, chaos } = metrics;
   const top = Math.max(1, ...funnel.map((f) => f.count));
 
   return (
@@ -29,7 +31,7 @@ export function MetricsView({ metrics }: { metrics: Metrics }) {
           />
           <Stat
             label="Completion"
-            hint="Started games that reached Wrapped"
+            hint="Started Mind Match games that reached Wrapped"
             value={pct(decision.completion)}
             detail={ofTotal(decision.completion)}
           />
@@ -68,6 +70,66 @@ export function MetricsView({ metrics }: { metrics: Metrics }) {
             hint="Live emoji sent per finished game"
             value={decision.reactionsPerGame === null ? "—" : decision.reactionsPerGame.toFixed(1)}
             detail="reactions"
+          />
+        </div>
+      </Section>
+
+      <Section title="Mutation Machine">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <Stat
+            label="Completion"
+            hint="Started matches that reached the recap"
+            value={pct(chaos.completion)}
+            detail={ofTotal(chaos.completion)}
+          />
+          <Stat
+            label="Match length"
+            hint="Median, start to recap"
+            value={chaos.medianMinutes === null ? "—" : `${Math.round(chaos.medianMinutes)} min`}
+            detail={`${chaos.matchesStarted} started`}
+          />
+          <Stat
+            label="First action"
+            hint="Median seconds from a step opening to its first job"
+            value={seconds(chaos.firstAction)}
+            detail={p90(chaos.firstAction)}
+          />
+          <Stat
+            label="Player wait"
+            hint="Median seconds from a step opening to each player's job"
+            value={seconds(chaos.playerWait)}
+            detail={p90(chaos.playerWait)}
+            warn={(chaos.playerWait?.p90 ?? 0) > 90}
+          />
+          <Stat
+            label="Skipped waits"
+            hint="Times the host skipped a slow player, per match"
+            value={chaos.skipsPerMatch === null ? "—" : chaos.skipsPerMatch.toFixed(1)}
+            detail="per match"
+          />
+          <Stat
+            label="Drawings"
+            hint="Share drawn rather than written"
+            value={pct(chaos.drawingShare)}
+            detail={ofTotal(chaos.drawingShare)}
+          />
+          <Stat
+            label="Rematch rate"
+            hint="Finished rooms that played again"
+            value={pct(chaos.rematchRate)}
+            detail={ofTotal(chaos.rematchRate)}
+          />
+          <Stat
+            label="Share rate"
+            hint="Finished rooms that shared their Wrapped"
+            value={pct(chaos.shareRate)}
+            detail={ofTotal(chaos.shareRate)}
+          />
+          <Stat
+            label="TV pairing"
+            hint="TV codes shown that a host approved"
+            value={pct(chaos.tvPairing)}
+            detail={ofTotal(chaos.tvPairing)}
           />
         </div>
       </Section>
@@ -230,6 +292,8 @@ function Stat({
   );
 }
 
+const GAME_LABELS = { mind_match: "Mind Match", mutation_machine: "Mutation Machine" } as const;
+
 const RATING_LABELS: Record<number, string> = {
   4: "😍 Loved it",
   3: "🙂 Liked it",
@@ -250,6 +314,11 @@ export function FeedbackView({ feedback }: { feedback: FeedbackSummary }) {
             <span className="font-heading text-2xl font-extrabold tabular-nums">{feedback.average!.toFixed(1)}</span>
             <span className="text-muted-foreground"> / 4 average from {feedback.count} ratings</span>
           </p>
+          {feedback.byGame.length > 1 && (
+            <p className="text-muted-foreground text-sm">
+              {feedback.byGame.map((g) => `${GAME_LABELS[g.game]} ${g.average.toFixed(1)} (${g.count})`).join(" · ")}
+            </p>
+          )}
           <ul className="flex flex-col gap-2">
             {feedback.byRating.map((r) => (
               <li key={r.rating} className="flex flex-col gap-1">
@@ -269,7 +338,7 @@ export function FeedbackView({ feedback }: { feedback: FeedbackSummary }) {
                 <li key={`${c.createdAt}|${c.comment}`} className="bg-card rounded-xl p-3 text-sm">
                   <div className="text-muted-foreground flex justify-between gap-3 text-xs">
                     <span>
-                      {RATING_LABELS[c.rating]} · {c.mode}
+                      {RATING_LABELS[c.rating]} · {GAME_LABELS[c.game]} · {c.mode}
                     </span>
                     <span>{when(c.createdAt)}</span>
                   </div>
