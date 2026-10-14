@@ -57,7 +57,7 @@ test("New room after a game opens a fresh room in the same mode", async ({ brows
   guests[0].on("dialog", (d) => void d.accept());
   await guests[0].getByRole("button", { name: "Leave game" }).click();
   await host.getByRole("link", { name: "New room" }).click();
-  await expect(host).toHaveURL(/\/create\?mode=couple$/);
+  await expect(host).toHaveURL(/\/create\?game=quiz&mode=couple$/);
   // The host's earlier create page is kept alive by Next: it must come back usable, not stuck on "Creating…".
   await host.getByLabel("Your nickname").fill("Lem");
   await host.getByRole("button", { name: "Create Couple room" }).click();

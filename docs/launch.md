@@ -12,7 +12,7 @@ account.
 | Metrics dashboard    | https://us-vs-us-chi.vercel.app/admin/metrics (log in with `ADMIN_TOKEN`)                   |
 | Hosting              | Vercel project `us-vs-us` (team lemmynation), server region `sin1`                          |
 | Production database  | Supabase project **UsVsUs Production** (`cporfhqqcsxovjebzmiv`), Southeast Asia (Singapore) |
-| Development database | Supabase project **UsVsUs** (used by `npm run dev` through `.env.local`)                    |
+| Development database | None: Supabase project **UsVsUs** is paused; `npm run dev` and E2E use in-memory rooms    |
 | Production settings  | `.env.vercel-production` on your computer (git-ignored; never commit or share it)           |
 
 `.env.vercel-production` is deliberately **not** called `.env.production.local`: Next.js loads that name
@@ -26,9 +26,12 @@ node --env-file=.env.vercel-production scripts/check-db.mjs
 
 ## Everyday: shipping a change
 
-1. Merge to `main` after CI is green. Vercel deploys `main` to production on its own.
-2. If the change has a new migration, run it in the production Supabase project (step 2 below). The old
+1. If the change has a new migration, run it in the production Supabase project (step 2 below) **before
+   merging**: migrations are additive, so the running site doesn't mind, but code merged ahead of its
+   migration breaks the moment Vercel deploys it. Then run `scripts/check-db.mjs` (it checks every table,
+   added column and server function the migrations define) and expect "Database is ready". The old
    development project ("UsVsUs") is paused for good; production is the only database.
+2. Merge to `main` after CI is green. Vercel deploys `main` to production on its own.
 3. If questions changed, run `scripts/seed-questions.mjs` against production.
 4. Check the live site:
 
