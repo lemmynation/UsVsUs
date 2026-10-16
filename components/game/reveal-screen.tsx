@@ -46,7 +46,14 @@ export function RevealScreen(props: GameScreenProps) {
     body = (
       <ul className="flex flex-col gap-3" aria-label="Answers">
         {(reveal.answers ?? []).map(({ playerId, answer }, i) => (
-          <ResultCard key={playerId} playerId={playerId} names={names} points={reveal.points[playerId]} delay={i}>
+          <ResultCard
+            key={playerId}
+            playerId={playerId}
+            names={names}
+            points={reveal.points[playerId]}
+            skipped={answer.skipped}
+            delay={i}
+          >
             {answer.skipped ? (
               "Skipped"
             ) : (
@@ -63,7 +70,14 @@ export function RevealScreen(props: GameScreenProps) {
     body = (
       <ul className="flex flex-col gap-3" aria-label="Votes">
         {(reveal.answers ?? []).map(({ playerId, answer }, i) => (
-          <ResultCard key={playerId} playerId={playerId} names={names} points={reveal.points[playerId]} delay={i}>
+          <ResultCard
+            key={playerId}
+            playerId={playerId}
+            names={names}
+            points={reveal.points[playerId]}
+            skipped={answer.skipped}
+            delay={i}
+          >
             {answer.skipped ? (
               "Skipped"
             ) : (
@@ -121,6 +135,7 @@ function ResultCard({
   names,
   points,
   showPoints = true,
+  skipped = false,
   delay,
   children,
 }: {
@@ -129,17 +144,20 @@ function ResultCard({
   points: number | undefined;
   /** False for the Mind Reader subject, who can't score on their own question. */
   showPoints?: boolean;
+  /** Skipped answers get no verdict stamp. */
+  skipped?: boolean;
   delay: number;
   children: React.ReactNode;
 }) {
   return (
     <li
       className={cn(
-        "animate-in fade-in slide-in-from-bottom-4 fill-mode-both flex items-center gap-3 rounded-3xl border-2 p-4 duration-500",
+        "animate-in fade-in slide-in-from-bottom-4 fill-mode-both relative flex items-center gap-3 rounded-3xl border-2 p-4 duration-500",
         points ? "border-mode-gradient" : "bg-card border-border",
       )}
       style={{ animationDelay: `${150 + delay * 200}ms` }}
     >
+      {showPoints && !skipped && <VerdictStamp hit={!!points} delayMs={550 + delay * 200} />}
       <PlayerAvatar nickname={names.nicknameOf(playerId)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="text-lg font-bold">{names.labelOf(playerId)}</span>
@@ -147,6 +165,22 @@ function ResultCard({
       </div>
       {showPoints && <PointsBadge points={points} />}
     </li>
+  );
+}
+
+/** "Nailed it" / "Missed" thuds onto the card corner once the card has landed. */
+function VerdictStamp({ hit, delayMs }: { hit: boolean; delayMs: number }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "stamp-in absolute -top-3 right-4 rounded-lg border-2 border-(--us-ink) px-2 py-0.5 text-xs font-extrabold tracking-wide text-(--us-ink) uppercase shadow-[2px_2px_0_0_var(--us-ink)]",
+        hit ? "bg-(--us-yellow)" : "bg-white",
+      )}
+      style={{ animationDelay: `${delayMs}ms` }}
+    >
+      {hit ? "✓ Nailed it" : "✗ Missed"}
+    </span>
   );
 }
 
@@ -187,6 +221,7 @@ function MindReaderResult({
           playerId={playerId}
           names={names}
           points={game.reveal!.points[playerId]}
+          skipped={answer.skipped}
           delay={i + 1}
         >
           Guessed <strong>{describe(answer)}</strong>

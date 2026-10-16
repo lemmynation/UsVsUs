@@ -9,9 +9,8 @@ test("join by typing the code, with a taken nickname caught first", async ({ bro
   const { host, code } = await lobby(browser, "Friends", []);
   const guest = await newPlayer(browser);
   await guest.goto("/");
-  await guest.getByRole("link", { name: "Join with code" }).click();
   await guest.getByLabel("Room code").fill(code.toLowerCase()); // case doesn't matter
-  await guest.getByRole("button", { name: "Find room" }).click();
+  await guest.getByRole("button", { name: "Join", exact: true }).click();
   await expect(guest).toHaveURL(new RegExp(`/join/${code}$`));
   await expect(guest.getByText("Lem", { exact: true })).toBeVisible(); // "Lem invited you to"
 
