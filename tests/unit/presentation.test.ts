@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatNames, revealHeadline, roundRules, tallyAnswers } from "@/lib/game/presentation";
+import { clashSides, formatNames, revealHeadline, roundRules, tallyAnswers } from "@/lib/game/presentation";
 import type { PlayerAnswer, QuestionReveal } from "@/types/game";
 import type { Mode } from "@/types/room";
 
@@ -110,5 +110,27 @@ describe("formatNames", () => {
   it("collapses big ties when asked", () => {
     expect(formatNames(["Lem", "Ana", "Ben", "Cy"], 3)).toBe("4-way tie");
     expect(formatNames(["Lem", "Ana", "Ben"], 3)).toBe("Lem, Ana & Ben");
+  });
+});
+
+describe("clashSides", () => {
+  const players = [
+    { id: "p0", nickname: "Lem" },
+    { id: "p1", nickname: "Ana" },
+    { id: "p2", nickname: "Ben" },
+  ];
+
+  it("puts you against your partner in 2-player modes", () => {
+    expect(clashSides("couple", players.slice(0, 2), "p0")).toEqual(["You", "Ana"]);
+    expect(clashSides("friends", players.slice(0, 2), "p1")).toEqual(["You", "Lem"]);
+  });
+
+  it("falls back when the partner has left", () => {
+    expect(clashSides("couple", players.slice(0, 1), "p0")).toEqual(["You", "Your partner"]);
+  });
+
+  it("puts you against everyone else in a Circle", () => {
+    expect(clashSides("circle", players, "p2")).toEqual(["You", "2 others"]);
+    expect(clashSides("circle", players.slice(0, 2), "p0")).toEqual(["You", "1 other"]);
   });
 });

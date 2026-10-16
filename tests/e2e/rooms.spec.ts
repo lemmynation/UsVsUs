@@ -100,9 +100,13 @@ test("refreshing keeps you in the room", async ({ browser }) => {
 });
 
 test("join with code: rejects malformed and unknown codes", async ({ page }) => {
+  // The home page's code box, then the /join page.
   await page.goto("/");
-  await page.getByRole("link", { name: "Join with code" }).click();
+  await page.getByLabel("Room code").fill("abc");
+  await page.getByRole("button", { name: "Join", exact: true }).click();
+  await expect(page.getByText(/Room codes are 6 letters and numbers/)).toBeVisible();
 
+  await page.goto("/join");
   await page.getByLabel("Room code").fill("abc");
   await page.getByRole("button", { name: "Find room" }).click();
   await expect(page.getByText(/Room codes are 6 letters and numbers/)).toBeVisible();

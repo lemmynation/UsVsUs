@@ -1,3 +1,4 @@
+import { POINTS } from "@/lib/game/scoring";
 import { GAME_CONFIG } from "@/lib/game/state-machine";
 import { MODE_RULES } from "@/lib/rooms/rules";
 import type { Experience, Mode } from "@/types/room";
@@ -123,3 +124,26 @@ export const createHref = (game: GameKey, mode?: Mode) =>
 
 export const audienceFor = (game: GameKey, mode: Mode): Audience =>
   GAMES[game].audiences.find((a) => a.mode === mode) ?? GAMES.quiz.audiences.find((a) => a.mode === mode)!;
+
+/**
+ * The looping demo at the top of the home page: one Mind Reader question, a miss,
+ * then a match. Points come from the real table so the demo can't drift from the rules.
+ */
+export const HOME_DEMO = {
+  question: "What would Ana order at a milk tea shop?",
+  subject: "Ana",
+  answer: "Taro milk tea 🥤",
+  guesser: "Ben",
+  miss: "Matcha latte 🍵",
+  missPoints: 0,
+  matchPoints: POINTS.mindReaderCorrect,
+};
+
+/** "Perfect for" chips on the home page. */
+export const OCCASIONS = [
+  { label: "Date night", emoji: "💕" },
+  { label: "Group chat", emoji: "💬" },
+  { label: "Family dinner", emoji: "🍝" },
+  { label: "Road trip", emoji: "🚗" },
+  { label: "Barkada night", emoji: "🎉" },
+];

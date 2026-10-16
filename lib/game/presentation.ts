@@ -147,3 +147,17 @@ function groupPickHeadline(answers: Array<{ answer: PlayerAnswer }>, options: Qu
   if (leaders.length > 1) return "Perfect split! ⚖️";
   return `Most of you picked ${options.find((o) => o.id === leaders[0][0])?.label ?? "the same thing"}`;
 }
+
+/**
+ * The round intro's face-off. 2-player modes: you vs. your partner. Circle: you vs.
+ * everyone else. Nicknames only (the lobby already shows them to every member).
+ */
+export function clashSides(
+  mode: Mode,
+  players: Array<{ id: string; nickname: string }>,
+  meId: string,
+): [string, string] {
+  const others = players.filter((p) => p.id !== meId);
+  if (isTwoPlayer(mode)) return ["You", others[0]?.nickname ?? "Your partner"];
+  return ["You", others.length === 1 ? "1 other" : `${others.length} others`];
+}

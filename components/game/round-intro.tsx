@@ -2,6 +2,7 @@ import { GAME_TYPE_META, roundRules } from "@/lib/game/presentation";
 import { findPack } from "@/lib/premium/catalog";
 import { HostAdvance } from "./host-button";
 import type { GameScreenProps } from "./types";
+import { VersusClash } from "./versus-clash";
 
 /** S06: round title, one-line rules, progress. */
 export function RoundIntro(props: GameScreenProps) {
@@ -19,6 +20,7 @@ export function RoundIntro(props: GameScreenProps) {
         <p className="text-muted-foreground text-lg font-semibold">
           Round {game.roundIndex + 1} of {game.roundCount}
         </p>
+        <VersusClash view={props.view} />
         <span aria-hidden className="text-7xl">
           {meta.emoji}
         </span>
