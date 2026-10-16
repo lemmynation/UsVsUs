@@ -28,9 +28,17 @@ console.log(`Target: ${new URL(url).host}\n`);
 // Tables and functions, as the migrations define them (latest definition wins).
 const tables = new Set();
 const functions = {};
+const addedColumns = new Map();
 for (const file of readdirSync("supabase/migrations").sort()) {
   const sql = readFileSync(`supabase/migrations/${file}`, "utf8");
   for (const m of sql.matchAll(/create table (?:if not exists )?([a-z_]+)/g)) tables.add(m[1]);
+  // Columns added to existing tables: a merged branch whose migration never ran shows up here.
+  for (const m of sql.matchAll(/alter table (?:if exists )?([a-z_]+) add column (?:if not exists )?([a-z_]+)/g)) {
+    addedColumns.set(`${m[1]}.${m[2]}`, [m[1], m[2]]);
+  }
+  for (const m of sql.matchAll(/alter table (?:if exists )?([a-z_]+) drop column (?:if exists )?([a-z_]+)/g)) {
+    addedColumns.delete(`${m[1]}.${m[2]}`);
+  }
   for (const m of sql.matchAll(/create (?:or replace )?function ([a-z_]+)\(([\s\S]*?)\)\s*returns/g)) {
     functions[m[1]] = [...m[2].matchAll(/(p_[a-z_]+)/g)].map((x) => x[1]);
   }
@@ -43,6 +51,13 @@ for (const t of tables) {
   if (error) missingTables.push(t);
 }
 check(`all ${tables.size} tables exist`, missingTables.length === 0, missingTables.join(", "));
+
+const missingColumns = [];
+for (const [key, [table, column]] of addedColumns) {
+  const { error } = await admin.from(table).select(column).limit(1);
+  if (error) missingColumns.push(key);
+}
+check(`all ${addedColumns.size} added columns exist`, missingColumns.length === 0, missingColumns.join(", "));
 
 const used = [
   ...new Set([...readFileSync("lib/rooms/supabase-store.ts", "utf8").matchAll(/rpc\("([a-z_]+)"/g)].map((m) => m[1])),

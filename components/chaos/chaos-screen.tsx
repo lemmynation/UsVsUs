@@ -101,6 +101,11 @@ function StepHeader({ chaos, refresh }: { chaos: ChaosPlayerView; refresh?: () =
 function JobScreen({ view, act, pending, refresh, job }: ChaosScreenProps & { job: ChaosJob }) {
   const { chaos, room } = view;
   const detectJobs = chaos.myJobs.filter((j) => j.kind === "detect");
+  // A new job opens where the last one was submitted (the bottom of a tall drawing screen),
+  // which would hide its instructions, like the secret mutation. Start each one at the top.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const submit = (body: Record<string, unknown>) =>
     act("answer", `/api/rooms/${room.id}/chaos/submit`, {
       step: chaos.step!.index,
