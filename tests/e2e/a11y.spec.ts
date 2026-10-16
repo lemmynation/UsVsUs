@@ -43,6 +43,8 @@ test("in-game screens have no serious accessibility problems", async ({ browser 
   await host.getByRole("button", { name: "Start round" }).click();
   await expect(options(host).first()).toBeVisible();
   await expectAccessible(host); // question
+  // The guest's phone can still be on the round intro: scan its question, not the switch-over.
+  await expect(options(guests[0]).first()).toBeVisible();
   await expectAccessible(guests[0]);
 
   await options(host).first().click();
