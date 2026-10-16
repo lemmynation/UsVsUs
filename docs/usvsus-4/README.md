@@ -76,7 +76,11 @@ gate message. `npm run check`, the full Playwright suite on a production build, 
 - [x] Migration 10 on the **dev** database (12 Oct 2026), then a live dev E2E run (42/42)
 - [x] Migration 11 (quiz start guard) on the **dev** database (12 Oct 2026)
 - [x] Migrations 10 and 11 on **production** (approved and applied 13 Oct 2026)
+- [x] Migration 12 (party screen) on **production** (13 Oct 2026)
+- [x] Migration 13 (chaos wrapped) on **production** (14 Oct 2026)
 - [ ] Manual drawing check on a real iPhone and Android phone
+- [ ] Sprint 2 gate: 6 phones + 1 TV complete a match
+- [ ] Sprint 3 gate: 10-player test without long idle waits
 
 ## Sprint 3 — so far
 
